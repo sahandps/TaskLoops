@@ -1,0 +1,9 @@
+{
+  "id": "taskloops",
+  "name": "TaskLoops",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Collects #task lines from anywhere in your vault into a sidebar inbox and walks them through the GTD clarify flow. Never touches note properties.",
+  "author": "Sahand Poursadeghi Khiavi",
+  "isDesktopOnly": false
+}

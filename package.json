@@ -1,0 +1,30 @@
+{
+  "name": "taskloops",
+  "version": "0.1.0",
+  "description": "An Obsidian plugin that collects #task lines into a sidebar GTD inbox and closes open loops.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "deploy": "npm run build && node deploy.mjs",
+    "test": "node test/run.mjs",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "gtd",
+    "tasks",
+    "productivity"
+  ],
+  "author": "Sahand Poursadeghi Khiavi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "0.20.2",
+    "obsidian": "latest",
+    "tslib": "2.6.2",
+    "typescript": "5.4.5"
+  }
+}
