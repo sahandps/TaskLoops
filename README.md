@@ -178,14 +178,25 @@ npm run deploy   # build, then copy into a vault
 
 Source layout:
 
-| File | Contains |
-| --- | --- |
-| `main.ts` | Plugin lifecycle, state, reconciliation, settings |
-| `scanner.ts` | Finding tagged lines, identity, the single write path |
-| `view.ts` | Sidebar, clarify wizard, drag and drop |
-| `modals.ts` | Folder, project, task and date pickers |
-| `types.ts` | Buckets and stored shapes |
-| `test/` | Node test suite over `scanner.ts` |
+```
+src/
+├── main.ts       plugin lifecycle, state, reconciliation, filing actions
+├── scanner.ts    finding tagged lines, identity, the one write path
+├── view.ts       sidebar: tabs, lists, cards, projects, drag and drop
+├── wizard.ts     the GTD clarify flow
+├── modals.ts     folder, project, task and date pickers
+├── settings.ts   settings pane
+├── types.ts      buckets, stored shapes, defaults
+├── dates.ts      calendar-day helpers
+└── text.ts       string helpers
+scripts/          build tooling: deploy, version bump
+test/             node test suite over scanner.ts
+```
+
+`main.js` is built to the repository root, because that is where Obsidian loads
+it from and where the release workflow picks it up. `styles.css` and
+`manifest.json` stay at the root for the same reason — they ship verbatim rather
+than being compiled.
 
 The tests cover the risky parts: which lines count as tasks, how identity is
 derived, how indentation implies a parent, and that marking a line is idempotent
@@ -236,6 +247,12 @@ adding an entry to `community-plugins.json`:
 	"repo": "sahandps/TaskLoops"
 }
 ```
+
+## Support
+
+If TaskLoops is useful to you, you can
+[buy me a coffee](https://buymeacoffee.com/sahandprs). Entirely optional — the
+plugin is free and always will be.
 
 ## License
 

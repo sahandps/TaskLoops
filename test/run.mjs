@@ -14,7 +14,7 @@ const root = join(here, "..");
 const bundle = join(here, ".bundle.mjs");
 
 await esbuild.build({
-	entryPoints: [join(root, "scanner.ts")],
+	entryPoints: [join(root, "src", "scanner.ts")],
 	bundle: true,
 	format: "esm",
 	outfile: bundle,

@@ -6,5 +6,6 @@
 	"description": "Collects tagged task lines from across your vault into a sidebar inbox, sorts them with the GTD method, and flags projects that have stalled.",
 	"author": "Sahand Poursadeghi Khiavi",
 	"authorUrl": "https://github.com/sahandps",
+	"fundingUrl": "https://buymeacoffee.com/sahandprs",
 	"isDesktopOnly": false
 }

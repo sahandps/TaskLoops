@@ -7,62 +7,20 @@ import {
 	ProjectPicker,
 	TaskPicker,
 	TextPromptModal,
-	todayISO,
 } from "./modals";
+import {
+	DUE_GROUP_ORDER,
+	daysUntil,
+	dueGroup,
+	formatDue,
+	todayISO,
+} from "./dates";
+import { truncate } from "./text";
+import { Wizard, WizardHost, renderWizard } from "./wizard";
 
 export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
 
-type Step =
-	| "actionable"
-	| "nonactionable"
-	| "twomin"
-	| "kind"
-	| "context"
-	| "delegate"
-	| "schedule"
-	| "project";
-
-type FilePatch = Parameters<TaskLoopsPlugin["file"]>[1];
-
-interface Wizard {
-	step: Step;
-	history: Step[];
-	draft: { waitingFor?: string; due?: string; pending?: FilePatch };
-}
-
-function daysUntil(iso: string): number {
-	const today = new Date(todayISO() + "T00:00:00");
-	const target = new Date(iso + "T00:00:00");
-	return Math.round((target.getTime() - today.getTime()) / 86400000);
-}
-
-function dueGroup(iso?: string): string {
-	if (!iso) return "No date";
-	const d = daysUntil(iso);
-	if (d < 0) return "Overdue";
-	if (d === 0) return "Today";
-	if (d === 1) return "Tomorrow";
-	if (d <= 7) return "This week";
-	return "Later";
-}
-
-function formatDue(iso: string): string {
-	const d = daysUntil(iso);
-	if (d === 0) return "today";
-	if (d === 1) return "tomorrow";
-	if (d === -1) return "yesterday";
-	if (d < 0) return `${-d}d overdue`;
-	return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
-		month: "short",
-		day: "numeric",
-	});
-}
-
-function truncate(s: string, n: number): string {
-	return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
-}
-
-export class TaskLoopsView extends ItemView {
+export class TaskLoopsView extends ItemView implements WizardHost {
 	plugin: TaskLoopsPlugin;
 	private active: Bucket | "done";
 	private wizards = new Map<string, Wizard>();
@@ -99,6 +57,16 @@ export class TaskLoopsView extends ItemView {
 
 	async onClose(): Promise<void> {
 		this.wizards.clear();
+	}
+
+	/** WizardHost: redraw the panel. */
+	rerender(): void {
+		this.render();
+	}
+
+	/** WizardHost: forget an in-progress clarification. */
+	cancelWizard(id: string): void {
+		this.wizards.delete(id);
 	}
 
 	show(bucket: Bucket | "done"): void {
@@ -501,14 +469,7 @@ export class TaskLoopsView extends ItemView {
 			return by((t) => t.item.waitingFor || "Unassigned");
 		}
 		if (this.active === "scheduled") {
-			return by((t) => dueGroup(t.item.due), [
-				"Overdue",
-				"Today",
-				"Tomorrow",
-				"This week",
-				"Later",
-				"No date",
-			]);
+			return by((t) => dueGroup(t.item.due), DUE_GROUP_ORDER);
 		}
 		return [[null, tasks]];
 	}
@@ -767,7 +728,7 @@ export class TaskLoopsView extends ItemView {
 
 		if (this.active === "inbox" && !opts.nested) {
 			if (wizard) {
-				this.renderWizard(card, task, wizard);
+				renderWizard(this, card, task, wizard);
 			} else {
 				const start = tools.createEl("button", {
 					cls: "tl-icon-btn is-primary",
@@ -794,214 +755,6 @@ export class TaskLoopsView extends ItemView {
 			allowClear: !!task.item.due,
 			onPick: (iso) => void this.plugin.setDue(task, iso),
 		}).open();
-	}
-
-	// ---------------------------------------------------------------- wizard
-
-	private renderWizard(card: HTMLElement, task: JoinedTask, w: Wizard): void {
-		const box = card.createDiv("tl-wizard");
-
-		const go = (step: Step) => {
-			w.history.push(w.step);
-			w.step = step;
-			this.render();
-		};
-
-		const file = (patch: FilePatch) => {
-			this.wizards.delete(task.id);
-			void this.plugin.file(task, patch);
-		};
-
-		/**
-		 * File it, unless there are projects it could belong to and nothing has
-		 * said which. Indentation counts as having said, so an outline never
-		 * gets asked.
-		 */
-		const finish = (patch: FilePatch) => {
-			const projects = this.plugin.projects(this.plugin.joined());
-			const askable =
-				projects.length > 0 && !task.projectUid && patch.bucket !== "project";
-			if (!askable) {
-				file(patch);
-				return;
-			}
-			w.draft.pending = patch;
-			go("project");
-		};
-
-		const nav = box.createDiv("tl-wizard-nav");
-		if (w.history.length > 0) {
-			const back = nav.createEl("button", { cls: "tl-link", text: "← Back" });
-			back.onclick = () => {
-				w.step = w.history.pop()!;
-				this.render();
-			};
-		} else {
-			nav.createSpan();
-		}
-		const cancel = nav.createEl("button", { cls: "tl-link", text: "Cancel" });
-		cancel.onclick = () => {
-			this.wizards.delete(task.id);
-			this.render();
-		};
-
-		const ask = (text: string) => box.createDiv({ cls: "tl-question", text });
-		const choices = () => box.createDiv("tl-choices");
-		const choice = (
-			parent: HTMLElement,
-			label: string,
-			hint: string,
-			onClick: () => void,
-			cls = ""
-		) => {
-			const b = parent.createEl("button", { cls: "tl-choice " + cls });
-			b.createSpan({ cls: "tl-choice-label", text: label });
-			if (hint) b.createSpan({ cls: "tl-choice-hint", text: hint });
-			b.onclick = onClick;
-			return b;
-		};
-
-		switch (w.step) {
-			case "actionable": {
-				ask("Is it actionable?");
-				const c = choices();
-				choice(c, "Yes", "There is a physical next step", () => go("twomin"));
-				choice(c, "No", "Nothing to do about it", () => go("nonactionable"));
-				break;
-			}
-
-			case "nonactionable": {
-				ask("Then what is it?");
-				const c = choices();
-				choice(c, "Someday / Maybe", "Might matter later", () =>
-					file({ bucket: "someday" })
-				);
-				choice(c, "Reference", "Worth keeping, no action", () =>
-					file({ bucket: "reference" })
-				);
-				choice(
-					c,
-					"Trash",
-					"No longer needed",
-					() => file({ bucket: "trash" }),
-					"is-danger"
-				);
-				break;
-			}
-
-			case "twomin": {
-				ask("Will it take under two minutes?");
-				const c = choices();
-				choice(
-					c,
-					"Yes — do it now",
-					"Finish it instead of filing it",
-					() => file({ bucket: "next", done: true }),
-					"is-primary"
-				);
-				choice(c, "No", "It needs to be filed", () => go("kind"));
-				break;
-			}
-
-			case "kind": {
-				ask("How should it be handled?");
-				const c = choices();
-				choice(c, "Next action", "You do it, as soon as you can", () =>
-					go("context")
-				);
-				choice(c, "Project", "Takes more than one step", () =>
-					file({ bucket: "project" })
-				);
-				choice(c, "Delegate", "Someone else does it", () => go("delegate"));
-				choice(c, "Schedule", "It happens on a specific day", () =>
-					go("schedule")
-				);
-				break;
-			}
-
-			case "context": {
-				ask("Where does it get done?");
-				const c = box.createDiv("tl-chips is-grid");
-				for (const ctx of this.plugin.settings.contexts) {
-					const b = c.createEl("button", { cls: "tl-chip-btn", text: ctx });
-					b.onclick = () => finish({ bucket: "next", context: ctx });
-				}
-				const skip = box.createEl("button", {
-					cls: "tl-link tl-skip",
-					text: "No context",
-				});
-				skip.onclick = () => finish({ bucket: "next" });
-				break;
-			}
-
-			case "delegate": {
-				ask("Waiting on whom?");
-				const input = box.createEl("input", {
-					cls: "tl-input",
-					attr: { placeholder: "Name", spellcheck: "false" },
-				});
-				input.value = w.draft.waitingFor ?? "";
-				const commit = () => {
-					const who = input.value.trim();
-					if (!who) {
-						new Notice("Enter a name first.");
-						return;
-					}
-					finish({ bucket: "waiting", waitingFor: who });
-				};
-				input.onkeydown = (e) => {
-					if (e.key === "Enter") commit();
-				};
-				input.oninput = () => (w.draft.waitingFor = input.value);
-				const c = choices();
-				choice(c, "File it", "", commit, "is-primary");
-				window.setTimeout(() => input.focus(), 0);
-				break;
-			}
-
-			case "schedule": {
-				ask("When does it happen?");
-				const input = box.createEl("input", {
-					cls: "tl-input",
-					type: "date",
-				});
-				input.value = w.draft.due ?? todayISO();
-				input.oninput = () => (w.draft.due = input.value);
-				const c = choices();
-				choice(
-					c,
-					"File it",
-					"",
-					() =>
-						finish({
-							bucket: "scheduled",
-							due: input.value || todayISO(),
-						}),
-					"is-primary"
-				);
-				break;
-			}
-
-			case "project": {
-				ask("Part of a project?");
-				const pending = w.draft.pending ?? { bucket: "next" as Bucket };
-				const c = box.createDiv("tl-chips is-grid");
-				for (const p of this.plugin.projects(this.plugin.joined())) {
-					const b = c.createEl("button", {
-						cls: "tl-chip-btn",
-						text: truncate(p.text, 28),
-						attr: { "aria-label": p.text },
-					});
-					b.onclick = () => file({ ...pending, projectUid: p.item.uid });
-				}
-				const standalone = box.createEl("button", {
-					cls: "tl-link tl-skip",
-					text: "Standalone",
-				});
-				standalone.onclick = () => file({ ...pending, projectUid: null });
-				break;
-			}
-		}
 	}
 
 	// ------------------------------------------------------------------ menu

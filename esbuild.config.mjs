@@ -5,7 +5,7 @@ import builtins from "builtin-modules";
 const prod = process.argv[2] === "production";
 
 const context = await esbuild.context({
-  entryPoints: ["main.ts"],
+  entryPoints: ["src/main.ts"],
   bundle: true,
   external: [
     "obsidian",

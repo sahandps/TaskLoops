@@ -1,5 +1,6 @@
 import { App, FuzzySuggestModal, Modal, Setting, TFolder } from "obsidian";
 import { JoinedTask } from "./types";
+import { shiftISO, todayISO } from "./dates";
 
 export const CAPTURE_BASENAME = "TaskLoops Inbox.md";
 
@@ -47,19 +48,6 @@ export class FolderPicker extends FuzzySuggestModal<string> {
 		super.onClose();
 		if (!this.picked) this.onDone(null);
 	}
-}
-
-export function todayISO(): string {
-	const d = new Date();
-	d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-	return d.toISOString().slice(0, 10);
-}
-
-export function shiftISO(iso: string, days: number): string {
-	const d = new Date(iso + "T00:00:00");
-	d.setDate(d.getDate() + days);
-	d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-	return d.toISOString().slice(0, 10);
 }
 
 interface ProjectChoice {
