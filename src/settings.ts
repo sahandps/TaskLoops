@@ -107,16 +107,18 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			.setDesc(
 				"Clears the plugin's own records and returns everything to the inbox. Your notes are not touched — existing markers stay where they are."
 			)
-			.addButton((b) =>
-				b
-					.setButtonText("Reset")
-					.setWarning()
-					.onClick(async () => {
+			.addButton((b) => {
+				b.setButtonText("Reset").onClick(() => {
+					void (async () => {
 						this.plugin.items = {};
 						await this.plugin.saveData_();
 						await this.plugin.rescan();
 						new Notice("TaskLoops: sorting data cleared.");
-					})
-			);
+					})();
+				});
+				// setWarning() is deprecated and setDestructive() needs 1.13.0;
+				// the class both of them apply works on every supported version.
+				b.buttonEl.addClass("mod-warning");
+			});
 	}
 }

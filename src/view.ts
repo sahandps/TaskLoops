@@ -8,13 +8,7 @@ import {
 	TaskPicker,
 	TextPromptModal,
 } from "./modals";
-import {
-	DUE_GROUP_ORDER,
-	daysUntil,
-	dueGroup,
-	formatDue,
-	todayISO,
-} from "./dates";
+import { DUE_GROUP_ORDER, daysUntil, dueGroup, formatDue } from "./dates";
 import { truncate } from "./text";
 import { Wizard, WizardHost, renderWizard } from "./wizard";
 
@@ -187,9 +181,11 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 
 			// Ask once where captures should live, then never nag again.
 			if (!this.plugin.settings.captureFolderChosen) {
-				new FolderPicker(this.app, async (folder) => {
-					await this.plugin.setCaptureFolder(folder);
-					await write(text);
+				new FolderPicker(this.app, (folder) => {
+					void (async () => {
+						await this.plugin.setCaptureFolder(folder);
+						await write(text);
+					})();
 				}).open();
 				return;
 			}
@@ -585,7 +581,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		setIcon(more, "more-horizontal");
 		more.onclick = (e) => {
 			e.stopPropagation();
-			this.showMenu(e as MouseEvent, project);
+			this.showMenu(e, project);
 		};
 
 		if (!isOpen) return;
@@ -723,7 +719,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		setIcon(more, "more-horizontal");
 		more.onclick = (e) => {
 			e.stopPropagation();
-			this.showMenu(e as MouseEvent, task);
+			this.showMenu(e, task);
 		};
 
 		if (this.active === "inbox" && !opts.nested) {
@@ -807,7 +803,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 
 		for (const def of BUCKETS) {
 			if (def.id === "done") continue;
-			const target = def.id as Bucket;
+			const target = def.id;
 			if (target === task.item.bucket && !task.item.done) continue;
 			menu.addItem((i) =>
 				i

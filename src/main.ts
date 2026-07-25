@@ -1,4 +1,5 @@
 import {
+	App,
 	Notice,
 	Plugin,
 	TAbstractFile,
@@ -20,6 +21,15 @@ import { scanFile, scanVault, setHandledMarker, taskId } from "./scanner";
 import { CAPTURE_BASENAME, TextPromptModal } from "./modals";
 import { TaskLoopsSettingTab } from "./settings";
 import { TaskLoopsView, VIEW_TYPE_TASKLOOPS } from "./view";
+
+/**
+ * The settings window, which Obsidian exposes at runtime but leaves out of the
+ * public typings. Declared narrowly rather than reached for through `any`.
+ */
+interface SettingsOpener {
+	open(): void;
+	openTabById(id: string): void;
+}
 
 let uidCounter = 0;
 function newUid(): string {
@@ -125,7 +135,8 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	async saveData_(): Promise<void> {
-		await this.saveData({ settings: this.settings, items: this.items } as TaskLoopsData);
+		const data: TaskLoopsData = { settings: this.settings, items: this.items };
+		await this.saveData(data);
 	}
 
 	// --------------------------------------------------------------- scanning
@@ -601,13 +612,12 @@ export default class TaskLoopsPlugin extends Plugin {
 			leaf = workspace.getRightLeaf(false);
 			await leaf?.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
 		}
-		if (leaf) workspace.revealLeaf(leaf);
+		if (leaf) await workspace.revealLeaf(leaf);
 	}
 
 	openSettings(): void {
-		// @ts-expect-error - setting is not in the public typings
-		const setting = this.app.setting;
-		setting?.open?.();
-		setting?.openTabById?.(this.manifest.id);
+		const { setting } = this.app as App & { setting?: SettingsOpener };
+		setting?.open();
+		setting?.openTabById(this.manifest.id);
 	}
 }
