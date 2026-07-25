@@ -55,19 +55,19 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.addRibbonIcon("inbox", "TaskLoops", () => void this.activateView());
 
 		this.addCommand({
-			id: "open-tl-tasks",
-			name: "Open TaskLoops panel",
+			id: "open-panel",
+			name: "Open panel",
 			callback: () => void this.activateView(),
 		});
 
 		this.addCommand({
-			id: "rescan-tl-tasks",
+			id: "rescan-vault",
 			name: "Rescan vault for tasks",
 			callback: () => void this.rescan(),
 		});
 
 		this.addCommand({
-			id: "capture-tl-task",
+			id: "capture-task",
 			name: "Capture a task to the inbox",
 			callback: () => {
 				new TextPromptModal(this.app, {

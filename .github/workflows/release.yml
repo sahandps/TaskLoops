@@ -1,52 +1,69 @@
-name: Release
+name: Release Obsidian plugin
 
-# Obsidian resolves a plugin release by its tag, which must be the bare version
-# number with no "v" prefix, and expects main.js, manifest.json and styles.css
-# attached individually as assets.
+# Obsidian resolves a release by its tag, which must be the bare version number
+# with no "v" prefix — see .npmrc, which makes `npm version` tag that way.
 on:
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
-
-permissions:
-  contents: write
+    push:
+        tags:
+            - '*'
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+        steps:
+            - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20.x"
-          cache: npm
+            - name: Use Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Test
-        run: npm test
+            - name: Test
+              run: npm test
 
-      - name: Build
-        run: npm run build
+            - name: Build plugin
+              run: npm run build
 
-      - name: Verify the tag matches manifest.json
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-          manifest=$(node -p "require('./manifest.json').version")
-          if [ "$tag" != "$manifest" ]; then
-            echo "Tag $tag does not match manifest version $manifest." >&2
-            exit 1
-          fi
+            - name: Check that the tag matches manifest.json
+              run: |
+                  tag="${GITHUB_REF#refs/tags/}"
+                  manifest=$(node -p "require('./manifest.json').version")
+                  if [ "$tag" != "$manifest" ]; then
+                    echo "Tag $tag does not match manifest version $manifest." >&2
+                    echo "Obsidian resolves releases by this exact match." >&2
+                    exit 1
+                  fi
 
-      - name: Create draft release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-          gh release create "$tag" \
-            --title "$tag" \
-            --draft \
-            --generate-notes \
-            main.js manifest.json styles.css
+            - name: Check for optional styles
+              id: styles
+              run: |
+                  [ -f styles.css ] && echo "exists=true" >> "$GITHUB_OUTPUT" || echo "exists=false" >> "$GITHUB_OUTPUT"
+
+            # Attestation needs a public repo (or GitHub Advanced Security), so
+            # it is skipped while the repo is private rather than failing the run.
+            - name: Attest build provenance
+              if: ${{ !github.event.repository.private }}
+              uses: actions/attest@v4
+              with:
+                  subject-path: |
+                      main.js
+                      ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+
+            - name: Create release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  tag="${GITHUB_REF#refs/tags/}"
+
+                  gh release create "$tag" \
+                    --title="$tag" \
+                    --draft \
+                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

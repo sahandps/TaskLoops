@@ -195,13 +195,39 @@ git push && git push --tags
 ```
 
 `npm version` bumps `package.json`, then `version-bump.mjs` writes the same
-version into `manifest.json` and adds a row to `versions.json`. Pushing the tag
-runs `.github/workflows/release.yml`, which tests, builds, checks the tag
-matches `manifest.json`, and opens a **draft** release with the three assets
-attached. Review it and publish when ready.
+version into `manifest.json` and adds a row to `versions.json`. The `.npmrc`
+sets `tag-version-prefix=""`, which is what stops npm creating a `v0.1.1` style
+tag — Obsidian would not resolve that.
+
+Pushing the tag runs `.github/workflows/release.yml`, which installs, tests,
+builds, verifies the tag matches `manifest.json`, attests build provenance, and
+opens a **draft** release with `main.js`, `manifest.json` and `styles.css`
+attached individually. Review it and publish when ready.
 
 `versions.json` maps each plugin version to the minimum Obsidian version it
 needs, so older Obsidian installs resolve to a release they can actually run.
+
+## Submitting to the community directory
+
+Obsidian reads `manifest.json` from the HEAD of the default branch, and users
+download the three assets from the GitHub release matching that version. So
+before submitting: the repository must be **public**, a published (non-draft)
+release must exist whose tag exactly equals the manifest version, and `README.md`,
+`LICENSE` and `manifest.json` must sit in the repository root.
+
+Submission itself is a pull request to
+[obsidianmd/obsidian-releases](https://github.com/obsidianmd/obsidian-releases)
+adding an entry to `community-plugins.json`:
+
+```json
+{
+	"id": "taskloops",
+	"name": "TaskLoops",
+	"author": "Sahand Poursadeghi Khiavi",
+	"description": "Collects tagged task lines from across your vault into a sidebar inbox, sorts them with the GTD method, and flags projects that have stalled.",
+	"repo": "sahandps/TaskLoops"
+}
+```
 
 ## License
 
