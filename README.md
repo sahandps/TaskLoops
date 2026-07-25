@@ -155,6 +155,14 @@ npm install
 OBSIDIAN_VAULT="/path/to/your/vault" npm run deploy
 ```
 
+To avoid repeating the path, write it once into a `.vault-path` file, which is
+gitignored:
+
+```bash
+echo "/path/to/your/vault" > .vault-path
+npm run deploy
+```
+
 `deploy` builds and copies only the three files Obsidian loads. It never touches
 `data.json`, so your sorting survives a redeploy.
 

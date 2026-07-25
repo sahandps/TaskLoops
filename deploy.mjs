@@ -5,14 +5,37 @@
  * files Obsidian actually loads. data.json is never touched — that is your
  * sorting state and it belongs to the vault, not to this repo.
  */
-import { copyFile, mkdir, access } from "fs/promises";
+import { copyFile, mkdir, access, readFile } from "fs/promises";
 import { join } from "path";
 import process from "process";
 
-const DEFAULT_VAULT =
-	process.env.HOME + "/Desktop/Test Vault/test";
+const HINT = [
+	"Point this at your vault, either with an environment variable:",
+	"  OBSIDIAN_VAULT='/path/to/vault' npm run deploy",
+	"or by writing the path once into a .vault-path file (gitignored):",
+	"  echo '/path/to/vault' > .vault-path",
+].join("\n");
 
-const vault = process.env.OBSIDIAN_VAULT || DEFAULT_VAULT;
+/** Read the vault path from the environment, else from a local, untracked file. */
+async function resolveVault() {
+	if (process.env.OBSIDIAN_VAULT) return process.env.OBSIDIAN_VAULT.trim();
+	try {
+		const file = await readFile(".vault-path", "utf8");
+		if (file.trim()) return file.trim();
+	} catch {
+		// Falls through to the error below.
+	}
+	return null;
+}
+
+const vault = await resolveVault();
+
+if (!vault) {
+	console.error("No vault configured.\n");
+	console.error(HINT);
+	process.exit(1);
+}
+
 const target = join(vault, ".obsidian", "plugins", "taskloops");
 const files = ["main.js", "manifest.json", "styles.css"];
 
@@ -20,8 +43,7 @@ try {
 	await access(join(vault, ".obsidian"));
 } catch {
 	console.error(`No .obsidian folder at:\n  ${vault}\n`);
-	console.error("Set the vault explicitly:");
-	console.error("  OBSIDIAN_VAULT='/path/to/vault' npm run deploy");
+	console.error(HINT);
 	process.exit(1);
 }
 

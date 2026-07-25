@@ -4,3 +4,4 @@ main.js.map
 data.json
 test/.bundle.mjs
 .DS_Store
+.vault-path
