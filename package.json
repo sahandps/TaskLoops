@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "An Obsidian plugin that collects #task lines into a sidebar GTD inbox and closes open loops.",
   "main": "main.js",
   "scripts": {
