@@ -1,6 +1,19 @@
 import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type TaskLoopsPlugin from "./main";
-import { BUCKETS, Bucket, JoinedTask } from "./types";
+import {
+	BUCKETS,
+	Bucket,
+	JoinedTask,
+	PRIORITIES,
+	ViewMode,
+} from "./types";
+import type { CardOptions, PanelHost } from "./host";
+import { renderBoard } from "./board";
+import {
+	CalendarState,
+	initialCalendarState,
+	renderCalendar,
+} from "./calendar";
 import {
 	DateModal,
 	FolderPicker,
@@ -15,19 +28,25 @@ import { Wizard, WizardHost, renderWizard } from "./wizard";
 export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
 
 /**
- * Manual position first, then most recently filed. Items never dragged keep the
- * old behaviour, so ordering only appears once you ask for it.
+ * One ordering for every layout: what you arranged by hand, then how urgent it
+ * is, then how recently it was filed. Each rule only applies where you have
+ * actually expressed a preference, so nothing reshuffles until you ask.
  */
-function byManualOrder(a: JoinedTask, b: JoinedTask): number {
+function compareTasks(a: JoinedTask, b: JoinedTask): number {
 	const ao = a.item.order;
 	const bo = b.item.order;
-	if (ao !== undefined && bo !== undefined) return ao - bo;
-	if (ao !== undefined) return -1;
-	if (bo !== undefined) return 1;
+	if (ao !== undefined && bo !== undefined && ao !== bo) return ao - bo;
+	if (ao !== undefined && bo === undefined) return -1;
+	if (bo !== undefined && ao === undefined) return 1;
+
+	const ap = a.item.priority ?? 9;
+	const bp = b.item.priority ?? 9;
+	if (ap !== bp) return ap - bp;
+
 	return (b.item.sortedAt ?? 0) - (a.item.sortedAt ?? 0);
 }
 
-export class TaskLoopsView extends ItemView implements WizardHost {
+export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 	plugin: TaskLoopsPlugin;
 	private active: Bucket | "done";
 	private wizards = new Map<string, Wizard>();
@@ -42,6 +61,8 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 	private editing: string | null = null;
 	/** The list as currently displayed, so a reorder knows the arrangement. */
 	private currentList: JoinedTask[] = [];
+	private mode: ViewMode;
+	private calendar: CalendarState = initialCalendarState();
 	/** uid -> project text, rebuilt each render for chip labels. */
 	private projectNames = new Map<string, string>();
 
@@ -49,6 +70,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		super(leaf);
 		this.plugin = plugin;
 		this.active = plugin.settings.lastBucket ?? "inbox";
+		this.mode = plugin.settings.lastMode ?? "list";
 	}
 
 	getViewType(): string {
@@ -72,10 +94,35 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		this.wizards.clear();
 	}
 
-	/** WizardHost: redraw the panel. */
+	/** WizardHost and PanelHost: redraw the panel. */
 	rerender(): void {
 		this.render();
 	}
+
+	// PanelHost — the surface the board and calendar are built on, so cards,
+	// dragging and filing behave the same in every layout.
+
+	card(parent: HTMLElement, task: JoinedTask, opts: CardOptions = {}): void {
+		this.renderCard(parent, task, opts);
+	}
+
+	draggable(el: HTMLElement, task: JoinedTask): void {
+		this.makeDraggable(el, task);
+	}
+
+	dropTarget(el: HTMLElement, onDrop: (task: JoinedTask) => void): void {
+		this.makeDropTarget(el, onDrop);
+	}
+
+	fileInto(task: JoinedTask, bucket: Bucket | "done"): void {
+		this.dropOnBucket(task, bucket);
+	}
+
+	draggingId(): string | null {
+		return this.dragging;
+	}
+
+	readonly compare = compareTasks;
 
 	/** WizardHost: forget an in-progress clarification. */
 	cancelWizard(id: string): void {
@@ -118,15 +165,139 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		}
 
 		this.renderHeader(this.contentEl, tasks);
-		this.renderTabs(this.contentEl, tasks);
+		this.renderModeBar(this.contentEl, tasks);
 		this.renderSearch(this.contentEl);
 		if (this.capturing && this.capturing.for === null) {
 			this.renderCapture(this.contentEl, null, focused);
 		}
 
-		const list = this.contentEl.createDiv("tl-list");
-		this.renderList(list, tasks);
-		list.scrollTop = scroll;
+		const body = this.contentEl.createDiv("tl-list is-mode-" + this.mode);
+		const q = this.query.trim().toLowerCase();
+		const matches = (task: JoinedTask) => this.matches(task, q);
+
+		if (this.mode === "board") {
+			this.currentList = [];
+			renderBoard(body, this, tasks, matches);
+		} else if (this.mode === "calendar") {
+			this.currentList = [];
+			renderCalendar(body, this, this.calendar, tasks, matches);
+		} else {
+			this.renderList(body, tasks);
+		}
+
+		// Always present, revealed by CSS only while a drag is in flight, so the
+		// DOM never changes mid-drag.
+		this.renderDropRail(this.contentEl, tasks);
+
+		body.scrollTop = scroll;
+	}
+
+	private setMode(mode: ViewMode): void {
+		this.mode = mode;
+		this.plugin.settings.lastMode = mode;
+		void this.plugin.saveData_();
+		this.render();
+	}
+
+	/**
+	 * One row: the GTD button, which names the list on screen and opens the
+	 * bucket picker, then the two other layouts.
+	 */
+	private renderModeBar(root: HTMLElement, tasks: JoinedTask[]): void {
+		const bar = root.createDiv("tl-modes");
+
+		const activeDef = BUCKETS.find((b) => b.id === this.active);
+		const count =
+			this.active === "done"
+				? tasks.filter((t) => t.item.done).length
+				: tasks.filter((t) => t.item.bucket === this.active && !t.item.done)
+						.length;
+
+		const gtd = bar.createEl("button", {
+			cls: "tl-mode is-gtd" + (this.mode === "list" ? " is-active" : ""),
+			attr: { "aria-label": "GTD lists" },
+		});
+		const gtdIcon = gtd.createSpan("tl-mode-icon");
+		setIcon(gtdIcon, activeDef?.icon ?? "inbox");
+		gtd.createSpan({ cls: "tl-mode-label", text: "GTD" });
+		if (this.mode === "list") {
+			gtd.createSpan({
+				cls: "tl-mode-sub",
+				text: activeDef?.label ?? "Inbox",
+			});
+			if (count > 0) {
+				gtd.createSpan({ cls: "tl-mode-count", text: String(count) });
+			}
+		}
+		const caret = gtd.createSpan("tl-mode-caret");
+		setIcon(caret, "chevron-down");
+
+		const stalled = this.plugin
+			.projects(tasks)
+			.filter((p) =>
+				this.plugin.isStalled(this.plugin.actionsOf(tasks, p.item.uid))
+			).length;
+		if (stalled > 0) gtd.addClass("has-alert");
+
+		gtd.onclick = (e) => {
+			if (this.mode !== "list") {
+				this.setMode("list");
+				return;
+			}
+			this.showBucketMenu(e, tasks);
+		};
+
+		const board = bar.createEl("button", {
+			cls: "tl-mode" + (this.mode === "board" ? " is-active" : ""),
+			attr: { "aria-label": "Board" },
+		});
+		setIcon(board.createSpan("tl-mode-icon"), "columns-3");
+		board.createSpan({ cls: "tl-mode-label", text: "Board" });
+		board.onclick = () => this.setMode("board");
+
+		const cal = bar.createEl("button", {
+			cls: "tl-mode" + (this.mode === "calendar" ? " is-active" : ""),
+			attr: { "aria-label": "Calendar" },
+		});
+		setIcon(cal.createSpan("tl-mode-icon"), "calendar-days");
+		cal.createSpan({ cls: "tl-mode-label", text: "Calendar" });
+		cal.onclick = () => this.setMode("calendar");
+	}
+
+	private showBucketMenu(evt: MouseEvent, tasks: JoinedTask[]): void {
+		const menu = new Menu();
+		for (const def of BUCKETS) {
+			const count =
+				def.id === "done"
+					? tasks.filter((t) => t.item.done).length
+					: tasks.filter((t) => t.item.bucket === def.id && !t.item.done)
+							.length;
+			menu.addItem((i) =>
+				i
+					.setTitle(count > 0 ? `${def.label}  ·  ${String(count)}` : def.label)
+					.setIcon(def.icon)
+					.setChecked(this.active === def.id)
+					.onClick(() => this.show(def.id))
+			);
+		}
+		menu.showAtMouseEvent(evt);
+	}
+
+	/**
+	 * A strip of bucket targets that only exists visually during a drag. Filing
+	 * across buckets stays a drag even though the tab rail is now one button.
+	 */
+	private renderDropRail(root: HTMLElement, tasks: JoinedTask[]): void {
+		const rail = root.createDiv("tl-droprail");
+		rail.createSpan({ cls: "tl-droprail-hint", text: "Drop to file:" });
+
+		for (const def of BUCKETS) {
+			const chip = rail.createDiv({ cls: "tl-droprail-chip" });
+			setIcon(chip.createSpan("tl-droprail-icon"), def.icon);
+			chip.createSpan({ text: def.label });
+			this.dropTarget(chip, (task) => this.fileInto(task, def.id));
+		}
+		void tasks;
 	}
 
 	private renderHeader(root: HTMLElement, tasks: JoinedTask[]): void {
@@ -487,7 +658,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 				? all.filter((t) => t.item.done)
 				: all.filter((t) => t.item.bucket === this.active && !t.item.done);
 
-		tasks = tasks.filter((t) => this.matches(t, q)).sort(byManualOrder);
+		tasks = tasks.filter((t) => this.matches(t, q)).sort(compareTasks);
 		this.currentList = tasks;
 
 		if (tasks.length === 0) {
@@ -696,7 +867,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 	private renderCard(
 		list: HTMLElement,
 		task: JoinedTask,
-		opts: { nested?: boolean } = {}
+		opts: CardOptions = {}
 	): void {
 		const wizard = this.wizards.get(task.id);
 		const card = list.createDiv(
@@ -708,7 +879,7 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 
 		if (!wizard) {
 			this.makeDraggable(card, task);
-			if (!opts.nested) this.makeReorderTarget(card, task);
+			if (!opts.nested && !opts.noReorder) this.makeReorderTarget(card, task);
 		}
 
 		const row = card.createDiv("tl-card-row");
@@ -726,6 +897,10 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 			};
 		}
 
+		if (task.item.priority) {
+			card.addClass("is-p" + String(task.item.priority));
+		}
+
 		const body = row.createDiv("tl-card-body");
 
 		if (this.editing === task.id) {
@@ -740,13 +915,29 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		}
 
 		const meta = body.createDiv("tl-card-meta");
-		const src = meta.createSpan({
-			cls: "tl-source",
-			text: this.plugin.sourceLabel(task),
+
+		if (!opts.terse) {
+			const src = meta.createSpan({
+				cls: "tl-source",
+				text: this.plugin.sourceLabel(task),
+			});
+			src.onclick = (e) => {
+				e.stopPropagation();
+				void this.plugin.reveal(task);
+			};
+		}
+
+		const prio = PRIORITIES.find((p) => p.value === task.item.priority);
+		const prioChip = meta.createSpan({
+			cls: prio
+				? "tl-chip is-editable is-prio is-p" + String(prio.value)
+				: "tl-chip is-editable is-prio is-empty",
+			text: prio ? prio.short : "+ priority",
+			attr: { "aria-label": "Change priority" },
 		});
-		src.onclick = (e) => {
+		prioChip.onclick = (e) => {
 			e.stopPropagation();
-			void this.plugin.reveal(task);
+			this.pickPriority(task, e);
 		};
 
 		if (opts.nested) {
@@ -889,6 +1080,26 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		}, 0);
 	}
 
+	private pickPriority(task: JoinedTask, evt: MouseEvent): void {
+		const menu = new Menu();
+		for (const def of PRIORITIES) {
+			menu.addItem((i) =>
+				i
+					.setTitle(`${def.short} · ${def.label}`)
+					.setChecked(task.item.priority === def.value)
+					.onClick(() => void this.plugin.setPriority(task, def.value))
+			);
+		}
+		menu.addSeparator();
+		menu.addItem((i) =>
+			i
+				.setTitle("No priority")
+				.setChecked(!task.item.priority)
+				.onClick(() => void this.plugin.setPriority(task, null))
+		);
+		menu.showAtMouseEvent(evt);
+	}
+
 	private pickContext(task: JoinedTask, evt: MouseEvent): void {
 		const menu = new Menu();
 		for (const ctx of this.plugin.settings.contexts) {
@@ -945,6 +1156,13 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 				.setTitle("Edit text…")
 				.setIcon("pencil")
 				.onClick(() => this.startEdit(task))
+		);
+
+		menu.addItem((i) =>
+			i
+				.setTitle("Priority…")
+				.setIcon("flag")
+				.onClick((e) => this.pickPriority(task, e as MouseEvent))
 		);
 
 		menu.addItem((i) =>

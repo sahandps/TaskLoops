@@ -96,24 +96,23 @@
 	}
 }
 
-/* -------------------------------------------------------------------- tabs */
+/* ------------------------------------------------------------------- modes */
 
-.tl-tabs {
+.tl-modes {
 	display: flex;
-	flex-wrap: wrap;
 	gap: 4px;
 	padding: 0 10px 8px;
 	flex: 0 0 auto;
 }
 
-.tl-tab {
+.tl-mode {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	height: 28px;
-	padding: 0 10px;
-	border: none;
-	border-radius: 14px;
+	height: 30px;
+	padding: 0 11px;
+	border: 1px solid transparent;
+	border-radius: 15px;
 	background: var(--background-modifier-hover);
 	box-shadow: none;
 	color: var(--text-muted);
@@ -121,45 +120,159 @@
 	line-height: 1;
 	white-space: nowrap;
 	cursor: pointer;
+	transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
-.tl-tab:hover {
+.tl-mode:hover {
 	background: var(--background-modifier-border);
 	color: var(--text-normal);
 }
 
-.tl-tab.is-active {
+.tl-mode.is-active {
 	background: var(--interactive-accent);
 	color: var(--text-on-accent);
 }
 
-.tl-tab-icon {
+.tl-mode.is-gtd {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: 230px;
+	justify-content: flex-start;
+}
+
+.tl-mode-icon {
 	display: inline-flex;
 	flex: 0 0 auto;
 }
 
-.tl-tab-icon .svg-icon {
+.tl-mode-icon .svg-icon {
 	width: 14px;
 	height: 14px;
 }
 
-.tl-tab-count {
-	opacity: 0.75;
-	font-variant-numeric: tabular-nums;
+.tl-mode-label {
+	font-weight: 600;
+	letter-spacing: 0.02em;
 }
 
-.tl-tab.has-alert::after {
+.tl-mode-sub {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+	opacity: 0.85;
+}
+
+.tl-mode-sub::before {
+	content: "\00b7\00a0";
+	opacity: 0.6;
+}
+
+.tl-mode-count {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.75;
+}
+
+.tl-mode-caret {
+	display: inline-flex;
+	margin-left: 1px;
+	flex: 0 0 auto;
+	opacity: 0.7;
+}
+
+.tl-mode-caret .svg-icon {
+	width: 13px;
+	height: 13px;
+}
+
+.tl-mode:not(.is-gtd) .tl-mode-caret {
+	display: none;
+}
+
+.tl-mode.has-alert .tl-mode-label::after {
 	content: "";
+	display: inline-block;
 	width: 5px;
 	height: 5px;
+	margin-left: 5px;
 	border-radius: 50%;
 	background: var(--color-red);
-	flex: 0 0 auto;
+	vertical-align: middle;
 }
 
-.tl-tab.is-active.has-alert::after {
+.tl-mode.is-active.has-alert .tl-mode-label::after {
 	background: var(--text-on-accent);
 }
+
+/* --------------------------------------------------------------- drop rail */
+
+/*
+ * Filing across buckets is still a drag even though the rail collapsed into one
+ * button, so the targets exist at all times and are revealed only mid-drag.
+ * Rendering them always is what keeps the DOM stable while dragging.
+ */
+.tl-droprail {
+	display: none;
+	flex: 0 0 auto;
+	flex-wrap: wrap;
+	gap: 4px;
+	align-items: center;
+	padding: 8px 10px;
+	border-top: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+}
+
+.tl-view.is-dragging-task .tl-droprail {
+	display: flex;
+	animation: tl-rise 140ms ease;
+}
+
+@keyframes tl-rise {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.tl-droprail-hint {
+	width: 100%;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+.tl-droprail-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 5px 10px;
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: 14px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	line-height: 1;
+	transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.tl-droprail-chip.is-drop-target {
+	border-style: solid;
+	border-color: var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.tl-droprail-icon {
+	display: inline-flex;
+}
+
+.tl-droprail-icon .svg-icon {
+	width: 13px;
+	height: 13px;
+}
+
 
 /* ------------------------------------------------------------------ search */
 
@@ -841,7 +954,315 @@
 		display: none;
 	}
 
+	.tl-cal-day {
+		min-height: 38px;
+	}
+
+	.tl-droprail-chip {
+		padding: 8px 12px;
+	}
+
 	.tl-chip {
 		padding: 3px 9px;
 	}
+}
+
+/* ------------------------------------------------------------------- board */
+
+/*
+ * Columns scroll horizontally rather than squeezing, so a board stays usable in
+ * a narrow sidebar; drag the panel into the main area for the full width.
+ */
+.tl-list.is-mode-board {
+	display: flex;
+	overflow: hidden;
+	padding-bottom: 8px;
+}
+
+.tl-list.is-mode-calendar {
+	overflow-y: auto;
+}
+
+.tl-board {
+	display: flex;
+	gap: 8px;
+	align-items: stretch;
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 2px 2px 4px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x proximity;
+}
+
+.tl-column {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	width: 216px;
+	min-height: 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	background: var(--background-secondary);
+	scroll-snap-align: start;
+	transition: border-color 140ms ease, background 140ms ease;
+}
+
+.tl-column.is-drop-target {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+}
+
+.tl-column-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.tl-column-icon {
+	display: inline-flex;
+}
+
+.tl-column-icon .svg-icon {
+	width: 13px;
+	height: 13px;
+}
+
+.tl-column-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tl-column-count {
+	margin-left: auto;
+	padding: 1px 6px;
+	border-radius: 8px;
+	background: var(--background-modifier-border);
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0;
+}
+
+.tl-column-body {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	flex: 1 1 auto;
+	padding: 6px;
+	overflow-y: auto;
+	min-height: 60px;
+}
+
+.tl-column-empty {
+	padding: 14px 8px;
+	text-align: center;
+	font-size: var(--font-ui-smaller);
+	line-height: 1.5;
+	color: var(--text-faint);
+}
+
+.tl-column .tl-card {
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	margin-bottom: 0;
+}
+
+.tl-column .tl-card:hover {
+	border-color: var(--interactive-accent);
+	background: var(--background-primary);
+}
+
+/* ---------------------------------------------------------------- calendar */
+
+.tl-calendar {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-bottom: 8px;
+}
+
+.tl-cal-head {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.tl-cal-title {
+	flex: 1 1 auto;
+	padding: 5px 8px;
+	border: none;
+	border-radius: var(--radius-s);
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+	font-weight: 600;
+	text-align: center;
+	cursor: pointer;
+	transition: background 120ms ease;
+}
+
+.tl-cal-title:hover {
+	background: var(--background-modifier-hover);
+}
+
+.tl-cal-weekdays,
+.tl-cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 2px;
+}
+
+.tl-cal-weekday {
+	padding-bottom: 2px;
+	text-align: center;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+
+.tl-cal-day {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 2px;
+	aspect-ratio: 1;
+	min-height: 30px;
+	padding: 3px 2px;
+	border: 1px solid transparent;
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-hover);
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	line-height: 1;
+	cursor: pointer;
+	transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.tl-cal-day:hover {
+	background: var(--background-modifier-border);
+	color: var(--text-normal);
+}
+
+.tl-cal-day.is-outside {
+	opacity: 0.4;
+}
+
+.tl-cal-day.is-today {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+	font-weight: 700;
+}
+
+.tl-cal-day.is-selected {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.tl-cal-day.is-overdue:not(.is-selected) .tl-cal-daynum {
+	color: var(--color-red);
+}
+
+.tl-cal-day.is-drop-target {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+	transform: scale(1.06);
+}
+
+.tl-cal-daynum {
+	font-variant-numeric: tabular-nums;
+}
+
+.tl-cal-dots {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-height: 5px;
+}
+
+.tl-cal-dot {
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: var(--text-muted);
+}
+
+.tl-cal-day.is-selected .tl-cal-dot {
+	background: var(--text-on-accent);
+}
+
+.tl-cal-dot.is-p1 {
+	background: var(--color-red);
+}
+
+.tl-cal-dot.is-p2 {
+	background: var(--color-orange, var(--text-accent));
+}
+
+.tl-cal-more {
+	font-size: 9px;
+	color: var(--text-faint);
+}
+
+.tl-cal-section {
+	display: flex;
+	flex-direction: column;
+}
+
+.tl-cal-hint {
+	padding: 6px 4px;
+	font-size: var(--font-ui-smaller);
+	line-height: 1.5;
+	color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------------- priority */
+
+.tl-chip.is-prio {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.tl-chip.is-prio.is-p1 {
+	background: transparent;
+	border-color: var(--color-red);
+	color: var(--color-red);
+}
+
+.tl-chip.is-prio.is-p2 {
+	background: transparent;
+	border-color: var(--color-orange, var(--text-accent));
+	color: var(--color-orange, var(--text-accent));
+}
+
+.tl-chip.is-prio.is-p3 {
+	background: transparent;
+	border-color: var(--background-modifier-border);
+	color: var(--text-muted);
+}
+
+/* A coloured edge makes urgency readable without reading the chip. */
+.tl-card.is-p1 {
+	box-shadow: inset 2px 0 0 var(--color-red);
+}
+
+.tl-card.is-p2 {
+	box-shadow: inset 2px 0 0 var(--color-orange, var(--text-accent));
+}
+
+.tl-card.is-clarifying.is-p1,
+.tl-card.is-clarifying.is-p2 {
+	box-shadow: inset 2px 0 0 var(--interactive-accent);
 }

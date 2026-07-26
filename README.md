@@ -33,6 +33,23 @@ button, the capture note is never created.
 All state — bucket, context, delegate, date, project links, done — lives in the
 plugin's own `data.json`, never in your notes.
 
+## Three layouts
+
+One row of controls at the top of the panel:
+
+- **GTD** — the bucket lists. The button names the list on screen; clicking it
+  opens the picker for the other buckets, each with its count. What used to be
+  a rail of nine tabs is now one button, so the panel stays quiet.
+- **Board** — a Kanban board, one column per bucket, cards dragged between
+  them. Columns fill the panel height, so the empty space under the last card
+  is a drop target too.
+- **Calendar** — a month grid of everything with a date, plus the selected
+  day's tasks and an undated list underneath.
+
+A sidebar is narrow for a board, so the columns scroll horizontally. For the
+full width, run *Open in a main tab* from the command palette — it is the same
+view over the same data, just with room.
+
 ## The clarify flow
 
 Standard GTD, one question at a time:
@@ -112,18 +129,35 @@ is. Buckets change only through the clarify flow, the `⋯` menu, or a drag, all
 of which are explicit. Attributes also survive a re-file; returning a task to
 the Inbox is the one reset, since that means it is unclarified again.
 
+## Priority
+
+Each task has a priority slot: **P1** high, **P2** medium, **P3** low, or none.
+Click the chip, or use `⋯` → *Priority*. P1 and P2 also colour the card's left
+edge, so urgency reads without reading the chip, and priority tints the dots on
+the calendar.
+
+Priority is a sort key, applied after any manual order you set and before how
+recently a task was filed. Tasks without one sort last, so nothing reshuffles
+until you start using it.
+
 ## Dragging
 
-Drag any task onto a tab to file it there. Buckets that are hidden when empty
-appear while you drag. Dropping onto **Scheduled** asks for a date and dropping
-onto **Waiting** asks for a name, because those buckets are meaningless without
-them; every other bucket files immediately. Dropping a task onto a project card
-files it under that project.
+Everything files by dragging, in every layout:
 
-Dragging a task onto another task within the same list sets a manual order —
-the line across the card shows where it will land. Ordering is stored in the
-plugin's data, so the order of lines in your notes is never touched. Lists you
-have never reordered keep sorting by most recently filed.
+- **Onto a bucket.** Start dragging and a strip of bucket targets appears along
+  the bottom. It only exists while you drag, which is what lets the tab rail
+  collapse into one button without losing drag-to-file.
+- **Between board columns.** The obvious one.
+- **Onto a calendar day**, which sets that date — rescheduling without opening
+  a picker.
+- **Onto another task**, which sets a manual order. The line across the card
+  shows where it will land. Ordering lives in the plugin's data, so the order
+  of lines in your notes is never touched.
+- **Onto a project card**, which files the task under that project.
+
+Dropping onto **Scheduled** asks for a date and **Waiting** asks for a name,
+because those buckets are meaningless without them; every other target files
+immediately.
 
 Dragging is mouse-only — it uses HTML5 drag events, which touch screens don't
 fire. Every drag action is also on the `⋯` menu, which is the path to use on a

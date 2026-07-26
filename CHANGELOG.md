@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0
+
+Three layouts, priority, and drag-and-drop everywhere.
+
+- **The nine bucket tabs collapse into one GTD button.** It names the list on
+  screen and opens a picker with counts for the rest.
+- **Board layout**: a Kanban column per bucket, cards dragged between them.
+  Columns fill the panel height so the space under the last card is a target
+  too. Columns scroll horizontally in a sidebar; *Open in a main tab* from the
+  palette gives the board full width, over the same data.
+- **Calendar layout**: a month grid of everything dated, with priority-tinted
+  dots, overdue days marked, and the selected day's tasks plus an undated list
+  underneath. Dropping a task on a day sets that date.
+- **Priority**: P1/P2/P3 or none, from the chip or the menu. P1 and P2 colour
+  the card's left edge. It sorts after any manual order and before recency, so
+  nothing reshuffles until you use it.
+- **A drop rail** appears along the bottom while dragging, carrying every
+  bucket as a target. That is what lets the tab rail collapse to one button
+  without losing drag-to-file.
+- The board and calendar are built on one shared surface, so cards, dragging,
+  sorting and filing behave identically in all three layouts rather than being
+  reimplemented per view.
+
 ## 0.2.1
 
 - **Fix: picking a context made the task disappear.** Setting a context forced

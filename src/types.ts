@@ -12,6 +12,24 @@ export type Bucket =
 	| "reference"
 	| "trash";
 
+/** How urgent a task is. Lower is more urgent, so it sorts first. */
+export type Priority = 1 | 2 | 3;
+
+export interface PriorityDef {
+	value: Priority;
+	label: string;
+	short: string;
+}
+
+export const PRIORITIES: PriorityDef[] = [
+	{ value: 1, label: "High", short: "P1" },
+	{ value: 2, label: "Medium", short: "P2" },
+	{ value: 3, label: "Low", short: "P3" },
+];
+
+/** Which of the three panel layouts is on screen. */
+export type ViewMode = "list" | "board" | "calendar";
+
 export interface BucketDef {
 	id: Bucket | "done";
 	label: string;
@@ -101,6 +119,8 @@ export interface TaskLoopsItem {
 	 * Items without one sort after those with one, by most recently filed.
 	 */
 	order?: number;
+	/** 1 is most urgent. Absent means unprioritised, which sorts last. */
+	priority?: Priority;
 }
 
 /** A `#task` line as it exists in the vault right now. */
@@ -150,6 +170,10 @@ export interface TaskLoopsSettings {
 	captureFolderChosen: boolean;
 	/** Hide clarified items from the Inbox list even if the marker is missing. */
 	lastBucket: Bucket | "done";
+	/** Which layout was last on screen. */
+	lastMode: ViewMode;
+	/** Columns the board shows, in order. */
+	boardColumns: Array<Bucket | "done">;
 }
 
 export const DEFAULT_SETTINGS: TaskLoopsSettings = {
@@ -161,6 +185,8 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	captureNote: "TaskLoops Inbox.md",
 	captureFolderChosen: false,
 	lastBucket: "inbox",
+	lastMode: "list",
+	boardColumns: ["inbox", "next", "waiting", "scheduled", "someday", "done"],
 };
 
 export interface TaskLoopsData {

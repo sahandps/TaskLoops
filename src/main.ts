@@ -10,6 +10,7 @@ import {
 } from "obsidian";
 import {
 	Bucket,
+	Priority,
 	DEFAULT_SETTINGS,
 	TaskLoopsData,
 	TaskLoopsItem,
@@ -78,6 +79,12 @@ export default class TaskLoopsPlugin extends Plugin {
 			id: "rescan-vault",
 			name: "Rescan vault for tasks",
 			callback: () => void this.rescan(),
+		});
+
+		this.addCommand({
+			id: "open-in-main-area",
+			name: "Open in a main tab (for the board)",
+			callback: () => void this.activateView(true),
 		});
 
 		this.addCommand({
@@ -434,6 +441,14 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.refreshViews();
 	}
 
+	/** Set or clear a priority. Like a context, this does not re-file the task. */
+	async setPriority(task: JoinedTask, priority: Priority | null): Promise<void> {
+		const item = this.persist(task);
+		item.priority = priority ?? undefined;
+		await this.saveData_();
+		this.refreshViews();
+	}
+
 	/** Set or clear a date. Like a context, this does not re-file the task. */
 	async setDue(task: JoinedTask, iso: string | null): Promise<void> {
 		const item = this.persist(task);
@@ -670,10 +685,23 @@ export default class TaskLoopsPlugin extends Plugin {
 		}
 	}
 
-	async activateView(): Promise<void> {
+	/**
+	 * Reveal the panel, in the sidebar by default.
+	 *
+	 * The board wants width that a sidebar does not have, so `mainArea` opens a
+	 * second copy as a normal tab. Both are the same view, sharing one store.
+	 */
+	async activateView(mainArea = false): Promise<void> {
 		const { workspace } = this.app;
-		const existing = workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS);
 
+		if (mainArea) {
+			const leaf = workspace.getLeaf("tab");
+			await leaf.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
+			await workspace.revealLeaf(leaf);
+			return;
+		}
+
+		const existing = workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS);
 		let leaf: WorkspaceLeaf | null;
 		if (existing.length > 0) {
 			leaf = existing[0];
