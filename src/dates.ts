@@ -122,3 +122,62 @@ export function weekdayNames(weekStart = 1): string[] {
 export function isToday(iso: string): boolean {
 	return iso === todayISO();
 }
+
+/** The seven ISO days of the week containing `iso`. */
+export function weekOf(iso: string, weekStart = 1): string[] {
+	const d = new Date(iso + "T00:00:00");
+	const offset = (d.getDay() - weekStart + 7) % 7;
+	const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - offset);
+	const days: string[] = [];
+	for (let i = 0; i < 7; i++) {
+		const day = new Date(
+			start.getFullYear(),
+			start.getMonth(),
+			start.getDate() + i
+		);
+		days.push(isoOf(day));
+	}
+	return days;
+}
+
+/** A Date as `yyyy-mm-dd` in local time. */
+export function isoOf(d: Date): string {
+	return (
+		String(d.getFullYear()) +
+		"-" +
+		String(d.getMonth() + 1).padStart(2, "0") +
+		"-" +
+		String(d.getDate()).padStart(2, "0")
+	);
+}
+
+/**
+ * "Mon 27" — the month is omitted because the week heading already carries it,
+ * and including it truncated the label once a week fanned into seven columns.
+ */
+export function shortDayLabel(iso: string): string {
+	return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
+		weekday: "short",
+		day: "numeric",
+	});
+}
+
+/** "Monday, 27 July" — for a single-day heading. */
+export function longDayLabel(iso: string): string {
+	return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
+		weekday: "long",
+		day: "numeric",
+		month: "long",
+	});
+}
+
+/** A heading for a week, e.g. "27 Jul – 2 Aug". */
+export function weekLabel(iso: string): string {
+	const days = weekOf(iso);
+	const fmt = (d: string) =>
+		new Date(d + "T00:00:00").toLocaleDateString(undefined, {
+			day: "numeric",
+			month: "short",
+		});
+	return fmt(days[0]) + " – " + fmt(days[6]);
+}

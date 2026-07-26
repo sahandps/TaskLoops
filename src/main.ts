@@ -545,7 +545,8 @@ export default class TaskLoopsPlugin extends Plugin {
 	async captureTask(
 		text: string,
 		projectUid?: string | null,
-		bucket: Bucket = "inbox"
+		bucket: Bucket = "inbox",
+		due?: string
 	): Promise<boolean> {
 		const body = text.trim();
 		if (!body) return false;
@@ -591,6 +592,7 @@ export default class TaskLoopsPlugin extends Plugin {
 			occ: (this.tasks.get(file.path) ?? []).indexOf(task),
 		};
 		if (projectUid !== undefined) item.projectUid = projectUid;
+		if (due) item.due = due;
 		if (bucket !== "inbox") item.sortedAt = Date.now();
 		this.items[task.id] = item;
 

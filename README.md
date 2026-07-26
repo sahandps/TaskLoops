@@ -43,8 +43,8 @@ One row of controls at the top of the panel:
 - **Board** — a Kanban board, one column per bucket, cards dragged between
   them. Columns fill the panel height, so the empty space under the last card
   is a drop target too.
-- **Calendar** — a month grid of everything with a date, plus the selected
-  day's tasks and an undated list underneath.
+- **Calendar** — day, week or month, with the tasks themselves shown rather
+  than summarised.
 
 A sidebar is narrow for a board, so the columns scroll horizontally. For the
 full width, run *Open in a main tab* from the command palette — it is the same
@@ -162,6 +162,22 @@ immediately.
 Dragging is mouse-only — it uses HTML5 drag events, which touch screens don't
 fire. Every drag action is also on the `⋯` menu, which is the path to use on a
 phone.
+
+## Calendar
+
+Three scales, switched with the Day / Week / Month buttons. The heading steps
+back and forward by whichever scale you are on, and clicking it jumps to today.
+
+- **Day** — one day, its tasks in full.
+- **Week** — seven day panels, stacked in a sidebar and fanned into columns once
+  the panel is wide enough.
+- **Month** — a grid where each day carries a count badge, tinted by the highest
+  priority on it, followed by every dated day of that month with its tasks. The
+  grid tells you where things are; the list underneath tells you what they are.
+
+Every day shown is a drop target, at every scale, so rescheduling is a drag.
+Each day also has a **+** to create a task already dated to it. Undated tasks
+are listed at the bottom so there is always something to drag onto the calendar.
 
 ## Dates
 

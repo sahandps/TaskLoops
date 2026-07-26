@@ -955,7 +955,15 @@
 	}
 
 	.tl-cal-day {
-		min-height: 38px;
+		min-height: 40px;
+	}
+
+	.tl-day-add {
+		opacity: 1;
+	}
+
+	.tl-cal-scale {
+		height: 32px;
 	}
 
 	.tl-droprail-chip {
@@ -1089,7 +1097,7 @@
 	padding-bottom: 8px;
 }
 
-.tl-cal-head {
+.tl-cal-bar {
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -1097,6 +1105,7 @@
 
 .tl-cal-title {
 	flex: 1 1 auto;
+	min-width: 0;
 	padding: 5px 8px;
 	border: none;
 	border-radius: var(--radius-s);
@@ -1106,6 +1115,9 @@
 	font-size: var(--font-ui-small);
 	font-weight: 600;
 	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	cursor: pointer;
 	transition: background 120ms ease;
 }
@@ -1113,6 +1125,159 @@
 .tl-cal-title:hover {
 	background: var(--background-modifier-hover);
 }
+
+/* --- scale picker --- */
+
+.tl-cal-scales {
+	display: flex;
+	gap: 2px;
+	padding: 2px;
+	border-radius: 14px;
+	background: var(--background-modifier-hover);
+}
+
+.tl-cal-scale {
+	flex: 1 1 0;
+	min-width: 0;
+	height: 26px;
+	padding: 0 8px;
+	border: none;
+	border-radius: 12px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	line-height: 1;
+	cursor: pointer;
+	transition: background 140ms ease, color 140ms ease;
+}
+
+.tl-cal-scale:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-border);
+}
+
+.tl-cal-scale.is-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-weight: 600;
+}
+
+/* --- day panels, shared by the day and week scales --- */
+
+.tl-week {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 6px;
+}
+
+.tl-day {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	background: var(--background-secondary);
+	transition: border-color 140ms ease, background 140ms ease;
+}
+
+.tl-day.is-today {
+	border-color: var(--interactive-accent);
+}
+
+.tl-day.is-overdue .tl-day-label {
+	color: var(--color-red);
+}
+
+.tl-day.is-drop-target {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+}
+
+.tl-day.is-big {
+	min-height: 220px;
+}
+
+.tl-day-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 6px 6px 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.tl-day-label {
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tl-day.is-big .tl-day-label {
+	font-size: var(--font-ui-small);
+	color: var(--text-normal);
+}
+
+.tl-day-today {
+	padding: 1px 6px;
+	border-radius: 8px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.tl-day-count {
+	padding: 1px 6px;
+	border-radius: 8px;
+	background: var(--background-modifier-border);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+}
+
+.tl-day-add {
+	margin-left: auto;
+	width: 24px;
+	height: 24px;
+	opacity: 0;
+	transition: opacity 120ms ease;
+}
+
+.tl-day:hover .tl-day-add {
+	opacity: 1;
+}
+
+.tl-day-add .svg-icon {
+	width: 14px;
+	height: 14px;
+}
+
+.tl-day-body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px;
+}
+
+.tl-day-empty {
+	padding: 2px 6px 4px;
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+}
+
+.tl-day .tl-card {
+	border: 1px solid transparent;
+	margin-bottom: 0;
+}
+
+.tl-day .tl-card:hover {
+	border-color: var(--background-modifier-border);
+}
+
+/* --- month grid --- */
 
 .tl-cal-weekdays,
 .tl-cal-grid {
@@ -1132,14 +1297,13 @@
 }
 
 .tl-cal-day {
+	position: relative;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	justify-content: flex-start;
-	gap: 2px;
+	justify-content: center;
 	aspect-ratio: 1;
-	min-height: 30px;
-	padding: 3px 2px;
+	min-height: 32px;
+	padding: 0;
 	border: 1px solid transparent;
 	border-radius: var(--radius-s);
 	background: var(--background-modifier-hover);
@@ -1178,47 +1342,51 @@
 .tl-cal-day.is-drop-target {
 	border-color: var(--interactive-accent);
 	background: var(--background-modifier-hover);
-	transform: scale(1.06);
+	transform: scale(1.08);
 }
 
 .tl-cal-daynum {
 	font-variant-numeric: tabular-nums;
 }
 
-.tl-cal-dots {
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	min-height: 5px;
-}
-
-.tl-cal-dot {
-	width: 4px;
-	height: 4px;
-	border-radius: 50%;
+/* A count reads at this size; a row of 4px dots did not. */
+.tl-cal-badge {
+	position: absolute;
+	top: -3px;
+	right: -3px;
+	min-width: 15px;
+	height: 15px;
+	padding: 0 3px;
+	border-radius: 8px;
 	background: var(--text-muted);
+	color: var(--background-primary);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 15px;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
 }
 
-.tl-cal-day.is-selected .tl-cal-dot {
-	background: var(--text-on-accent);
-}
-
-.tl-cal-dot.is-p1 {
+.tl-cal-badge.is-p1 {
 	background: var(--color-red);
+	color: #fff;
 }
 
-.tl-cal-dot.is-p2 {
+.tl-cal-badge.is-p2 {
 	background: var(--color-orange, var(--text-accent));
-}
-
-.tl-cal-more {
-	font-size: 9px;
-	color: var(--text-faint);
+	color: #fff;
 }
 
 .tl-cal-section {
 	display: flex;
 	flex-direction: column;
+	gap: 6px;
+}
+
+.tl-cal-undated {
+	gap: 0;
+	padding-top: 4px;
+	border-top: 1px solid var(--background-modifier-border);
 }
 
 .tl-cal-hint {
@@ -1226,6 +1394,39 @@
 	font-size: var(--font-ui-smaller);
 	line-height: 1.5;
 	color: var(--text-faint);
+}
+
+/* A week fans out into columns once there is room for them. */
+@container taskloops (min-width: 680px) {
+	.tl-week {
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+	}
+
+	/*
+	 * A column is about 100px, where the date competes with the count and the
+	 * today pill for room. The count is redundant when every card is visible,
+	 * and the pill only needs to be recognisable.
+	 */
+	.tl-week .tl-day-count {
+		display: none;
+	}
+
+	/*
+	 * In columns the accent border already identifies today, so the pill is
+	 * redundant and only steals room from the date.
+	 */
+	.tl-week .tl-day-today {
+		display: none;
+	}
+
+	.tl-week .tl-day.is-today {
+		border-width: 2px;
+	}
+
+	.tl-week .tl-day-head {
+		padding-left: 8px;
+		gap: 4px;
+	}
 }
 
 /* ---------------------------------------------------------------- priority */

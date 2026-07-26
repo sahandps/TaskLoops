@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.1
+
+- **Fix: the calendar barely showed anything.** Dated tasks were reduced to 4px
+  dots on 39px cells, and the day it opened on was today, which is usually
+  empty — so it read as an empty grid even with tasks dated all around it.
+- **Day, week and month scales.** Day shows one day in full; week shows seven
+  day panels, stacked in a sidebar and fanned into columns when there is room;
+  month shows a grid of count badges, tinted by the highest priority on each
+  day, followed by every dated day of the month with its tasks listed out.
+- Every day is a drop target at every scale, so rescheduling is a drag.
+- Each day has a **+** that creates a task already dated to it.
+- Undated tasks are listed at the bottom, so there is always something to drag
+  onto the calendar.
+
 ## 0.3.0
 
 Three layouts, priority, and drag-and-drop everywhere.
