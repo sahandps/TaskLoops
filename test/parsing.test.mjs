@@ -54,6 +54,7 @@ export default function run(mod) {
 	);
 
 	// --- ids -----------------------------------------------------------------
+	// eslint-disable-next-line no-self-compare -- two identical calls agreeing is the stability guarantee under test
 	eq(taskId("a.md", "call mum", 0) === taskId("a.md", "call mum", 0), true, "id is stable");
 	eq(taskId("a.md", "call mum", 0) === taskId("b.md", "call mum", 0), false, "id varies by path");
 	eq(taskId("a.md", "call mum", 0) === taskId("a.md", "call mum", 1), false, "id varies by occurrence");

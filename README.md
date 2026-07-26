@@ -1,5 +1,9 @@
 # TaskLoops
 
+[![Obsidian plugin](https://img.shields.io/badge/Obsidian-TaskLoops-7c3aed?logo=obsidian&logoColor=white)](https://obsidian.md/plugins?id=taskloops)
+[![Release](https://img.shields.io/github/v/release/sahandps/TaskLoops?sort=semver)](https://github.com/sahandps/TaskLoops/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 An Obsidian plugin that collects `#task` lines from anywhere in your vault into
 a sidebar inbox, walks them through the GTD clarify flow, and marks each line
 `*(Handled)*` once you've sorted it.
@@ -141,7 +145,12 @@ horizontal overflow down to a 260px panel.
 
 ## Installing
 
-Not in the community plugin directory yet. Either:
+**From Obsidian** — open Settings → Community plugins → Browse, search for
+**TaskLoops**, install and enable. This is the easiest route and gets you
+updates automatically.
+[Plugin page](https://obsidian.md/plugins?id=taskloops)
+
+Requires Obsidian **1.7.2** or later, on desktop and mobile.
 
 **From a release** — download `main.js`, `manifest.json` and `styles.css` from
 the [releases page](../../releases) into
@@ -225,28 +234,6 @@ attached individually. Review it and publish when ready.
 
 `versions.json` maps each plugin version to the minimum Obsidian version it
 needs, so older Obsidian installs resolve to a release they can actually run.
-
-## Submitting to the community directory
-
-Obsidian reads `manifest.json` from the HEAD of the default branch, and users
-download the three assets from the GitHub release matching that version. So
-before submitting: the repository must be **public**, a published (non-draft)
-release must exist whose tag exactly equals the manifest version, and `README.md`,
-`LICENSE` and `manifest.json` must sit in the repository root.
-
-Submission itself is a pull request to
-[obsidianmd/obsidian-releases](https://github.com/obsidianmd/obsidian-releases)
-adding an entry to `community-plugins.json`:
-
-```json
-{
-	"id": "taskloops",
-	"name": "TaskLoops",
-	"author": "Sahand Poursadeghi Khiavi",
-	"description": "Collects tagged task lines from across your vault into a sidebar inbox, sorts them with the GTD method, and flags projects that have stalled.",
-	"repo": "sahandps/TaskLoops"
-}
-```
 
 ## Support
 

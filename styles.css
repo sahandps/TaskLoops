@@ -256,6 +256,19 @@
 	opacity: 0.4;
 }
 
+/*
+ * Buckets that stay out of the way until they have something in them. They are
+ * always rendered and merely hidden, so that starting a drag reveals them
+ * without rebuilding the rail — rebuilding it mid-drag cancels the drag.
+ */
+.tl-tab.is-quiet {
+	display: none;
+}
+
+.tl-view.is-dragging-task .tl-tab.is-quiet {
+	display: inline-flex;
+}
+
 .tl-tab.is-drop-target,
 .tl-card.tl-project.is-drop-target {
 	outline: 2px solid var(--interactive-accent);

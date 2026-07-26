@@ -36,13 +36,19 @@ if (!vault) {
 	process.exit(1);
 }
 
-const target = join(vault, ".obsidian", "plugins", "taskloops");
+/*
+ * A vault's config folder is usually .obsidian but the user can rename it.
+ * Running outside Obsidian there is no Vault#configDir to ask, so allow it to
+ * be named explicitly.
+ */
+const configDir = process.env.OBSIDIAN_CONFIG_DIR || ".obsidian";
+const target = join(vault, configDir, "plugins", "taskloops");
 const files = ["main.js", "manifest.json", "styles.css"];
 
 try {
-	await access(join(vault, ".obsidian"));
+	await access(join(vault, configDir));
 } catch {
-	console.error(`No .obsidian folder at:\n  ${vault}\n`);
+	console.error(`No ${configDir} folder at:\n  ${vault}\n`);
 	console.error(HINT);
 	process.exit(1);
 }

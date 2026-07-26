@@ -23,6 +23,8 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 	/** When set, the capture row is open; a uid scopes it to that project. */
 	private capturing: { for: string | null; fresh: boolean } | null = null;
 	private dragging: string | null = null;
+	/** A render asked for while a drag was in flight. */
+	private renderPending = false;
 	/** uid -> project text, rebuilt each render for chip labels. */
 	private projectNames = new Map<string, string>();
 
@@ -73,6 +75,17 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 	// ---------------------------------------------------------------- render
 
 	render(): void {
+		// Re-rendering mid-drag would destroy the element under the cursor and
+		// cancel the drag, so a render that arrives now is deferred to dragend.
+		if (this.dragging) {
+			this.renderPending = true;
+			return;
+		}
+		this.renderPending = false;
+		// A drop renders before dragend fires, so clear the drag state here
+		// rather than relying on an event on an element we are about to remove.
+		this.contentEl.removeClass("is-dragging-task");
+
 		const scroll = this.contentEl.querySelector(".tl-list")?.scrollTop ?? 0;
 		const focused =
 			this.contentEl.querySelector(".tl-capture-input") ===
@@ -246,15 +259,18 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 							(t) => t.item.bucket === def.id && !t.item.done
 					  ).length;
 
-			// Keep the rail short: empty side-buckets stay hidden until used.
+			// Keep the rail short: empty side-buckets are hidden until used,
+			// and revealed by CSS during a drag. Hiding rather than omitting
+			// means the rail never has to be rebuilt mid-drag.
 			const optional =
 				def.id === "reference" || def.id === "trash" || def.id === "done";
-			if (optional && count === 0 && this.active !== def.id && !this.dragging) {
-				continue;
-			}
+			const quiet = optional && count === 0 && this.active !== def.id;
 
 			const tab = bar.createEl("button", {
-				cls: "tl-tab" + (this.active === def.id ? " is-active" : ""),
+				cls:
+					"tl-tab" +
+					(this.active === def.id ? " is-active" : "") +
+					(quiet ? " is-quiet" : ""),
 				attr: { "aria-label": def.label },
 			});
 			const icon = tab.createSpan("tl-tab-icon");
@@ -306,8 +322,6 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 			if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
 			el.addClass("is-dragging");
 			this.contentEl.addClass("is-dragging-task");
-			// Reveal the buckets that stay hidden when empty.
-			window.setTimeout(() => this.renderTabsOnly(), 0);
 		});
 		el.addEventListener("dragend", () => {
 			this.dragging = null;
@@ -315,17 +329,6 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 			this.contentEl.removeClass("is-dragging-task");
 			this.render();
 		});
-	}
-
-	/** Re-render just the tab rail mid-drag, without disturbing the drag source. */
-	private renderTabsOnly(): void {
-		const bar = this.contentEl.querySelector(".tl-tabs");
-		if (!bar) return;
-		const fresh = this.contentEl.createDiv();
-		this.renderTabs(fresh, this.plugin.joined());
-		const rebuilt = fresh.firstElementChild;
-		if (rebuilt) bar.replaceWith(rebuilt);
-		fresh.remove();
 	}
 
 	private makeDropTarget(

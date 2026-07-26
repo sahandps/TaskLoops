@@ -22,6 +22,16 @@ await esbuild.build({
 	logLevel: "error",
 });
 
+/**
+ * A dynamic import is untyped by default, which makes every call through it an
+ * unsafe call. Naming the shapes keeps the runner type-clean.
+ *
+ * @typedef {Record<string, (...args: never[]) => unknown>} ScannerModule
+ * @typedef {{ name: string, pass: number, fail: number, failures: string[] }} SuiteResult
+ * @typedef {{ default: (mod: ScannerModule) => SuiteResult }} Suite
+ */
+
+/** @type {ScannerModule} */
 const mod = await import(pathToFileURL(bundle).href + "?t=" + Date.now());
 
 const files = (await readdir(here)).filter((f) => f.endsWith(".test.mjs")).sort();
@@ -30,6 +40,7 @@ let pass = 0;
 let fail = 0;
 
 for (const file of files) {
+	/** @type {Suite} */
 	const suite = await import(pathToFileURL(join(here, file)).href);
 	const result = suite.default(mod);
 	pass += result.pass;

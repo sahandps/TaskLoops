@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.2
+
+- **Fix drag-and-drop.** Starting a drag rebuilt the tab rail one tick later to
+  reveal the buckets that hide when empty, which destroyed the drop targets
+  under the cursor and cancelled the drag. Those buckets are now always
+  rendered and merely hidden, revealed by CSS while a drag is in flight, so no
+  DOM changes during a drag.
+- A background re-render — a note changing elsewhere, say — could also destroy
+  the card being dragged. Renders arriving mid-drag are now deferred until the
+  drag ends.
+- Type `truncate` without an ES2019 method and raise the TypeScript `lib` to
+  ES2022, which is what the runtime has actually been all along. The old `lib`
+  left modern methods resolving as `any`.
+- Type the dynamic imports in the test runner.
+- `scripts/deploy.mjs` accepts `OBSIDIAN_CONFIG_DIR`, for vaults that do not
+  use `.obsidian`.
+- Lint the whole repository rather than `src/` alone; scoping it too narrowly
+  is what let the untyped test runner reach a scorecard.
+- README: install from the community directory, and drop the submission notes
+  now that it is published.
+
 ## 0.1.1
 
 Compliance and correctness pass against the community directory scorecard. No
