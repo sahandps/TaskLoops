@@ -18,14 +18,16 @@ Two things, both of which you trigger deliberately:
 
 1. **`*(Handled)*`** appended to the end of a task's own line, once you sort it.
    Turn off **Mark lines when sorted** and this stops entirely.
-2. **A new `- … #task` line appended to your capture note**, and only when you
+2. **The sentence of a task you explicitly edit**, and only that — see
+   [Editing a task](#editing-a-task).
+3. **A new `- … #task` line appended to your capture note**, and only when you
    use quick capture. That note is named in settings, defaults to
    `TaskLoops Inbox.md`, and is created on first use. Capture only ever appends
    to the end of that one file.
 
 Beyond those, nothing. It never touches frontmatter or note properties, never
 adds tags, never reorders or moves lines, never deletes anything, and never
-edits a line you have not personally sorted. If you never press the capture
+edits a line you have not personally sorted or edited. If you never press the capture
 button, the capture note is never created.
 
 All state — bucket, context, delegate, date, project links, done — lives in the
@@ -83,6 +85,26 @@ A project whose only children are unclarified inbox items still counts as
 stalled. That is deliberate: an uncaptured thought is not something you can act
 on.
 
+## Editing a task
+
+Double-click a task's text in the panel to rewrite it, or use `⋯` → *Edit text*.
+Enter saves, Escape cancels, Shift+Enter adds a line break.
+
+This is the one place the plugin rewrites something you wrote, so it is careful
+about it: only the sentence changes. The line's indentation, bullet, checkbox,
+blockquote or heading markers, the tag exactly as you wrote it — `#task/work`
+stays `#task/work` — any block id, and the handled marker are all preserved.
+Before writing, the line is re-located by its exact previous text, so an edit
+made in the note meanwhile cannot cause the wrong line to be rewritten.
+
+Renaming changes a task's identity, since identity is derived from its text.
+The record is moved across explicitly, so its bucket, context, date and project
+links all survive.
+
+The context, waiting-on and date chips under each task are clickable: one click
+changes any of them. Empty ones appear on hover as `+ context` and `+ date`, and
+on touch they live on the `⋯` menu instead.
+
 ## Dragging
 
 Drag any task onto a tab to file it there. Buckets that are hidden when empty
@@ -90,6 +112,11 @@ appear while you drag. Dropping onto **Scheduled** asks for a date and dropping
 onto **Waiting** asks for a name, because those buckets are meaningless without
 them; every other bucket files immediately. Dropping a task onto a project card
 files it under that project.
+
+Dragging a task onto another task within the same list sets a manual order —
+the line across the card shows where it will land. Ordering is stored in the
+plugin's data, so the order of lines in your notes is never touched. Lists you
+have never reordered keep sorting by most recently filed.
 
 Dragging is mouse-only — it uses HTML5 drag events, which touch screens don't
 fire. Every drag action is also on the `⋯` menu, which is the path to use on a

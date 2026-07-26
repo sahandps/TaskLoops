@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0
+
+Editing, faster attribute changes, and manual ordering.
+
+- **Edit a task's text** from the panel: double-click it, or `⋯` → *Edit text*.
+  Only the sentence changes — indentation, bullet, checkbox, blockquote or
+  heading markers, the tag as written, any block id and the handled marker are
+  all preserved, and the line is re-located by its previous text before
+  writing. Renaming re-keys the record, so bucket, context, date and project
+  links survive.
+- **Context and waiting-on chips are clickable**, like the date chip already
+  was. Empty ones appear on hover; on touch they are on the `⋯` menu.
+- **Reorder by dragging** one task onto another within a list. The order lives
+  in the plugin's data, so line order in your notes is untouched. Lists never
+  reordered keep sorting by most recently filed.
+- 33 new tests covering the line rewriting, which is the part that could damage
+  a note.
+
 ## 0.1.2
 
 - **Fix drag-and-drop.** Starting a drag rebuilt the tab rail one tick later to

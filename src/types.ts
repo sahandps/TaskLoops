@@ -96,6 +96,11 @@ export interface TaskLoopsItem {
 	projectUid?: string | null;
 	/** True for records derived on the fly that have never been saved. */
 	provisional?: boolean;
+	/**
+	 * Manual position within its list, set by dragging one card onto another.
+	 * Items without one sort after those with one, by most recently filed.
+	 */
+	order?: number;
 }
 
 /** A `#task` line as it exists in the vault right now. */

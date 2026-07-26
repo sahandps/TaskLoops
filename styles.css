@@ -445,8 +445,56 @@
 	color: var(--text-muted);
 }
 
+.tl-chip.is-editable,
 .tl-chip.is-date {
 	cursor: pointer;
+}
+
+.tl-chip.is-editable:hover {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
+/* Empty attribute slots stay quiet until the row is hovered. */
+.tl-chip.is-editable.is-empty {
+	background: transparent;
+	border-style: dashed;
+	border-color: var(--background-modifier-border);
+	color: var(--text-faint);
+	opacity: 0;
+	transition: opacity 120ms ease;
+}
+
+.tl-card:hover .tl-chip.is-editable.is-empty {
+	opacity: 1;
+}
+
+/* --- inline text editing --- */
+
+.tl-card-edit {
+	width: 100%;
+	height: var(--tl-edit-height, auto);
+	min-height: 24px;
+	padding: 2px 6px;
+	border: 1px solid var(--interactive-accent);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-family: inherit;
+	font-size: var(--font-ui-small);
+	line-height: 1.4;
+	resize: none;
+	overflow: hidden;
+}
+
+/* --- reorder insertion point --- */
+
+.tl-card.is-drop-above {
+	box-shadow: inset 0 2px 0 var(--interactive-accent);
+}
+
+.tl-card.is-drop-below {
+	box-shadow: inset 0 -2px 0 var(--interactive-accent);
 }
 
 .tl-chip.is-date:hover {
@@ -788,7 +836,8 @@
 
 	/* Hover-revealed affordances have no touch equivalent, so they go away
 	   entirely; the ⋯ menu carries the same actions. */
-	.tl-chip.is-date.is-empty {
+	.tl-chip.is-date.is-empty,
+	.tl-chip.is-editable.is-empty {
 		display: none;
 	}
 

@@ -17,7 +17,13 @@ import {
 	JoinedTask,
 	ScannedTask,
 } from "./types";
-import { scanFile, scanVault, setHandledMarker, taskId } from "./scanner";
+import {
+	scanFile,
+	scanVault,
+	setHandledMarker,
+	setTaskText,
+	taskId,
+} from "./scanner";
 import { CAPTURE_BASENAME, TextPromptModal } from "./modals";
 import { TaskLoopsSettingTab } from "./settings";
 import { TaskLoopsView, VIEW_TYPE_TASKLOOPS } from "./view";
@@ -435,6 +441,73 @@ export default class TaskLoopsPlugin extends Plugin {
 		}
 		await this.saveData_();
 		await this.syncMarker(task, item.bucket !== "inbox");
+		this.refreshViews();
+	}
+
+	/**
+	 * Rewrite a task's sentence in its note.
+	 *
+	 * Identity is derived from the text, so the record is re-keyed to match.
+	 * Everything else about the line — indent, bullet, checkbox, tag, block id,
+	 * handled marker — is preserved by the rewrite itself.
+	 */
+	async renameTask(task: JoinedTask, body: string): Promise<boolean> {
+		const text = body.replace(/\s+/g, " ").trim();
+		if (!text || text === task.text) return false;
+
+		const item = this.persist(task);
+
+		this.writing.add(task.path);
+		let written = false;
+		try {
+			written = await setTaskText(this.app, task, this.settings.tag, text);
+		} catch (err) {
+			console.error("TaskLoops: failed to rewrite task text", err);
+			new Notice("TaskLoops: failed to update the note. See console.");
+			return false;
+		} finally {
+			this.writing.delete(task.path);
+		}
+
+		if (!written) {
+			new Notice("TaskLoops: couldn't find that line — it may have been edited.");
+			return false;
+		}
+
+		const nextId = taskId(task.path, text, item.occ);
+		if (nextId !== item.id) {
+			delete this.items[item.id];
+			item.id = nextId;
+			this.items[nextId] = item;
+		}
+		item.text = text;
+
+		await this.saveData_();
+		const file = this.app.vault.getAbstractFileByPath(task.path);
+		if (file instanceof TFile) await this.refreshFile(file);
+		this.refreshViews();
+		return true;
+	}
+
+	/** Set or clear a next action's context. */
+	async setContext(task: JoinedTask, context: string | null): Promise<void> {
+		const item = this.persist(task);
+		item.context = context ?? undefined;
+		if (context && item.bucket !== "next") {
+			item.bucket = "next";
+			item.sortedAt = Date.now();
+		}
+		await this.saveData_();
+		await this.syncMarker(task, item.bucket !== "inbox");
+		this.refreshViews();
+	}
+
+	/** Record a manual ordering for a list the user has just rearranged. */
+	async reorder(tasks: JoinedTask[]): Promise<void> {
+		tasks.forEach((task, index) => {
+			this.persist(task).order = index;
+		});
+		await this.saveData_();
 		this.refreshViews();
 	}
 

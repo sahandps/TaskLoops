@@ -14,6 +14,19 @@ import { Wizard, WizardHost, renderWizard } from "./wizard";
 
 export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
 
+/**
+ * Manual position first, then most recently filed. Items never dragged keep the
+ * old behaviour, so ordering only appears once you ask for it.
+ */
+function byManualOrder(a: JoinedTask, b: JoinedTask): number {
+	const ao = a.item.order;
+	const bo = b.item.order;
+	if (ao !== undefined && bo !== undefined) return ao - bo;
+	if (ao !== undefined) return -1;
+	if (bo !== undefined) return 1;
+	return (b.item.sortedAt ?? 0) - (a.item.sortedAt ?? 0);
+}
+
 export class TaskLoopsView extends ItemView implements WizardHost {
 	plugin: TaskLoopsPlugin;
 	private active: Bucket | "done";
@@ -25,6 +38,10 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 	private dragging: string | null = null;
 	/** A render asked for while a drag was in flight. */
 	private renderPending = false;
+	/** Task whose text is currently being edited in place. */
+	private editing: string | null = null;
+	/** The list as currently displayed, so a reorder knows the arrangement. */
+	private currentList: JoinedTask[] = [];
 	/** uid -> project text, rebuilt each render for chip labels. */
 	private projectNames = new Map<string, string>();
 
@@ -331,6 +348,50 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		});
 	}
 
+	/**
+	 * Dropping one card onto another sets a manual order for that list. The
+	 * insertion point follows which half of the card the cursor is over.
+	 */
+	private makeReorderTarget(card: HTMLElement, target: JoinedTask): void {
+		const clear = () => card.removeClasses(["is-drop-above", "is-drop-below"]);
+
+		const below = (e: DragEvent) => {
+			const box = card.getBoundingClientRect();
+			return e.clientY > box.top + box.height / 2;
+		};
+
+		card.addEventListener("dragover", (e) => {
+			if (!this.dragging || this.dragging === target.id) return;
+			// Only reorder within the list actually on screen.
+			if (!this.currentList.some((t) => t.id === this.dragging)) return;
+			e.preventDefault();
+			e.stopPropagation();
+			if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+			clear();
+			card.addClass(below(e) ? "is-drop-below" : "is-drop-above");
+		});
+
+		card.addEventListener("dragleave", clear);
+
+		card.addEventListener("drop", (e) => {
+			const id = e.dataTransfer?.getData("text/plain") ?? this.dragging;
+			clear();
+			if (!id || id === target.id) return;
+
+			const source = this.currentList.find((t) => t.id === id);
+			if (!source) return; // dragged in from another list; let the tab handle it
+
+			e.preventDefault();
+			e.stopPropagation();
+			this.dragging = null;
+
+			const rest = this.currentList.filter((t) => t.id !== source.id);
+			const at = rest.indexOf(target) + (below(e) ? 1 : 0);
+			rest.splice(at, 0, source);
+			void this.plugin.reorder(rest);
+		});
+	}
+
 	private makeDropTarget(
 		el: HTMLElement,
 		onDrop: (task: JoinedTask) => void
@@ -426,7 +487,8 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 				? all.filter((t) => t.item.done)
 				: all.filter((t) => t.item.bucket === this.active && !t.item.done);
 
-		tasks = tasks.filter((t) => this.matches(t, q));
+		tasks = tasks.filter((t) => this.matches(t, q)).sort(byManualOrder);
+		this.currentList = tasks;
 
 		if (tasks.length === 0) {
 			this.renderEmpty(
@@ -644,7 +706,10 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 				(opts.nested ? " is-nested" : "")
 		);
 
-		if (!wizard) this.makeDraggable(card, task);
+		if (!wizard) {
+			this.makeDraggable(card, task);
+			if (!opts.nested) this.makeReorderTarget(card, task);
+		}
 
 		const row = card.createDiv("tl-card-row");
 		const showCheck = opts.nested || this.active !== "inbox";
@@ -662,7 +727,17 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		}
 
 		const body = row.createDiv("tl-card-body");
-		body.createDiv({ cls: "tl-card-text", text: task.text });
+
+		if (this.editing === task.id) {
+			this.renderTextEditor(body, task);
+		} else {
+			const textEl = body.createDiv({ cls: "tl-card-text", text: task.text });
+			textEl.title = "Double-click to edit";
+			textEl.ondblclick = (e) => {
+				e.stopPropagation();
+				this.startEdit(task);
+			};
+		}
 
 		const meta = body.createDiv("tl-card-meta");
 		const src = meta.createSpan({
@@ -678,11 +753,28 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 			const label = BUCKETS.find((b) => b.id === task.item.bucket)?.label;
 			if (label) meta.createSpan({ cls: "tl-chip", text: label });
 		}
-		if (task.item.context && this.active !== "next") {
-			meta.createSpan({ cls: "tl-chip", text: task.item.context });
-		}
-		if (task.item.waitingFor && this.active !== "waiting") {
-			meta.createSpan({ cls: "tl-chip", text: "→ " + task.item.waitingFor });
+		const contextChip = meta.createSpan({
+			cls: task.item.context
+				? "tl-chip is-editable"
+				: "tl-chip is-editable is-empty",
+			text: task.item.context ?? "+ context",
+			attr: { "aria-label": "Change context" },
+		});
+		contextChip.onclick = (e) => {
+			e.stopPropagation();
+			this.pickContext(task, e);
+		};
+
+		if (task.item.waitingFor || task.item.bucket === "waiting") {
+			const whoChip = meta.createSpan({
+				cls: "tl-chip is-editable",
+				text: task.item.waitingFor ? "→ " + task.item.waitingFor : "→ who?",
+				attr: { "aria-label": "Change who you are waiting on" },
+			});
+			whoChip.onclick = (e) => {
+				e.stopPropagation();
+				this.pickWaitingFor(task);
+			};
 		}
 
 		// The date chip is the natural place to reach for when rescheduling.
@@ -747,6 +839,86 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 		}
 	}
 
+	private startEdit(task: JoinedTask): void {
+		this.editing = task.id;
+		this.render();
+	}
+
+	/**
+	 * Editing rewrites the task's sentence in the note. Only the sentence: the
+	 * line's indent, bullet, checkbox, tag, block id and handled marker are all
+	 * preserved by the rewrite.
+	 */
+	private renderTextEditor(body: HTMLElement, task: JoinedTask): void {
+		const input = body.createEl("textarea", { cls: "tl-card-edit" });
+		input.value = task.text;
+		input.rows = 1;
+
+		const grow = () => {
+			input.setCssProps({ "--tl-edit-height": "auto" });
+			input.setCssProps({ "--tl-edit-height": `${input.scrollHeight}px` });
+		};
+
+		let settled = false;
+		const finish = (save: boolean) => {
+			if (settled) return;
+			settled = true;
+			const next = input.value;
+			this.editing = null;
+			if (save) void this.plugin.renameTask(task, next);
+			else this.render();
+		};
+
+		input.oninput = grow;
+		input.onkeydown = (e) => {
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				finish(true);
+			}
+			if (e.key === "Escape") {
+				e.preventDefault();
+				finish(false);
+			}
+		};
+		input.onblur = () => finish(true);
+
+		window.setTimeout(() => {
+			input.focus();
+			input.select();
+			grow();
+		}, 0);
+	}
+
+	private pickContext(task: JoinedTask, evt: MouseEvent): void {
+		const menu = new Menu();
+		for (const ctx of this.plugin.settings.contexts) {
+			menu.addItem((i) =>
+				i
+					.setTitle(ctx)
+					.setChecked(task.item.context === ctx)
+					.onClick(() => void this.plugin.setContext(task, ctx))
+			);
+		}
+		menu.addSeparator();
+		menu.addItem((i) =>
+			i
+				.setTitle("No context")
+				.setChecked(!task.item.context)
+				.onClick(() => void this.plugin.setContext(task, null))
+		);
+		menu.showAtMouseEvent(evt);
+	}
+
+	private pickWaitingFor(task: JoinedTask): void {
+		new TextPromptModal(this.app, {
+			title: "Waiting on whom?",
+			placeholder: "Name",
+			initial: task.item.waitingFor,
+			cta: "Save",
+			onSubmit: (who) => void this.plugin.setWaitingFor(task, who),
+		}).open();
+	}
+
 	private pickDate(task: JoinedTask): void {
 		new DateModal(this.app, {
 			title: task.item.due ? "Change date" : "Set a date",
@@ -766,6 +938,20 @@ export class TaskLoopsView extends ItemView implements WizardHost {
 				.setTitle("Open note")
 				.setIcon("file-text")
 				.onClick(() => void this.plugin.reveal(task))
+		);
+
+		menu.addItem((i) =>
+			i
+				.setTitle("Edit text…")
+				.setIcon("pencil")
+				.onClick(() => this.startEdit(task))
+		);
+
+		menu.addItem((i) =>
+			i
+				.setTitle(task.item.context ? "Change context…" : "Set a context…")
+				.setIcon("map-pin")
+				.onClick((e) => this.pickContext(task, e as MouseEvent))
 		);
 
 		menu.addItem((i) =>
