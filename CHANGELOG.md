@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1
+
+- **Fix: picking a context made the task disappear.** Setting a context forced
+  the task into Next and marked it handled, so it vanished from whatever list
+  you were looking at — out of the Inbox unclarified, or off the calendar if it
+  was scheduled.
+- Attributes no longer re-file a task at all. A context, date or person is
+  orthogonal to the filing decision, so setting one leaves the task where it
+  is. This applies to the date and waiting-on chips too, which had the same
+  behaviour.
+- Attributes now also survive a re-file, instead of being cleared whenever the
+  bucket changed. Returning a task to the Inbox remains a full reset, since
+  that means it is unclarified again.
+
 ## 0.2.0
 
 Editing, faster attribute changes, and manual ordering.

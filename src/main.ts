@@ -376,10 +376,12 @@ export default class TaskLoopsPlugin extends Plugin {
 		item.bucket = patch.bucket;
 		item.sortedAt = Date.now();
 
-		// Clear attributes that no longer apply to the new bucket.
-		if (patch.bucket !== "next") item.context = undefined;
-		if (patch.bucket !== "waiting") item.waitingFor = undefined;
-		if (patch.bucket !== "scheduled") item.due = undefined;
+		/*
+		 * Attributes survive a re-file. They are orthogonal to the bucket — a
+		 * waiting task can have a context, a next action can have a date — and
+		 * discarding them here would silently undo what the chips just set.
+		 * Returning to the inbox is the one reset, handled below.
+		 */
 		if (patch.context !== undefined) item.context = patch.context;
 		if (patch.waitingFor !== undefined) item.waitingFor = patch.waitingFor;
 		if (patch.due !== undefined) item.due = patch.due;
@@ -391,9 +393,14 @@ export default class TaskLoopsPlugin extends Plugin {
 		if (patch.projectUid !== undefined) item.projectUid = patch.projectUid;
 
 		if (patch.bucket === "inbox") {
+			// Back to unclarified: drop everything the clarify flow decided.
 			item.done = false;
 			item.doneAt = undefined;
 			item.projectUid = undefined;
+			item.context = undefined;
+			item.waitingFor = undefined;
+			item.due = undefined;
+			item.order = undefined;
 		}
 		// A project cannot belong to another project; GTD keeps the list flat.
 		if (patch.bucket === "project") item.projectUid = null;
@@ -427,20 +434,11 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.refreshViews();
 	}
 
-	/** Set or clear a date, moving the task onto the calendar if needed. */
+	/** Set or clear a date. Like a context, this does not re-file the task. */
 	async setDue(task: JoinedTask, iso: string | null): Promise<void> {
 		const item = this.persist(task);
-		if (iso) {
-			item.due = iso;
-			if (item.bucket !== "scheduled") {
-				item.bucket = "scheduled";
-				item.sortedAt = Date.now();
-			}
-		} else {
-			item.due = undefined;
-		}
+		item.due = iso ?? undefined;
 		await this.saveData_();
-		await this.syncMarker(task, item.bucket !== "inbox");
 		this.refreshViews();
 	}
 
@@ -489,16 +487,19 @@ export default class TaskLoopsPlugin extends Plugin {
 		return true;
 	}
 
-	/** Set or clear a next action's context. */
+	/**
+	 * Set or clear a context.
+	 *
+	 * Attributes never move a task between buckets. A context is orthogonal to
+	 * the filing decision — a delegated or scheduled task can perfectly well
+	 * have one — and re-filing on a chip click makes the task vanish out of the
+	 * list you are looking at. Buckets change through clarify, the menu, or a
+	 * drag, all of which are explicit.
+	 */
 	async setContext(task: JoinedTask, context: string | null): Promise<void> {
 		const item = this.persist(task);
 		item.context = context ?? undefined;
-		if (context && item.bucket !== "next") {
-			item.bucket = "next";
-			item.sortedAt = Date.now();
-		}
 		await this.saveData_();
-		await this.syncMarker(task, item.bucket !== "inbox");
 		this.refreshViews();
 	}
 
@@ -511,16 +512,11 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.refreshViews();
 	}
 
-	/** Set who a delegated task is waiting on. */
+	/** Set who a task is waiting on. Like a context, this does not re-file it. */
 	async setWaitingFor(task: JoinedTask, who: string): Promise<void> {
 		const item = this.persist(task);
 		item.waitingFor = who;
-		if (item.bucket !== "waiting") {
-			item.bucket = "waiting";
-			item.sortedAt = Date.now();
-		}
 		await this.saveData_();
-		await this.syncMarker(task, true);
 		this.refreshViews();
 	}
 

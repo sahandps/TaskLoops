@@ -105,6 +105,13 @@ The context, waiting-on and date chips under each task are clickable: one click
 changes any of them. Empty ones appear on hover as `+ context` and `+ date`, and
 on touch they live on the `⋯` menu instead.
 
+**Changing an attribute never re-files a task.** A context, a date and a person
+are orthogonal to the filing decision — a delegated task can have a context, a
+next action can have a date — so setting one leaves the task exactly where it
+is. Buckets change only through the clarify flow, the `⋯` menu, or a drag, all
+of which are explicit. Attributes also survive a re-file; returning a task to
+the Inbox is the one reset, since that means it is unclarified again.
+
 ## Dragging
 
 Drag any task onto a tab to file it there. Buckets that are hidden when empty
@@ -126,8 +133,9 @@ phone.
 
 Every task row has a date chip. Click it to set, change or clear the date —
 there are Today / Tomorrow / In a week shortcuts plus a picker. The same is on
-the `⋯` menu. Setting a date on a task that isn't scheduled moves it onto the
-calendar; clearing it leaves the task where it is.
+the `⋯` menu. Setting a date records the date and nothing more — it does not
+move the task to Scheduled. Use the clarify flow, the `⋯` menu or a drag onto
+the Scheduled tab for that, all of which ask for the date too.
 
 ## How lines are found
 
