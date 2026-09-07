@@ -1,11 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - Discover ordinary Markdown checkboxes across the vault automatically. Settings
   can switch between checkboxes, a custom tag, or both.
-- Stop writing handled markers and remove sidebar text editing. Existing note
-  lines are now changed only when their checkbox is completed or reopened.
+- Stop writing handled markers and remove sidebar text editing. Existing task
+  lines are now changed only when `[ ]` becomes `[x]` on completion.
 - Capture creates native `- [ ]` tasks, and projects can be created directly
   from the header or command palette.
 - Group Inbox tasks by source note, add clearer drag handles and drop feedback,

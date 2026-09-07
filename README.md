@@ -120,8 +120,8 @@ the Inbox is the one reset, since that means it is unclarified again.
 
 Each task has a priority slot: **P1** high, **P2** medium, **P3** low, or none.
 Click the chip, or use `⋯` → *Priority*. P1 and P2 also colour the card's left
-edge, so urgency reads without reading the chip, and priority tints the dots on
-the calendar.
+edge, so urgency reads without reading the chip, and priority tints calendar
+count badges.
 
 Priority is a sort key, applied after any manual order you set and before how
 recently a task was filed. Tasks without one sort last, so nothing reshuffles
@@ -152,8 +152,8 @@ accessible path on touch devices and for keyboard-driven workflows.
 
 ## Calendar
 
-Three scales, switched with the Day / Week / Month buttons. The heading steps
-back and forward by whichever scale you are on, and clicking it jumps to today.
+Three scales, switched with the Day / Week / Month buttons. The arrows step back
+and forward by whichever scale you are on, and **Today** jumps back immediately.
 
 - **Day** — one day, its tasks in full.
 - **Week** — seven day panels, stacked in a sidebar and fanned into columns once
@@ -251,7 +251,7 @@ npm run deploy
 npm install
 npm run dev      # watch build
 npm run build    # typecheck + minified build
-npm test         # 79 tests over the scanner
+npm test         # 100 tests over the scanner
 npm run deploy   # build, then copy into a vault
 ```
 
@@ -260,7 +260,7 @@ Source layout:
 ```
 src/
 ├── main.ts       plugin lifecycle, state, reconciliation, filing actions
-├── scanner.ts    finding tagged lines, identity, the one write path
+├── scanner.ts    checkbox/tag discovery, identity, safe completion writes
 ├── view.ts       sidebar: tabs, lists, cards, projects, drag and drop
 ├── wizard.ts     the GTD clarify flow
 ├── modals.ts     folder, project, task and date pickers
@@ -277,9 +277,9 @@ it from and where the release workflow picks it up. `styles.css` and
 `manifest.json` stay at the root for the same reason — they ship verbatim rather
 than being compiled.
 
-The tests cover the risky parts: which lines count as tasks, how identity is
-derived, how indentation implies a parent, and that marking a line is idempotent
-and reversible without disturbing its indent, bullet or checkbox.
+The tests cover the risky parts: which lines count as tasks, discovery modes,
+identity, indentation-based parents, capture formatting, and the guarantee that
+completion changes only the checkbox state character.
 
 ## Releasing
 

@@ -1,7 +1,7 @@
 {
   "name": "taskloops",
-  "version": "0.3.1",
-  "description": "An Obsidian plugin that collects #task lines into a sidebar GTD inbox and closes open loops.",
+  "version": "0.4.0",
+  "description": "Automatically gathers Markdown tasks into a GTD sidebar with projects, drag-and-drop planning, and calendar views.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
