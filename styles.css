@@ -56,6 +56,37 @@
 	flex: 0 0 auto;
 }
 
+.tl-header-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	height: 30px;
+	padding: 0 9px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 15px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	cursor: pointer;
+}
+
+.tl-header-action:hover {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
+.tl-header-action.is-primary {
+	border-color: var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.tl-header-action .svg-icon {
+	width: 14px;
+	height: 14px;
+}
+
 .tl-icon-btn {
 	display: inline-flex;
 	align-items: center;
@@ -367,6 +398,29 @@
 
 .tl-card.is-dragging {
 	opacity: 0.4;
+	transform: scale(0.985);
+}
+
+.tl-drag-grip {
+	display: inline-flex;
+	align-items: center;
+	align-self: stretch;
+	margin-left: -5px;
+	color: var(--text-faint);
+	opacity: 0;
+	cursor: grab;
+	transition: opacity 120ms ease, color 120ms ease;
+}
+
+.tl-card:hover .tl-drag-grip,
+.tl-card:focus-within .tl-drag-grip {
+	opacity: 0.7;
+}
+
+.tl-card[aria-grabbed="true"] .tl-drag-grip {
+	opacity: 1;
+	color: var(--interactive-accent);
+	cursor: grabbing;
 }
 
 /*
@@ -676,6 +730,34 @@
 	font-weight: 550;
 }
 
+.tl-project-create {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: 100%;
+	min-height: 34px;
+	margin: 4px 0 6px;
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	cursor: pointer;
+}
+
+.tl-project-create:hover {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.tl-project-create .svg-icon {
+	width: 14px;
+	height: 14px;
+}
+
 .tl-project.is-stalled {
 	box-shadow: inset 2px 0 0 var(--color-red);
 }
@@ -859,6 +941,16 @@
 
 /* A narrow sidebar drops the tab labels rather than wrapping to five rows. */
 @container taskloops (max-width: 290px) {
+	.tl-header-action > span {
+		display: none;
+	}
+
+	.tl-header-action {
+		width: 30px;
+		padding: 0;
+		justify-content: center;
+	}
+
 	.tl-tab-label {
 		display: none;
 	}
@@ -1126,6 +1218,23 @@
 	background: var(--background-modifier-hover);
 }
 
+.tl-cal-today {
+	height: 26px;
+	padding: 0 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 13px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	cursor: pointer;
+}
+
+.tl-cal-today:hover {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
 /* --- scale picker --- */
 
 .tl-cal-scales {
@@ -1381,6 +1490,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+}
+
+.tl-cal-focus {
+	margin-top: 8px;
 }
 
 .tl-cal-undated {

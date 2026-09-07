@@ -28,7 +28,7 @@ await esbuild.build({
  *
  * @typedef {Record<string, (...args: never[]) => unknown>} ScannerModule
  * @typedef {{ name: string, pass: number, fail: number, failures: string[] }} SuiteResult
- * @typedef {{ default: (mod: ScannerModule) => SuiteResult }} Suite
+ * @typedef {{ default: (mod: ScannerModule) => SuiteResult | Promise<SuiteResult> }} Suite
  */
 
 /** @type {ScannerModule} */
@@ -42,7 +42,7 @@ let fail = 0;
 for (const file of files) {
 	/** @type {Suite} */
 	const suite = await import(pathToFileURL(join(here, file)).href);
-	const result = suite.default(mod);
+	const result = await suite.default(mod);
 	pass += result.pass;
 	fail += result.fail;
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Discover ordinary Markdown checkboxes across the vault automatically. Settings
+  can switch between checkboxes, a custom tag, or both.
+- Stop writing handled markers and remove sidebar text editing. Existing note
+  lines are now changed only when their checkbox is completed or reopened.
+- Capture creates native `- [ ]` tasks, and projects can be created directly
+  from the header or command palette.
+- Group Inbox tasks by source note, add clearer drag handles and drop feedback,
+  and keep drag alternatives available from task menus.
+- Improve the month calendar with an explicit Today button and a full selected
+  day panel directly under the grid.
+
 ## 0.3.1
 
 - **Fix: the calendar barely showed anything.** Dated tasks were reduced to 4px

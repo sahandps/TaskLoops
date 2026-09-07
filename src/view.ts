@@ -57,8 +57,6 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 	private dragging: string | null = null;
 	/** A render asked for while a drag was in flight. */
 	private renderPending = false;
-	/** Task whose text is currently being edited in place. */
-	private editing: string | null = null;
 	/** The list as currently displayed, so a reorder knows the arrangement. */
 	private currentList: JoinedTask[] = [];
 	private mode: ViewMode;
@@ -313,16 +311,25 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		const actions = head.createDiv("tl-header-actions");
 
 		const add = actions.createEl("button", {
-			cls: "tl-icon-btn is-primary",
+			cls: "tl-header-action is-primary",
 			attr: { "aria-label": "Capture a task" },
 		});
 		setIcon(add, "plus");
+		add.createSpan({ text: "Task" });
 		add.onclick = () => {
 			this.capturing =
 				this.capturing?.for === null ? null : { for: null, fresh: true };
 			if (this.capturing) this.show("inbox");
 			else this.render();
 		};
+
+		const project = actions.createEl("button", {
+			cls: "tl-header-action",
+			attr: { "aria-label": "Create a project" },
+		});
+		setIcon(project, "layers");
+		project.createSpan({ text: "Project" });
+		project.onclick = () => this.promptProject();
 
 		const refresh = actions.createEl("button", {
 			cls: "tl-icon-btn",
@@ -504,8 +511,10 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 
 	private makeDraggable(el: HTMLElement, task: JoinedTask): void {
 		el.setAttr("draggable", "true");
+		el.setAttr("aria-grabbed", "false");
 		el.addEventListener("dragstart", (e) => {
 			this.dragging = task.id;
+			el.setAttr("aria-grabbed", "true");
 			e.dataTransfer?.setData("text/plain", task.id);
 			if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
 			el.addClass("is-dragging");
@@ -513,6 +522,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		});
 		el.addEventListener("dragend", () => {
 			this.dragging = null;
+			el.setAttr("aria-grabbed", "false");
 			el.removeClass("is-dragging");
 			this.contentEl.removeClass("is-dragging-task");
 			this.render();
@@ -573,7 +583,11 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 			if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
 			el.addClass("is-drop-target");
 		});
-		el.addEventListener("dragleave", () => el.removeClass("is-drop-target"));
+		el.addEventListener("dragleave", (e) => {
+			const next = e.relatedTarget;
+			if (next instanceof Node && el.contains(next)) return;
+			el.removeClass("is-drop-target");
+		});
 		el.addEventListener("drop", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -639,7 +653,10 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		if (this.active === "inbox" && !this.query) {
 			empty.createDiv({
 				cls: "tl-empty-hint",
-				text: `Write ${this.plugin.settings.tag} anywhere in a note, or press + above.`,
+				text:
+					this.plugin.settings.taskSource === "tagged"
+						? `Write ${this.plugin.settings.tag} anywhere in a note, or capture a task above.`
+						: "Add a Markdown checkbox anywhere in your vault, or capture a task above.",
 			});
 		}
 	}
@@ -672,7 +689,9 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 
 		for (const [heading, group] of this.groupTasks(tasks)) {
 			if (heading) list.createDiv({ cls: "tl-group", text: heading });
-			for (const task of group) this.renderCard(list, task);
+			for (const task of group) {
+				this.renderCard(list, task, { terse: this.active === "inbox" });
+			}
 		}
 	}
 
@@ -696,6 +715,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 			return keys.map((k) => [k, map.get(k)!] as [string, JoinedTask[]]);
 		};
 
+		if (this.active === "inbox") return by((t) => this.plugin.sourceLabel(t));
 		if (this.active === "next") return by((t) => t.item.context || "No context");
 		if (this.active === "waiting") {
 			return by((t) => t.item.waitingFor || "Unassigned");
@@ -714,6 +734,13 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 	 * project still has something open against it.
 	 */
 	private renderProjects(list: HTMLElement, all: JoinedTask[], q: string): void {
+		const create = list.createEl("button", {
+			cls: "tl-project-create",
+		});
+		setIcon(create.createSpan(), "plus");
+		create.createSpan({ text: "Create project" });
+		create.onclick = () => this.promptProject();
+
 		const projects = this.plugin
 			.projects(all)
 			.filter((p) => this.matches(p, q));
@@ -883,7 +910,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		}
 
 		const row = card.createDiv("tl-card-row");
-		const showCheck = opts.nested || this.active !== "inbox";
+		const showCheck = task.checkbox;
 
 		if (showCheck) {
 			const box = row.createEl("input", {
@@ -891,10 +918,19 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 				cls: "tl-check",
 			});
 			box.checked = !!task.item.done;
+			box.disabled = task.checked;
 			box.onclick = (e) => {
 				e.stopPropagation();
 				void this.plugin.toggleDone(task);
 			};
+		}
+
+		if (!wizard) {
+			const grip = row.createSpan({
+				cls: "tl-drag-grip",
+				attr: { "aria-hidden": "true" },
+			});
+			setIcon(grip, "grip-vertical");
 		}
 
 		if (task.item.priority) {
@@ -903,16 +939,7 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 
 		const body = row.createDiv("tl-card-body");
 
-		if (this.editing === task.id) {
-			this.renderTextEditor(body, task);
-		} else {
-			const textEl = body.createDiv({ cls: "tl-card-text", text: task.text });
-			textEl.title = "Double-click to edit";
-			textEl.ondblclick = (e) => {
-				e.stopPropagation();
-				this.startEdit(task);
-			};
-		}
+		body.createDiv({ cls: "tl-card-text", text: task.text });
 
 		const meta = body.createDiv("tl-card-meta");
 
@@ -993,9 +1020,6 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 				});
 			}
 		}
-		if (!task.handled && task.item.bucket !== "inbox") {
-			meta.createSpan({ cls: "tl-chip is-warn", text: "unmarked" });
-		}
 
 		const tools = row.createDiv("tl-card-tools");
 		const more = tools.createEl("button", {
@@ -1030,54 +1054,21 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		}
 	}
 
-	private startEdit(task: JoinedTask): void {
-		this.editing = task.id;
-		this.render();
-	}
-
-	/**
-	 * Editing rewrites the task's sentence in the note. Only the sentence: the
-	 * line's indent, bullet, checkbox, tag, block id and handled marker are all
-	 * preserved by the rewrite.
-	 */
-	private renderTextEditor(body: HTMLElement, task: JoinedTask): void {
-		const input = body.createEl("textarea", { cls: "tl-card-edit" });
-		input.value = task.text;
-		input.rows = 1;
-
-		const grow = () => {
-			input.setCssProps({ "--tl-edit-height": "auto" });
-			input.setCssProps({ "--tl-edit-height": `${input.scrollHeight}px` });
-		};
-
-		let settled = false;
-		const finish = (save: boolean) => {
-			if (settled) return;
-			settled = true;
-			const next = input.value;
-			this.editing = null;
-			if (save) void this.plugin.renameTask(task, next);
-			else this.render();
-		};
-
-		input.oninput = grow;
-		input.onkeydown = (e) => {
-			if (e.key === "Enter" && !e.shiftKey) {
-				e.preventDefault();
-				finish(true);
-			}
-			if (e.key === "Escape") {
-				e.preventDefault();
-				finish(false);
-			}
-		};
-		input.onblur = () => finish(true);
-
-		window.setTimeout(() => {
-			input.focus();
-			input.select();
-			grow();
-		}, 0);
+	private promptProject(): void {
+		new TextPromptModal(this.app, {
+			title: "Create a project",
+			placeholder: "What outcome are you working toward?",
+			cta: "Create project",
+			onSubmit: (text) => {
+				void (async () => {
+					const ok = await this.plugin.createProject(text);
+					if (ok) {
+						this.show("project");
+						new Notice("Project created");
+					}
+				})();
+			},
+		}).open();
 	}
 
 	private pickPriority(task: JoinedTask, evt: MouseEvent): void {
@@ -1153,13 +1144,6 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 
 		menu.addItem((i) =>
 			i
-				.setTitle("Edit text…")
-				.setIcon("pencil")
-				.onClick(() => this.startEdit(task))
-		);
-
-		menu.addItem((i) =>
-			i
 				.setTitle("Priority…")
 				.setIcon("flag")
 				.onClick((e) => this.pickPriority(task, e as MouseEvent))
@@ -1223,12 +1207,21 @@ export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
 		}
 
 		menu.addSeparator();
-		menu.addItem((i) =>
-			i
-				.setTitle(task.item.done ? "Mark not done" : "Mark done")
-				.setIcon(task.item.done ? "rotate-ccw" : "check")
-				.onClick(() => void this.plugin.toggleDone(task))
-		);
+		if (task.item.done) {
+			menu.addItem((i) =>
+				i
+					.setTitle("Reopen in source note")
+					.setIcon("file-pen-line")
+					.onClick(() => void this.plugin.reveal(task))
+			);
+		} else {
+			menu.addItem((i) =>
+				i
+					.setTitle("Mark done")
+					.setIcon("check")
+					.onClick(() => void this.plugin.toggleDone(task))
+			);
+		}
 
 		menu.showAtMouseEvent(evt);
 	}

@@ -1,5 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type TaskLoopsPlugin from "./main";
+import type { TaskSource } from "./types";
 
 /** The plugin's settings pane. */
 export class TaskLoopsSettingTab extends PluginSettingTab {
@@ -14,10 +15,30 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		new Setting(containerEl).setName("Task discovery").setHeading();
+
 		new Setting(containerEl)
-			.setName("Task tag")
+			.setName("Find tasks from")
 			.setDesc(
-				"Any line carrying this tag becomes an inbox item. Child tags such as #task/work count too."
+				"Markdown checkboxes work automatically. You can also include tagged lines for older workflows."
+			)
+			.addDropdown((d) =>
+				d
+					.addOption("checkboxes", "Markdown checkboxes")
+					.addOption("both", "Checkboxes and a tag")
+					.addOption("tagged", "Tag only")
+					.setValue(this.plugin.settings.taskSource)
+					.onChange(async (value) => {
+						this.plugin.settings.taskSource = value as TaskSource;
+						await this.plugin.saveData_();
+						await this.plugin.rescan();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Optional task tag")
+			.setDesc(
+				"Used when the source above includes tags. Child tags such as #task/work count too."
 			)
 			.addText((t) =>
 				t
@@ -31,30 +52,10 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl)
-			.setName("Mark lines when sorted")
-			.setDesc(
-				"Appends the marker below to the task's own line. Turn this off and the plugin will never write to your notes."
-			)
-			.addToggle((t) =>
-				t.setValue(this.plugin.settings.markHandled).onChange(async (v) => {
-					this.plugin.settings.markHandled = v;
-					await this.plugin.saveData_();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Handled marker")
-			.setDesc("Appended at the end of the line. Default renders as italic.")
-			.addText((t) =>
-				t
-					.setPlaceholder("*(Handled)*")
-					.setValue(this.plugin.settings.handledMarker)
-					.onChange(async (v) => {
-						this.plugin.settings.handledMarker = v.trim() || "*(Handled)*";
-						await this.plugin.saveData_();
-					})
-			);
+		containerEl.createEl("p", {
+			cls: "setting-item-description",
+			text: "TaskLoops never adds status markers or rewrites task text. Completing a checkbox changes only [ ] to [x].",
+		});
 
 		new Setting(containerEl)
 			.setName("Capture note")
@@ -105,7 +106,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Forget all sorting")
 			.setDesc(
-				"Clears the plugin's own records and returns everything to the inbox. Your notes are not touched — existing markers stay where they are."
+				"Clears TaskLoops filing, dates, priorities, and project links. Your notes and checkbox states are not touched."
 			)
 			.addButton((b) => {
 				b.setButtonText("Reset").onClick(() => {

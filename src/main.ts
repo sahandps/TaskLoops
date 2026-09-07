@@ -21,8 +21,7 @@ import {
 import {
 	scanFile,
 	scanVault,
-	setHandledMarker,
-	setTaskText,
+	setCheckboxDone,
 	taskId,
 } from "./scanner";
 import { CAPTURE_BASENAME, TextPromptModal } from "./modals";
@@ -100,6 +99,19 @@ export default class TaskLoopsPlugin extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "create-project",
+			name: "Create a project",
+			callback: () => {
+				new TextPromptModal(this.app, {
+					title: "Create a project",
+					placeholder: "What outcome are you working toward?",
+					cta: "Create project",
+					onSubmit: (text) => void this.createProject(text),
+				}).open();
+			},
+		});
+
 		this.addSettingTab(new TaskLoopsSettingTab(this.app, this));
 
 		this.app.workspace.onLayoutReady(() => {
@@ -155,7 +167,11 @@ export default class TaskLoopsPlugin extends Plugin {
 	// --------------------------------------------------------------- scanning
 
 	async rescan(): Promise<void> {
-		this.tasks = await scanVault(this.app, this.settings.tag);
+		this.tasks = await scanVault(
+			this.app,
+			this.settings.tag,
+			this.settings.taskSource
+		);
 		this.reconcileAll();
 		await this.saveData_();
 		this.refreshViews();
@@ -163,7 +179,12 @@ export default class TaskLoopsPlugin extends Plugin {
 
 	private async refreshFile(file: TFile): Promise<void> {
 		if (file.extension !== "md") return;
-		const found = await scanFile(this.app, file, this.settings.tag);
+		const found = await scanFile(
+			this.app,
+			file,
+			this.settings.tag,
+			this.settings.taskSource
+		);
 		if (found.length) this.tasks.set(file.path, found);
 		else this.tasks.delete(file.path);
 		// Re-home only: a single file's view is too narrow to justify deleting
@@ -190,8 +211,8 @@ export default class TaskLoopsPlugin extends Plugin {
 	 * Re-attach records whose line was reworded.
 	 *
 	 * A record is orphaned when its id no longer matches any scanned line. If
-	 * exactly one orphan in a file lines up with exactly one marked line that
-	 * has no record of its own, that is a rewording rather than a deletion, and
+	 * exactly one orphan in a file lines up with one replacement at its last
+	 * known line (or a legacy marked/checked line), that is a rewording, and
 	 * the record moves across with its uid intact — so a renamed project keeps
 	 * the actions pointing at it.
 	 */
@@ -204,7 +225,11 @@ export default class TaskLoopsPlugin extends Plugin {
 		);
 		if (orphans.length !== 1) return false;
 
-		const candidates = live.filter((t) => t.handled && !this.items[t.id]);
+		const candidates = live.filter(
+			(t) =>
+				!this.items[t.id] &&
+				(t.line === orphans[0].line || t.handled || t.checked)
+		);
 		if (candidates.length !== 1) return false;
 
 		const item = orphans[0];
@@ -212,6 +237,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		delete this.items[item.id];
 		item.id = task.id;
 		item.text = task.text;
+		item.line = task.line;
 		item.occ = live.indexOf(task);
 		this.items[task.id] = item;
 		return true;
@@ -266,7 +292,12 @@ export default class TaskLoopsPlugin extends Plugin {
 					if (!item.uid) item.uid = newUid();
 					item.path = task.path;
 					item.text = task.text;
+					item.line = task.line;
 					item.occ = occ;
+					if (task.checkbox) {
+						item.done = task.checked;
+						if (!task.checked) item.doneAt = undefined;
+					}
 				} else {
 					item = {
 						id: task.id,
@@ -274,11 +305,13 @@ export default class TaskLoopsPlugin extends Plugin {
 						// A line already carrying the marker was sorted at some
 						// point; the marker doesn't record which bucket, so it
 						// lands in Next where it stays visible and re-filable.
-						bucket: task.handled ? "next" : "inbox",
+						bucket: task.handled || task.checked ? "next" : "inbox",
 						path: task.path,
 						text: task.text,
+						line: task.line,
 						occ,
 						provisional: true,
+						done: task.checked,
 					};
 				}
 				byId.set(task.id, item);
@@ -366,7 +399,7 @@ export default class TaskLoopsPlugin extends Plugin {
 
 	// ---------------------------------------------------------------- actions
 
-	/** File a task into a bucket and reflect that with the handled marker. */
+	/** File a task in plugin data; only an explicit done state touches Markdown. */
 	async file(
 		task: JoinedTask,
 		patch: {
@@ -378,6 +411,12 @@ export default class TaskLoopsPlugin extends Plugin {
 			projectUid?: string | null;
 		}
 	): Promise<void> {
+		const done = task.checkbox ? patch.done : undefined;
+		if (patch.done !== undefined && !task.checkbox) {
+			new Notice(
+				"Filed, but not completed: this tagged line must be a Markdown checkbox before TaskLoops can mark it done."
+			);
+		}
 		const item = this.persist(task);
 
 		item.bucket = patch.bucket;
@@ -393,9 +432,9 @@ export default class TaskLoopsPlugin extends Plugin {
 		if (patch.waitingFor !== undefined) item.waitingFor = patch.waitingFor;
 		if (patch.due !== undefined) item.due = patch.due;
 
-		if (patch.done !== undefined) {
-			item.done = patch.done;
-			item.doneAt = patch.done ? Date.now() : undefined;
+		if (done !== undefined) {
+			item.done = done;
+			item.doneAt = done ? Date.now() : undefined;
 		}
 		if (patch.projectUid !== undefined) item.projectUid = patch.projectUid;
 
@@ -413,20 +452,33 @@ export default class TaskLoopsPlugin extends Plugin {
 		if (patch.bucket === "project") item.projectUid = null;
 
 		await this.saveData_();
-		await this.syncMarker(task, item.bucket !== "inbox");
+		if (done === true && !task.checked) {
+			await this.writeDoneState(task);
+		}
 		this.refreshViews();
 	}
 
 	async toggleDone(task: JoinedTask): Promise<void> {
+		if (!task.checkbox) {
+			new Notice(
+				"This tagged line is not a Markdown checkbox. Convert it to - [ ] to complete it from TaskLoops."
+			);
+			return;
+		}
+		if (task.checked) {
+			new Notice("Reopen this task in its source note.");
+			return;
+		}
+		const done = true;
 		const item = this.persist(task);
-		item.done = !item.done;
-		item.doneAt = item.done ? Date.now() : undefined;
-		if (item.done && item.bucket === "inbox") {
+		item.done = done;
+		item.doneAt = done ? Date.now() : undefined;
+		if (done && item.bucket === "inbox") {
 			item.bucket = "next";
 			item.sortedAt = Date.now();
 		}
+		await this.writeDoneState(task);
 		await this.saveData_();
-		await this.syncMarker(task, item.bucket !== "inbox");
 		this.refreshViews();
 	}
 
@@ -455,51 +507,6 @@ export default class TaskLoopsPlugin extends Plugin {
 		item.due = iso ?? undefined;
 		await this.saveData_();
 		this.refreshViews();
-	}
-
-	/**
-	 * Rewrite a task's sentence in its note.
-	 *
-	 * Identity is derived from the text, so the record is re-keyed to match.
-	 * Everything else about the line — indent, bullet, checkbox, tag, block id,
-	 * handled marker — is preserved by the rewrite itself.
-	 */
-	async renameTask(task: JoinedTask, body: string): Promise<boolean> {
-		const text = body.replace(/\s+/g, " ").trim();
-		if (!text || text === task.text) return false;
-
-		const item = this.persist(task);
-
-		this.writing.add(task.path);
-		let written = false;
-		try {
-			written = await setTaskText(this.app, task, this.settings.tag, text);
-		} catch (err) {
-			console.error("TaskLoops: failed to rewrite task text", err);
-			new Notice("TaskLoops: failed to update the note. See console.");
-			return false;
-		} finally {
-			this.writing.delete(task.path);
-		}
-
-		if (!written) {
-			new Notice("TaskLoops: couldn't find that line — it may have been edited.");
-			return false;
-		}
-
-		const nextId = taskId(task.path, text, item.occ);
-		if (nextId !== item.id) {
-			delete this.items[item.id];
-			item.id = nextId;
-			this.items[nextId] = item;
-		}
-		item.text = text;
-
-		await this.saveData_();
-		const file = this.app.vault.getAbstractFileByPath(task.path);
-		if (file instanceof TFile) await this.refreshFile(file);
-		this.refreshViews();
-		return true;
 	}
 
 	/**
@@ -552,7 +559,8 @@ export default class TaskLoopsPlugin extends Plugin {
 		if (!body) return false;
 
 		const path = normalizePath(this.settings.captureNote);
-		const line = `- ${body} ${this.settings.tag}`;
+		const includeTag = this.settings.taskSource !== "checkboxes";
+		const line = `- [ ] ${body}${includeTag ? " " + this.settings.tag : ""}`;
 
 		let file = this.app.vault.getAbstractFileByPath(path);
 		try {
@@ -589,6 +597,7 @@ export default class TaskLoopsPlugin extends Plugin {
 			bucket,
 			path: task.path,
 			text: task.text,
+			line: task.line,
 			occ: (this.tasks.get(file.path) ?? []).indexOf(task),
 		};
 		if (projectUid !== undefined) item.projectUid = projectUid;
@@ -597,13 +606,13 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.items[task.id] = item;
 
 		await this.saveData_();
-		// Anything captured already-clarified gets the marker like any other
-		// sorted line; a plain inbox capture stays unmarked.
-		if (bucket !== "inbox") {
-			await this.syncMarker({ ...task, handled: false }, true);
-		}
 		this.refreshViews();
 		return true;
+	}
+
+	/** Create a project outcome in one step, using the same safe capture note. */
+	async createProject(text: string): Promise<boolean> {
+		return this.captureTask(text, null, "project");
 	}
 
 	/**
@@ -615,7 +624,12 @@ export default class TaskLoopsPlugin extends Plugin {
 		raw: string
 	): Promise<ScannedTask | null> {
 		for (let attempt = 0; attempt < 20; attempt++) {
-			const found = await scanFile(this.app, file, this.settings.tag);
+			const found = await scanFile(
+				this.app,
+				file,
+				this.settings.tag,
+				this.settings.taskSource
+			);
 			const hits = found.filter((t) => t.raw === raw);
 			if (hits.length) {
 				this.tasks.set(file.path, found);
@@ -626,27 +640,17 @@ export default class TaskLoopsPlugin extends Plugin {
 		return null;
 	}
 
-	/**
-	 * The only write this plugin makes to an existing line: append or remove
-	 * the handled marker at the end of the task's own line.
-	 */
-	private async syncMarker(task: ScannedTask, on: boolean): Promise<void> {
-		if (!this.settings.markHandled) return;
-		if (task.handled === on) return;
-
+	/** The only existing-line write: change the checkbox state character. */
+	private async writeDoneState(task: ScannedTask): Promise<void> {
+		if (!task.checkbox) return;
 		this.writing.add(task.path);
 		try {
-			const ok = await setHandledMarker(
-				this.app,
-				task,
-				this.settings.handledMarker,
-				on
-			);
+			const ok = await setCheckboxDone(this.app, task);
 			if (!ok) {
 				new Notice("TaskLoops: couldn't find that line — it may have been edited.");
 			}
 		} catch (err) {
-			console.error("TaskLoops: failed to write handled marker", err);
+			console.error("TaskLoops: failed to update checkbox", err);
 			new Notice("TaskLoops: failed to update the note. See console.");
 		} finally {
 			this.writing.delete(task.path);

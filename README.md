@@ -4,9 +4,9 @@
 [![Release](https://img.shields.io/github/v/release/sahandps/TaskLoops?sort=semver)](https://github.com/sahandps/TaskLoops/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An Obsidian plugin that collects `#task` lines from anywhere in your vault into
-a sidebar inbox, walks them through the GTD clarify flow, and marks each line
-`*(Handled)*` once you've sorted it.
+An Obsidian plugin that automatically collects Markdown tasks (`- [ ]`) from
+anywhere in your vault into a sidebar inbox and walks them through a friendly
+GTD workflow. Optional `#task` discovery remains available in settings.
 
 An *open loop* is anything you've committed to that isn't closed yet. TaskLoops
 finds them, helps you file them, and tells you when a project has quietly
@@ -14,24 +14,21 @@ stalled.
 
 ## What it writes to your notes
 
-Two things, both of which you trigger deliberately:
+Only two deliberate actions write to Markdown:
 
-1. **`*(Handled)*`** appended to the end of a task's own line, once you sort it.
-   Turn off **Mark lines when sorted** and this stops entirely.
-2. **The sentence of a task you explicitly edit**, and only that — see
-   [Editing a task](#editing-a-task).
-3. **A new `- … #task` line appended to your capture note**, and only when you
-   use quick capture. That note is named in settings, defaults to
-   `TaskLoops Inbox.md`, and is created on first use. Capture only ever appends
-   to the end of that one file.
+1. **Completing a task** changes only its checkbox from `[ ]` to `[x]`.
+   Reopening is intentionally done in the source note.
+2. **Quick capture** appends a new `- [ ] …` line to the capture note. That note
+   defaults to `TaskLoops Inbox.md` and is created on first use.
 
-Beyond those, nothing. It never touches frontmatter or note properties, never
-adds tags, never reorders or moves lines, never deletes anything, and never
-edits a line you have not personally sorted or edited. If you never press the capture
-button, the capture note is never created.
+Beyond those, nothing. Filing, dates, priorities, contexts, delegation, manual
+order, and project links never rewrite the note. TaskLoops does not add handled
+markers, change task text, touch frontmatter, move lines, or delete anything.
+If you never capture or complete a task, it never writes to Markdown.
 
-All state — bucket, context, delegate, date, project links, done — lives in the
-plugin's own `data.json`, never in your notes.
+Workflow state — bucket, context, delegate, date, priority, order, and project
+links — lives in the plugin's own `data.json`. Completion stays visible and
+portable in the Markdown checkbox itself.
 
 ## Three layouts
 
@@ -63,8 +60,8 @@ You can back out of any step, and re-file anything later from the `⋯` menu.
 
 ## Capture
 
-The **+** button in the panel header opens a capture row. Type, press Enter, and
-the line is appended to your capture note and appears in the Inbox unsorted —
+The **+ Task** button in the panel header opens a capture row. Type, press Enter,
+and a checkbox is appended to your capture note and appears in the Inbox unsorted —
 the row stays open so a burst of thoughts costs one keystroke each. Escape
 closes it. There is also a *Capture a task to the inbox* command you can bind to
 a hotkey.
@@ -77,7 +74,8 @@ capture note somewhere else at any time.
 
 ## Projects
 
-The projects list stays a list of *outcomes*, not a place to keep steps. The
+Use **Project** in the header to create an outcome in one step. The projects
+list stays a list of *outcomes*, not a place to keep steps. The
 plugin tracks one thing about a project: which actions belong to it, so it can
 tell you when a project has nothing open against it. A project showing **no next
 action** has stalled, which is the single failure mode the weekly review exists
@@ -85,7 +83,7 @@ to catch. Those projects sort to the top and put a dot on the Projects tab.
 
 Actions get attached to a project three ways:
 
-1. **Indentation.** A `#task` line indented under a project's `#task` line is
+1. **Indentation.** A checkbox indented under a project's checkbox is
    its action. Blank lines are transparent; any non-blank line at column zero
    ends the block, so an outline further down the note won't attach itself to
    something unrelated. This is read-only inference — nothing is written.
@@ -104,19 +102,8 @@ on.
 
 ## Editing a task
 
-Double-click a task's text in the panel to rewrite it, or use `⋯` → *Edit text*.
-Enter saves, Escape cancels, Shift+Enter adds a line break.
-
-This is the one place the plugin rewrites something you wrote, so it is careful
-about it: only the sentence changes. The line's indentation, bullet, checkbox,
-blockquote or heading markers, the tag exactly as you wrote it — `#task/work`
-stays `#task/work` — any block id, and the handled marker are all preserved.
-Before writing, the line is re-located by its exact previous text, so an edit
-made in the note meanwhile cannot cause the wrong line to be rewritten.
-
-Renaming changes a task's identity, since identity is derived from its text.
-The record is moved across explicitly, so its bucket, context, date and project
-links all survive.
+Task text is edited in its source note. Click the note name under a card to jump
+straight to the line. The sidebar intentionally never rewrites task wording.
 
 The context, waiting-on and date chips under each task are clickable: one click
 changes any of them. Empty ones appear on hover as `+ context` and `+ date`, and
@@ -159,9 +146,9 @@ Dropping onto **Scheduled** asks for a date and **Waiting** asks for a name,
 because those buckets are meaningless without them; every other target files
 immediately.
 
-Dragging is mouse-only — it uses HTML5 drag events, which touch screens don't
-fire. Every drag action is also on the `⋯` menu, which is the path to use on a
-phone.
+Cards show a drag grip on hover and every valid destination gets a clear active
+state. Every drag action is also available from the `⋯` menu, which is the
+accessible path on touch devices and for keyboard-driven workflows.
 
 ## Calendar
 
@@ -189,30 +176,28 @@ the Scheduled tab for that, all of which ask for the date too.
 
 ## How lines are found
 
-Tag positions come from Obsidian's own metadata cache, not a text search, so
-fenced code blocks, inline code and YAML frontmatter are excluded automatically.
-`#task/work` and other child tags count. A line holding nothing but the tag is
-ignored. Bullets, checkboxes, ordered lists, blockquotes, headings and block ids
-are stripped from the display text but left untouched in the note.
+Checkbox and optional tag positions come from Obsidian's own metadata cache,
+not a text search, so fenced code blocks, inline code and YAML frontmatter are
+excluded automatically. `#task/work` and other child tags count when tag
+discovery is enabled. List markers, checkbox state, blockquotes, headings and
+block ids are stripped from the display text but left untouched in the note.
 
 ## Identity and edit safety
 
 A task is identified by a hash of its note path, its cleaned text, and its index
 among identical lines in that file. Two consequences worth knowing:
 
-- **Editing a sorted line's wording gives it a new identity.** When exactly one
-  record in a note is orphaned and exactly one marked line there has no record,
-  that is unambiguously a rewording, and the record moves across intact — so a
-  reworded project keeps the actions pointing at it. Project links survive this
-  because they reference an internal id, not the line's text. If the match is
-  ambiguous, the line falls back to **Next**, where it stays visible rather than
-  silently vanishing.
+- **Editing a sorted line's wording gives it a new identity.** When one orphaned
+  record lines up with one replacement at the same source line, the record moves
+  across intact — so a reworded project keeps its actions. Project links survive
+  this because they reference an internal id, not the line's text. Ambiguous
+  changes are treated as newly discovered tasks instead of risking a wrong link.
 - **Deleting a task line drops its record.** This only happens after a full,
   successful vault scan, so a partial view can never prune anything.
 
-Before writing a marker the plugin re-locates the line by its exact prior text.
-If the line moved and the text is still unique, it follows it; if it cannot
-identify the line unambiguously, it writes nothing and tells you.
+Before changing a checkbox, the plugin re-locates the line by its exact prior
+text. If the line moved and the text is still unique, it follows it; if it
+cannot identify the line unambiguously, it writes nothing and tells you.
 
 Renaming or moving a note carries its filed tasks along with it.
 

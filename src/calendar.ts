@@ -113,6 +113,15 @@ function renderToolbar(
 	setIcon(next, "chevron-right");
 	next.onclick = () => step(1);
 
+	const today = bar.createEl("button", {
+		cls: "tl-cal-today",
+		text: "Today",
+	});
+	today.onclick = () => {
+		state.anchor = todayISO();
+		host.rerender();
+	};
+
 	const scales = wrap.createDiv("tl-cal-scales");
 	for (const scale of ["day", "week", "month"] as CalendarScale[]) {
 		const b = scales.createEl("button", {
@@ -278,9 +287,20 @@ function renderMonth(
 		});
 	}
 
-	// Everything in the month, by day, so the grid is never the only answer.
+	// Keep the selected day tangible below the compact grid: its full tasks,
+	// add button, and drop area are always one glance away.
+	const selected = (byDay.get(state.anchor) ?? []).sort(host.compare);
+	const focus = wrap.createDiv("tl-cal-focus");
+	renderDayPanel(focus, host, state.anchor, selected, {});
+
+	// Everything else in the month, by day, so the grid is never the only answer.
 	const inMonth = days
-		.filter((d) => monthKey(d) === key && (byDay.get(d) ?? []).length > 0)
+		.filter(
+			(d) =>
+				d !== state.anchor &&
+				monthKey(d) === key &&
+				(byDay.get(d) ?? []).length > 0
+		)
 		.sort();
 
 	const list = wrap.createDiv("tl-cal-section");

@@ -30,6 +30,9 @@ export const PRIORITIES: PriorityDef[] = [
 /** Which of the three panel layouts is on screen. */
 export type ViewMode = "list" | "board" | "calendar";
 
+/** Which Markdown lines TaskLoops discovers. */
+export type TaskSource = "checkboxes" | "tagged" | "both";
+
 export interface BucketDef {
 	id: Bucket | "done";
 	label: string;
@@ -97,6 +100,8 @@ export interface TaskLoopsItem {
 	path: string;
 	/** Last known cleaned text, used for the Done archive and rename remapping. */
 	text: string;
+	/** Last known source line, used to preserve filing when wording changes. */
+	line?: number;
 	/** Index among identical task lines in the same file; part of the id. */
 	occ: number;
 	context?: string;
@@ -139,6 +144,10 @@ export interface ScannedTask {
 	parentId?: string;
 	/** True when the line already carries the handled marker. */
 	handled: boolean;
+	/** Whether this line is a Markdown task list item. */
+	checkbox: boolean;
+	/** The checkbox's current state. Meaningful only when `checkbox` is true. */
+	checked: boolean;
 }
 
 /** A scanned task joined with its stored GTD state. */
@@ -151,12 +160,10 @@ export interface JoinedTask extends ScannedTask {
 }
 
 export interface TaskLoopsSettings {
+	/** Markdown checkboxes, tagged lines, or both. */
+	taskSource: TaskSource;
 	/** The tag that promotes a line into the inbox. */
 	tag: string;
-	/** Appended to a line once it has been clarified. */
-	handledMarker: string;
-	/** When false, the plugin makes no writes to your notes at all. */
-	markHandled: boolean;
 	/** Contexts offered when filing a next action. */
 	contexts: string[];
 	/** Show the containing folder alongside the note name. */
@@ -168,7 +175,7 @@ export interface TaskLoopsSettings {
 	captureNote: string;
 	/** False until you've been asked once where captures should live. */
 	captureFolderChosen: boolean;
-	/** Hide clarified items from the Inbox list even if the marker is missing. */
+	/** Bucket last shown in list mode. */
 	lastBucket: Bucket | "done";
 	/** Which layout was last on screen. */
 	lastMode: ViewMode;
@@ -177,9 +184,8 @@ export interface TaskLoopsSettings {
 }
 
 export const DEFAULT_SETTINGS: TaskLoopsSettings = {
+	taskSource: "checkboxes",
 	tag: "#task",
-	handledMarker: "*(Handled)*",
-	markHandled: true,
 	contexts: ["@computer", "@home", "@office", "@errands", "@calls", "@anywhere"],
 	showFolder: false,
 	captureNote: "TaskLoops Inbox.md",

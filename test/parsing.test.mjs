@@ -3,7 +3,14 @@ import { createSuite } from "./harness.mjs";
 const TAG = "#task";
 
 export default function run(mod) {
-	const { cleanTaskText, hasHandledMarker, stripHandledMarker, taskId } = mod;
+	const {
+		checkboxState,
+		cleanTaskText,
+		hasHandledMarker,
+		markCheckboxDone,
+		stripHandledMarker,
+		taskId,
+	} = mod;
 	const { eq, results } = createSuite("parsing");
 
 	// --- the shapes a tagged line actually takes -----------------------------
@@ -33,6 +40,14 @@ export default function run(mod) {
 	eq(cleanTaskText("  spaced   out   #task ", TAG), "spaced out", "whitespace collapse");
 	eq(cleanTaskText("#task", TAG), "", "bare tag only is not a task");
 	eq(cleanTaskText("- #task", TAG), "", "bullet + bare tag is not a task");
+
+	// --- native Markdown checkboxes ------------------------------------------
+	eq(checkboxState("- [ ] call mum"), false, "unchecked checkbox detected");
+	eq(checkboxState("  - [x] call mum"), true, "checked checkbox detected");
+	eq(checkboxState("> - [X] quoted task"), true, "quoted checkbox detected");
+	eq(checkboxState("- ordinary bullet"), null, "ordinary bullet is not a task");
+	eq(markCheckboxDone("- [ ] call mum"), "- [x] call mum", "completion changes only checkbox");
+	eq(markCheckboxDone("- ordinary bullet"), "- ordinary bullet", "non-task line is untouched");
 
 	// Tags that merely start with the same letters are left alone.
 	eq(cleanTaskText("a #tasked thing #task", TAG), "a #tasked thing", "sibling tag kept");
