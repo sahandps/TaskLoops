@@ -1,6 +1,6 @@
 import type { DateFormat, Schedule } from "./types";
 
-export const DATE_FORMATS: DateFormat[] = ["YYYY-MM-DD", "DD/MM/YYYY", "DD.MM.YYYY", "YYYY/MM/DD"];
+export const DATE_FORMATS: DateFormat[] = ["YYYY-MM-DD", "YYYY/MM/DD", "YYYY.MM.DD", "YYYYMMDD", "DD/MM/YYYY", "DD.MM.YYYY", "DD-MM-YYYY", "D/M/YYYY", "D.M.YYYY", "D-M-YYYY", "D MMM YYYY", "DD MMM YYYY", "D MMMM YYYY", "MMM D, YYYY", "MMMM D, YYYY"];
 
 export function validDate(iso: string): boolean {
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
@@ -9,16 +9,38 @@ export function validDate(iso: string): boolean {
 		d.getMonth() + 1 === Number(iso.slice(5, 7)) && d.getDate() === Number(iso.slice(8, 10));
 }
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 export function formatDate(iso: string, format: DateFormat): string {
-	return format.replace("YYYY", iso.slice(0, 4)).replace("MM", iso.slice(5, 7)).replace("DD", iso.slice(8, 10));
+ const month = Number(iso.slice(5, 7));
+ const tokens: Record<string, string> = { YYYY: iso.slice(0, 4), MMMM: MONTHS[month - 1], MMM: MONTHS[month - 1]?.slice(0, 3), MM: iso.slice(5, 7), M: String(month), DD: iso.slice(8, 10), D: String(Number(iso.slice(8, 10))) };
+ return format.replace(/YYYY|MMMM|MMM|MM|DD|M|D/g, token => tokens[token]);
 }
 
+/** Numeric slash/dot/hyphen dates remain day-first unless the year is first.
+ * English month names provide an unambiguous month-first alternative. */
 export function parseDate(value: string): string | undefined {
-	let iso: string;
-	if (/^\d{4}[-/]\d{2}[-/]\d{2}$/.test(value)) iso = value.replace(/\//g, "-");
-	else if (/^\d{2}([/.])\d{2}\1\d{4}$/.test(value)) iso = value.slice(6) + "-" + value.slice(3, 5) + "-" + value.slice(0, 2);
-	else return;
-	return validDate(iso) ? iso : undefined;
+ let year: string, month: string, day: string;
+ let match = value.match(/^(\d{4})([-/.])(\d{2})\2(\d{2})$/);
+ if (match) [, year, , month, day] = match;
+ else if ((match = value.match(/^(\d{4})(\d{2})(\d{2})$/))) [, year, month, day] = match;
+ else if ((match = value.match(/^(\d{1,2})([/.-])(\d{1,2})\2(\d{4})$/))) [, day, , month, year] = match;
+ else {
+  match = value.match(/^(\d{1,2}) ([A-Za-z]+) (\d{4})$/);
+  if (match) [, day, month, year] = match;
+  else { match = value.match(/^([A-Za-z]+) (\d{1,2}), (\d{4})$/); if (!match) return; [, month, day, year] = match; }
+  const index = MONTHS.findIndex(name => name.toLowerCase() === month.toLowerCase() || name.slice(0, 3).toLowerCase() === month.toLowerCase());
+  if (index < 0) return;
+  month = String(index + 1);
+ }
+ const iso = year + "-" + month.padStart(2, "0") + "-" + day.padStart(2, "0");
+ return validDate(iso) ? iso : undefined;
+}
+
+/** Display preference only; Markdown and time inputs stay in canonical HH:mm. */
+export function formatTime(value: string, format = "24h"): string {
+ if (format !== "12h" || !validTime(value)) return value;
+ const hour = Number(value.slice(0, 2));
+ return `${hour % 12 || 12}:${value.slice(3)} ${hour < 12 ? "AM" : "PM"}`;
 }
 
 export function validTime(value: string): boolean {
@@ -35,7 +57,7 @@ export function formatDuration(minutes: number): string {
 export function parseSchedule(raw: string): { body: string; schedule: Schedule; suffix: string; block: string } {
 	const block = raw.match(/(\s+\^[\w-]+)?(\r?)$/)?.[0] ?? "";
 	const body = raw.slice(0, raw.length - block.length);
-	const match = body.match(/\s+Due date: ([\d./-]+)(?: Time: (\d{2}:\d{2}))?(?: Duration: (?:(\d+) Hours?(?: (\d+) Minutes?)?|(\d+) Minutes?))?\s*$/i);
+	const match = body.match(/\s+Due date: ([A-Za-z0-9.,/ -]+?)(?: Time: (\d{2}:\d{2}))?(?: Duration: (?:(\d+) Hours?(?: (\d+) Minutes?)?|(\d+) Minutes?))?\s*$/i);
 	if (match) {
 		const due = parseDate(match[1]);
 		const time = match[2];

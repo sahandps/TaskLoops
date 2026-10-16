@@ -1,8 +1,10 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules } from "module";
+import { readFileSync } from "fs";
 
 const prod = process.argv[2] === "production";
+const { version } = JSON.parse(readFileSync("manifest.json", "utf8"));
 
 const context = await esbuild.context({
   entryPoints: ["src/main.ts"],
@@ -30,6 +32,7 @@ const context = await esbuild.context({
   treeShaking: true,
   outfile: "main.js",
   minify: prod,
+  banner: { js: `/*! TaskLoops ${version} | Copyright (c) 2026 Sahand Poursadeghi Khiavi. Free-to-use proprietary license: https://github.com/sahandps/TaskLoops/blob/${version}/LICENSE */` },
 });
 
 if (prod) {

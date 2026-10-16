@@ -69,4 +69,4 @@ jobs:
                   gh release create "$tag" \
                     --title="$tag" \
                     --draft \
-                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+                    main.js manifest.json LICENSE ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

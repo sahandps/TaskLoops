@@ -8,6 +8,7 @@ import { TaskLoopsSettingTab } from "./settings";
 import { existingSubtaskCandidates } from "./existing-tasks";
 import { applyNoteChanges, NoteChange } from "./note-transaction";
 import { TaskModal } from "./modals";
+import { inScanFolder } from "./note-grid";
 import { appendTaskBlock, editedBlock, replaceTaskBlock, taskBlock, nestTaskBlock, validateWording } from "./task-edits";
 
 export default class TaskLoopsPlugin extends Plugin {
@@ -29,6 +30,15 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.settings = { ...DEFAULT_SETTINGS, ...data?.settings };
 		if (!DATE_FORMATS.includes(this.settings.dateFormat)) this.settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
 		if (!["day", "week", "month", "year"].includes(this.settings.lastScale)) this.settings.lastScale = "week";
+		if (!["planner", "notes"].includes(this.settings.defaultView)) this.settings.defaultView = "planner";
+		if (![3, 5, 10].includes(this.settings.notePreviewLimit)) this.settings.notePreviewLimit = 5;
+		if (typeof this.settings.scanFolder !== "string") this.settings.scanFolder = "";
+		if (!["12h", "24h"].includes(this.settings.timeFormat)) this.settings.timeFormat = "24h";
+		if (![0, 1, 6].includes(this.settings.weekStart)) this.settings.weekStart = 1;
+		if (!Number.isInteger(this.settings.startHour) || this.settings.startHour < 0 || this.settings.startHour > 23) this.settings.startHour = 8;
+		if (![5, 15, 30, 45, 60, 90, 120].includes(this.settings.defaultDuration)) this.settings.defaultDuration = 30;
+		if (typeof this.settings.showCompleted !== "boolean") this.settings.showCompleted = false;
+		if (!["compact", "comfortable"].includes(this.settings.noteDensity)) this.settings.noteDensity = "comfortable";
 		this.registerView(VIEW_TYPE_TASKLOOPS, (leaf) => new TaskLoopsView(leaf, this));
 		this.addRibbonIcon("calendar-days", "TaskLoops", () => void this.activateView());
 		this.addCommand({ id: "open-panel", name: "Open planner", callback: () => void this.activateView() });
@@ -62,7 +72,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		const version = ++this.scanVersion;
 		const fullScan = ++this.fullScanVersion;
 		try {
-			const tasks = await scanVault(this.app, "#task", "checkboxes");
+			const tasks = await scanVault(this.app, "#task", "checkboxes", this.settings.scanFolder);
 			if (fullScan !== this.fullScanVersion) return;
 			// Keep per-file refreshes that finished after this scan started.
 			for (const [path, revision] of this.fileVersions) {
@@ -79,6 +89,7 @@ export default class TaskLoopsPlugin extends Plugin {
 
 	private async refreshFile(file: TFile): Promise<void> {
 		if (file.extension !== "md") return;
+		if (!inScanFolder(file.path, this.settings.scanFolder)) { this.tasks.delete(file.path); this.refreshViews(); return; }
 		const version = ++this.scanVersion;
 		this.fileVersions.set(file.path, version);
 		try {
@@ -90,7 +101,7 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	allTasks(): ScannedTask[] {
-		return [...this.tasks.values()].flat().filter((task) => task.checkbox).map((task) => {
+		return [...this.tasks.values()].flat().filter((task) => task.checkbox && inScanFolder(task.path, this.settings.scanFolder)).map((task) => {
 			const old = this.items[task.id];
 			return !task.hasSchedule && old?.due ? { ...task, due: old.due } : task;
 		}).sort((a, b) => this.noteName(a.path).localeCompare(this.noteName(b.path)) || a.path.localeCompare(b.path) || a.line - b.line);
@@ -99,6 +110,7 @@ export default class TaskLoopsPlugin extends Plugin {
 	noteName(path: string): string { return path.split("/").pop()?.replace(/\.md$/i, "") ?? path; }
 
 	newTask(schedule: Schedule = {}, path?: string): void {
+		if (schedule.time && schedule.duration === undefined) schedule = { ...schedule, duration: this.settings.defaultDuration ?? 30 };
 		new TaskModal(this.app, this, schedule, path).open();
 	}
 
@@ -115,6 +127,7 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	async schedule(task: ScannedTask, schedule: Schedule): Promise<void> {
+		if (schedule.time && schedule.duration === undefined) schedule = { ...schedule, duration: task.duration ?? this.settings.defaultDuration ?? 30 };
 		await this.enqueue(async () => {
 			if (!validSchedule(schedule)) throw new Error("Choose a date before setting time or duration.");
 			const current = this.current(task);
@@ -141,6 +154,7 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	async createTask(text: string, path: string, schedule: Schedule): Promise<boolean> {
+		if (schedule.time && schedule.duration === undefined) schedule = { ...schedule, duration: this.settings.defaultDuration ?? 30 };
 		let created = false;
 		await this.enqueue(async () => {
 			if (!text.trim() || /[\r\n]/.test(text)) throw new Error("Enter one task on a single line.");
@@ -310,7 +324,7 @@ export default class TaskLoopsPlugin extends Plugin {
 
 	async reveal(task: ScannedTask): Promise<void> {
 		const file = this.app.vault.getAbstractFileByPath(task.path);
-		if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file, { eState: { line: task.line }, active: true });
+		if (file instanceof TFile) await this.app.workspace.getLeaf("tab").openFile(file, { eState: { line: task.line }, active: true });
 	}
 
 	async activateView(mainArea = false): Promise<void> {

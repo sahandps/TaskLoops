@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.2 — 2026-10-16
+
+- Add a Notes task grid alongside the calendar Planner, with note/task search,
+  folder and task-status filters, expandable previews and per-note task creation.
+- Open source notes in new tabs from note headings and calendar source links.
+- Improve narrow-screen layouts, touch controls and community-theme styling.
+- Keep short timeline events compact and remove their internal scrollbars.
+- Remove the redundant Open full view button; retain the command-palette action.
+- Make settings searchable on Obsidian 1.13+ while retaining the settings page
+  on Obsidian 1.7.2+.
+- Offer 15 date formats, 12/24-hour display, Monday/Sunday/Saturday week starts,
+  opening-hour and calendar-scale preferences, default task durations, completed
+  visibility defaults and compact/comfortable note cards.
+- Add a task scan folder to limit note-content reads. File-path enumeration
+  remains part of task discovery and project-note search.
+- Refresh the README, Notes-grid screenshot and plugin description.
+- License change: 0.4.2 uses the TaskLoops Free-to-Use Proprietary License.
+  Personal and commercial use of unmodified copies is free. Modification and
+  redistribution require permission, subject to the license's exceptions.
+  Earlier MIT releases retain their MIT rights. Future versions may use
+  different terms or pricing. User notes and task data are unaffected.
+
+Validation: 452 automated tests pass; TypeScript, ESLint and production build pass.
+Mobile layouts were checked at phone width in the browser preview; native
+Obsidian mobile touch behavior still requires an in-app smoke test.
+
+
 ## 0.4.1 — 2026-10-16
 
 - Choose existing tasks as subtasks from a searchable note and task picker.

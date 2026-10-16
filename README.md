@@ -1,19 +1,22 @@
 # TaskLoops
 
 [![Obsidian plugin](https://img.shields.io/badge/Obsidian-TaskLoops-7c3aed?logo=obsidian&logoColor=white)](https://obsidian.md/plugins?id=taskloops)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Free-to-use proprietary](https://img.shields.io/badge/License-Free--to--use_proprietary-blue.svg)](LICENSE)
 
 Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
 lets you schedule, resize and edit them without managing note properties.
 
 - Plan in **Day, Week, Month and Year** views.
+- Switch to **Notes**, a searchable task grid grouped by source note.
 - Drag tasks to a date or time in **five-minute intervals** and resize durations.
 - Click a task to edit its wording, schedule, project note and subtasks.
 - Pick projects with **Obsidian's native fuzzy note search**.
+- Open a source note in a **new tab** using the arrow beside its sidebar heading
+  or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-The calendar planner is available in **0.4.1**. Install or update TaskLoops from
+The calendar planner and Notes grid are available in **0.4.2**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -22,6 +25,13 @@ Obsidian's Community plugins, or download the plugin files from
 These browser previews use sample notes from the current project. Obsidian
 provides its own theme, native note picker and vault access when the plugin runs
 inside the app.
+
+### Browse your task notes
+
+Switch to **Notes** for a searchable grid of task cards grouped by source note.
+Filter by folder or task status, edit tasks, and add new tasks to a project note.
+
+![Notes task grid with folder and task-status filters](docs/images/notes-grid.jpg)
 
 ### Plan your day
 
@@ -53,7 +63,7 @@ Dots mark dates containing tasks. Select a date to open its daily timeline.
 
 The task sidebar and calendar appear together. In a main tab they sit side by
 side; in a narrow Obsidian sidebar the task list sits above the calendar. Use
-**Open full view** for more room.
+the command palette's **Open planner in a main tab** command for more room.
 
 - **Day:** a 24-hour timeline with five-minute drag-and-drop scheduling.
 - **Week:** seven daily timelines, with simultaneous tasks shown alongside each other.
@@ -63,7 +73,7 @@ side; in a narrow Obsidian sidebar the task list sits above the calendar. Use
   count. Click a month heading to open that month, or a day to open its timeline.
 
 Arrows navigate by the selected scale. **Today** returns to the current day.
-Weeks begin on Monday. Dates and times are local wall-clock values.
+Weeks begin on Monday by default; settings also offer Sunday and Saturday. Dates and times are local wall-clock values.
 
 ## Tasks grouped by note
 
@@ -79,6 +89,55 @@ tasks in both places. Completed tasks are hidden by default.
 Click a note heading or a calendar card's note name to open the source. Click a
 task title or the card itself to open its editor. You can also edit task wording
 directly in the source note.
+
+## Notes view
+
+Switch between **Planner** and **Notes** at the top of TaskLoops. Notes shows a
+responsive grid of notes containing Markdown tasks, sorted by note name. Search
+note paths or task text, choose a folder, and filter by open tasks, tasks due
+today, or undated tasks. Filters select matching notes; their other tasks remain
+visible for context. **All task notes** also includes notes with only completed
+tasks. Notes without Markdown tasks are not included.
+
+Click a task to edit it, or **+ Task** on a note card to add to that note's
+`Tasks:` section. The arrow or note title opens the source in a new tab. Cards
+preview a configurable number of tasks; **Show all** expands longer lists.
+
+On narrow screens the grid becomes one column and the Planner task list stacks
+above the calendar. Week and month calendars scroll horizontally to keep dates
+readable. On mobile, tap a task to schedule it through the editor. Short timed
+events show a compact title and checkbox; click or tap to see all scheduling
+details, and use their bottom handle to resize.
+
+## Settings and vault access
+
+Settings include the default view for new panels, tasks per note card (3, 5 or
+10), comfortable/compact note cards, calendar scale for new panels, completed-task
+visibility for new Planner panels, and the following scheduling preferences:
+
+| Setting | Choices |
+| --- | --- |
+| Date format | 15 formats with examples (listed below) |
+| Time display | 24-hour or 12-hour with AM/PM |
+| Week starts on | Monday, Sunday or Saturday |
+| Timeline opening hour | Any hour from 00:00 to 23:00; the whole day stays available |
+| Default task duration | 5, 15, 30, 45, 60, 90 or 120 minutes for new timed schedules |
+
+The standalone note destination and optional **Task scan folder** are also
+configurable. A scan folder includes its subfolders and limits task-content reads;
+leave it blank for all Markdown notes. Tasks outside the scope remain untouched
+in their source notes. Existing settings and legacy data survive upgrades.
+
+The settings use Obsidian's searchable definitions on 1.13+ and keep the settings
+page available on 1.7.2+. Both versions use the same setting definitions and
+save through TaskLoops' existing data wrapper.
+
+TaskLoops processes notes locally and does not upload their contents. The vault
+enumeration disclosure is expected: discovery and native project search list
+Markdown file paths. A folder scope limits content reads, not permission to list
+paths. It does not sandbox the plugin. **Malware scan not available** is a status
+from the external review service; implementing settings search does not provide
+or certify a malware scan.
 
 ## Dates, times and durations
 
@@ -104,13 +163,22 @@ The originally supported bare ISO date also works:
 Scheduling fields must be at the end of a task, before an optional Obsidian block
 id. A time or duration requires a date. A task with no time appears in the
 all-day row. Timed tasks occupy their duration; a task with no duration uses a
-30-minute block. Events extending past midnight continue on the following day.
+30-minute fallback block. Newly scheduled timed tasks use the default duration
+chosen in settings, saved explicitly to the task. Events extending past midnight continue on the following day.
 
-**Settings → TaskLoops → Date format** offers `YYYY-MM-DD` (default),
-`DD/MM/YYYY`, `DD.MM.YYYY`, and `YYYY/MM/DD`. The choice applies to the interface
-and future scheduling edits. All four formats remain readable, so changing the
-setting never triggers a vault-wide rewrite. Invalid scheduling text is left
-untouched as part of the task's wording.
+**Settings → TaskLoops → Date format** offers 15 choices:
+
+- Year first: `YYYY-MM-DD` (default), `YYYY/MM/DD`, `YYYY.MM.DD`, `YYYYMMDD`.
+- Day first: `DD/MM/YYYY`, `DD.MM.YYYY`, `DD-MM-YYYY`, `D/M/YYYY`, `D.M.YYYY`, `D-M-YYYY`.
+- English month names: `D MMM YYYY`, `DD MMM YYYY`, `D MMMM YYYY`, `MMM D, YYYY`, `MMMM D, YYYY`.
+
+Each option shows an example in settings. The choice applies to task dates in
+the interface and future scheduling writes. All supported formats remain
+readable after changing settings; existing notes are never bulk-rewritten.
+Numeric day-first dates always keep their meaning: `03/04/2026` is April 3.
+Use English month names for month-first dates without ambiguity. Invalid dates
+remain untouched as part of the task wording. Time display can use AM/PM while
+Markdown always stores `HH:mm` so notes stay portable.
 
 ## Drag to plan
 
@@ -294,14 +362,15 @@ src/
 ├── main.ts       plugin lifecycle, scanning, serialized note operations
 ├── scanner.ts    metadata-backed task discovery and exact-line writes
 ├── schedule.ts   scheduling suffixes, date formats, Tasks: insertion
-├── view.ts       note-grouped sidebar, shared task cards, drag and drop
+├── view.ts       planner, Notes grid, shared task cards, drag and drop
+├── note-grid.ts  note grouping, filters and task-scan folder scope
 ├── calendar.ts   day/week timelines, month and year views
 ├── modals.ts     creation/editor popups, note picker and scheduling fields
 ├── task-edits.ts exact task blocks, wording edits, subtasks and project moves
 ├── resize.ts     pointer/keyboard duration resizing
 ├── existing-tasks.ts  eligible existing subtask selections
 ├── note-transaction.ts  guarded multi-note saves and recovery
-├── settings.ts   date format and standalone-note destination
+├── settings.ts   searchable settings with a fallback for older Obsidian
 ├── types.ts      task, schedule and settings shapes
 └── dates.ts      local calendar-day arithmetic
 scripts/          build, deploy and version tooling
@@ -313,7 +382,8 @@ round trips, supported date formats, invalid dates/times, overnight durations,
 `Tasks:` insertion boundaries, code fences, CRLF preservation, stale or ambiguous
 lines, queued rescheduling/completion, legacy date fallback, task editing, subtask
 creation, existing task selection, subtree moves, multi-note rollback safety
-and duration resizing. They do not
+duration resizing, note filters, scan-folder read boundaries, source navigation
+and settings persistence. They do not
 replace an in-app smoke test of native Obsidian drag and drop or mobile touch.
 
 `main.js` is generated at the repository root; `manifest.json` and `styles.css`
@@ -338,7 +408,7 @@ tag — Obsidian would not resolve that.
 Pushing the tag runs `.github/workflows/release.yml`, which installs, tests,
 builds, verifies the tag matches `manifest.json`, attests build provenance, and
 opens a **draft** release with `main.js`, `manifest.json` and `styles.css`
-attached individually. Review it and publish when ready.
+attached individually, plus the license. Review it and publish when ready.
 
 `versions.json` maps each plugin version to the minimum Obsidian version it
 needs, so older Obsidian installs resolve to a release they can actually run.
@@ -347,8 +417,19 @@ needs, so older Obsidian installs resolve to a release they can actually run.
 
 If TaskLoops is useful to you, you can
 [buy me a coffee](https://buymeacoffee.com/sahandprs). Entirely optional — the
-plugin is free and always will be.
+current release is free to use for personal and commercial work. Future
+versions may have different terms or pricing.
 
 ## License
 
-MIT © Sahand Poursadeghi Khiavi
+Copyright © 2026 Sahand Poursadeghi Khiavi.
+
+**0.4.2 onward:** [TaskLoops Free-to-Use Proprietary License](LICENSE).
+You may use the unmodified plugin for free, including at work. Modification or
+redistribution requires written permission, subject to the exceptions in the
+license. Source visibility does not make this release open source. Link people
+to the official releases instead of sharing copies.
+
+**0.4.1 and earlier:** remain under their original [MIT License](licenses/MIT-previous-releases.txt).
+Existing MIT grants are not revoked. Your own notes and tasks remain yours.
+The author may change the terms or pricing of future versions.

@@ -6,3 +6,6 @@ export * from "../src/task-edits.ts";
 export { resizedDuration } from "../src/resize.ts";
 export { existingSubtaskCandidates } from "../src/existing-tasks.ts";
 export { applyNoteChanges } from "../src/note-transaction.ts";
+export * from "../src/note-grid.ts";
+export { TaskLoopsSettingTab } from "../src/settings.ts";
+export { weekOf, monthGrid, weekLabel } from "../src/dates.ts";

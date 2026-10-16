@@ -57,6 +57,8 @@ export function addResizeHandle(card: HTMLElement, task: ScannedTask, view: Task
 			}
 			duration = resizedDuration(initial, pointer.clientY - startY + (scroller?.scrollTop ?? 0) - startScroll);
 			card.style.setProperty("--tl-event-height", Math.max(24, visibleHeight(duration)) + "px");
+			card.classList.toggle("is-short-event", visibleHeight(duration) < 80);
+			card.classList.toggle("is-tiny-event", visibleHeight(duration) < 37);
 			caption.setText(formatDuration(duration));
 		};
 		const finish = (commit: boolean) => {
@@ -71,6 +73,8 @@ export function addResizeHandle(card: HTMLElement, task: ScannedTask, view: Task
 			card.removeClass("is-resizing");
 			caption.remove();
 			card.style.setProperty("--tl-event-height", initialHeight);
+			card.classList.toggle("is-short-event", parseFloat(initialHeight) < 80);
+			card.classList.toggle("is-tiny-event", parseFloat(initialHeight) < 37);
 			view.endResize();
 			if (commit && duration !== initial) void view.plugin.schedule(task, { due: task.due, time: task.time, duration });
 		};

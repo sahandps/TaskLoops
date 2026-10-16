@@ -2,7 +2,7 @@ import { App, FuzzySuggestModal, Modal, Notice } from "obsidian";
 import type TaskLoopsPlugin from "./main";
 import type { ScannedTask, Schedule } from "./types";
 import { existingSubtaskCandidates } from "./existing-tasks";
-import { formatDate, formatDuration, validSchedule } from "./schedule";
+import { formatDate, formatDuration, formatTime, validSchedule } from "./schedule";
 import { taskWording } from "./task-edits";
 
 export class NotePicker extends FuzzySuggestModal<string> {
@@ -38,7 +38,7 @@ export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
 	renderSuggestion(match: { item: ScannedTask }, el: HTMLElement): void {
 		const task = match.item;
 		el.createDiv({ cls: "tl-picker-title", text: task.text });
-		const schedule = [task.due ? formatDate(task.due, this.plugin.settings.dateFormat) : "No date", task.time, task.duration ? formatDuration(task.duration) : undefined].filter(Boolean).join(" · ");
+		const schedule = [task.due ? formatDate(task.due, this.plugin.settings.dateFormat) : "No date", task.time ? formatTime(task.time, this.plugin.settings.timeFormat) : undefined, task.duration ? formatDuration(task.duration) : undefined].filter(Boolean).join(" · ");
 		el.createDiv({ cls: "tl-picker-meta", text: schedule + " · Line " + (task.line + 1) });
 	}
 	onChooseItem(task: ScannedTask): void { this.onPick(task); }

@@ -172,8 +172,8 @@ export function longDayLabel(iso: string): string {
 }
 
 /** A heading for a week, e.g. "27 Jul – 2 Aug". */
-export function weekLabel(iso: string): string {
-	const days = weekOf(iso);
+export function weekLabel(iso: string, weekStart = 1): string {
+	const days = weekOf(iso, weekStart);
 	const fmt = (d: string) =>
 		new Date(d + "T00:00:00").toLocaleDateString(undefined, {
 			day: "numeric",

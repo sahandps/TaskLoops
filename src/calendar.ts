@@ -1,3 +1,4 @@
+import { formatTime } from "./schedule";
 import { addResizeHandle } from "./resize";
 import type { ScannedTask } from "./types";
 import type { TaskLoopsView } from "./view";
@@ -34,7 +35,7 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 	navigation.createEl("button", { text: "←", attr: { "aria-label": "Previous " + view.scale } }).onclick = () => step(-1);
 	navigation.createEl("button", { text: "Today" }).onclick = () => { view.anchor = todayISO(); view.render(); };
 	navigation.createEl("button", { text: "→", attr: { "aria-label": "Next " + view.scale } }).onclick = () => step(1);
-	const label = view.scale === "day" ? new Date(view.anchor + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : view.scale === "week" ? weekLabel(view.anchor) + " · " + view.anchor.slice(0, 4) : view.scale === "month" ? monthLabel(monthKey(view.anchor)) : view.anchor.slice(0, 4);
+	const label = view.scale === "day" ? new Date(view.anchor + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : view.scale === "week" ? weekLabel(view.anchor, view.plugin.settings.weekStart) + " · " + view.anchor.slice(0, 4) : view.scale === "month" ? monthLabel(monthKey(view.anchor)) : view.anchor.slice(0, 4);
 	root.createEl("h3", { cls: "tl-calendar-heading", text: label });
 	const content = root.createDiv("tl-calendar-content");
 	if (view.scale === "day" || view.scale === "week") renderTimeline(content, view, tasks);
@@ -65,8 +66,8 @@ function dayDrop(el: HTMLElement, view: TaskLoopsView, day: string, time?: strin
 
 function renderMonth(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTask[], key: string, mini = false): void {
 	const grid = root.createDiv(mini ? "tl-month-grid is-mini" : "tl-month-grid");
-	for (const name of weekdayNames()) grid.createDiv({ cls: "tl-weekday", text: name });
-	for (const day of monthGrid(key)) {
+	for (const name of weekdayNames(view.plugin.settings.weekStart)) grid.createDiv({ cls: "tl-weekday", text: name });
+	for (const day of monthGrid(key, view.plugin.settings.weekStart)) {
 		const cell = grid.createDiv("tl-month-day" + (monthKey(day) !== key ? " is-outside" : "") + (day === todayISO() ? " is-today" : ""));
 		dayDrop(cell, view, day);
 		const daily = tasksOn(tasks, day);
@@ -86,7 +87,7 @@ function renderMonth(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTask[
 }
 
 function renderTimeline(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTask[]): void {
-	const days = view.scale === "day" ? [view.anchor] : weekOf(view.anchor);
+	const days = view.scale === "day" ? [view.anchor] : weekOf(view.anchor, view.plugin.settings.weekStart);
 	const timeline = root.createDiv("tl-timeline" + (days.length === 1 ? " is-single-day" : ""));
 	const header = timeline.createDiv("tl-timeline-header");
 	header.createDiv({ cls: "tl-time-label", text: "All day" });
@@ -100,13 +101,13 @@ function renderTimeline(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTa
 	}
 	const body = timeline.createDiv("tl-timeline-body");
 	const labels = body.createDiv("tl-time-labels");
-	for (let hour = 0; hour < 24; hour++) labels.createDiv({ cls: "tl-hour-label", text: String(hour).padStart(2, "0") + ":00" });
+	for (let hour = 0; hour < 24; hour++) labels.createDiv({ cls: "tl-hour-label", text: formatTime(String(hour).padStart(2, "0") + ":00", view.plugin.settings.timeFormat) });
 	for (const day of days) {
 		const column = body.createDiv("tl-day-column" + (day === todayISO() ? " is-today" : ""));
 		for (let slot = 0; slot < 48; slot++) {
 			const time = timelineDropTime(slot * 32);
 			const target = column.createEl("button", { cls: "tl-time-slot" + (slot % 2 === 0 ? " is-hour" : ""), attr: { "aria-label": "Add task " + day + " " + time, title: day + " " + time } });
-			target.onclick = (event) => view.plugin.newTask({ due: day, time: event.detail ? timelineDropTime(event.clientY - column.getBoundingClientRect().top) : time, duration: 30 });
+			target.onclick = (event) => view.plugin.newTask({ due: day, time: event.detail ? timelineDropTime(event.clientY - column.getBoundingClientRect().top) : time, duration: view.plugin.settings.defaultDuration ?? 30 });
 			view.dropTarget(target, (task, drop) => void view.plugin.schedule(task, {
 				due: day, time: timelineDropTime(drop.clientY - column.getBoundingClientRect().top), duration: task.duration,
 			}));
@@ -115,7 +116,7 @@ function renderTimeline(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTa
 		column.addEventListener("dragover", (event) => {
 			if (!view.hasDraggedTask()) return;
 			const time = timelineDropTime(event.clientY - column.getBoundingClientRect().top);
-			marker.setText(time);
+			marker.setText(formatTime(time, view.plugin.settings.timeFormat));
 			const [hour, minute] = time.split(":").map(Number);
 			marker.style.setProperty("--tl-drop-top", (hour + minute / 60) * 64 + "px");
 			marker.addClass("is-visible");
@@ -136,11 +137,13 @@ function renderTimeline(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTa
 			for (const event of cluster) {
 				const card = view.card(column, event.task, true);
 				card.addClass("tl-timed-task");
+				card.classList.toggle("is-short-event", event.end - event.start < 75);
+				card.classList.toggle("is-tiny-event", event.end - event.start < 35);
 				card.style.setProperty("--tl-event-top", event.start / 60 * 64 + "px");
 				card.style.setProperty("--tl-event-height", Math.max(24, (event.end - event.start) / 60 * 64) + "px");
 				card.style.setProperty("--tl-event-left", event.lane / lanes * 100 + "%");
 				card.style.setProperty("--tl-event-width", 100 / lanes + "%");
-				card.title = event.task.text + " · " + event.task.time + " · " + (event.task.duration ?? 30) + " minutes";
+				card.title = event.task.text + " · " + formatTime(event.task.time ?? "", view.plugin.settings.timeFormat) + " · " + (event.task.duration ?? 30) + " minutes";
 				// Only the final day of an overnight event has its end handle.
 				if (!daySegment(event.task, shiftISO(day, 1))) addResizeHandle(card, event.task, view, (duration) => {
 					const segment = daySegment({ ...event.task, duration }, day);

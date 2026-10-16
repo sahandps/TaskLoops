@@ -9,7 +9,9 @@
 .tl-filters label { display: flex; gap: 4px; align-items: center; }
 .tl-task-list { overflow: auto; min-height: 0; flex: 1; }
 .tl-note-heading { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 16px; }
-.tl-note-heading button:first-child { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.tl-note-heading .tl-note-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.tl-note-heading .tl-open-note { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); }
+.tl-open-note svg { width: 14px; height: 14px; }
 .tl-note-path { color: var(--text-faint); font-size: 10px; overflow-wrap: anywhere; margin: 4px 0 8px; }
 .tl-note-heading button, .tl-task-meta, .tl-task-source, .tl-day-heading button, .tl-schedule-button, .tl-month-title { background: transparent; box-shadow: none; border: 0; height: auto; padding: 3px 4px; text-align: left; }
 .tl-task { border: 1px solid var(--background-modifier-border); border-radius: 7px; background: var(--background-primary); padding: 8px; margin-bottom: 7px; min-width: 0; }
@@ -54,7 +56,7 @@
 .tl-all-day .tl-day-heading { position: sticky; top: 0; background: var(--background-primary); z-index: 1; }
 .tl-day-column { height: 1536px; position: relative; border-left: 1px solid var(--background-modifier-border); }
 .tl-hour-label { height: 64px; font-size: 10px; color: var(--text-muted); padding: 3px; text-align: right; }
-.tl-view .tl-time-slot { width: 100%; height: 32px; display: block; padding: 0; border-radius: 0; border: 0; border-top: 1px dashed var(--background-modifier-border); background: transparent; box-shadow: none; }
+.tl-view .tl-time-slot { width: 100%; height: 32px; min-height: 0; display: block; padding: 0; border-radius: 0; border: 0; border-top: 1px dashed var(--background-modifier-border); background: transparent; box-shadow: none; }
 .tl-view .tl-time-slot.is-hour { border-top-style: solid; }
 .tl-time-slot:hover { background: var(--background-modifier-hover); }
 .tl-view .tl-timed-task { position: absolute; top: var(--tl-event-top); height: var(--tl-event-height); left: var(--tl-event-left); width: calc(var(--tl-event-width) - 3px); padding: 4px; margin: 0; overflow: auto; background: var(--background-secondary); border-left: 3px solid var(--interactive-accent); z-index: 2; }
@@ -126,3 +128,88 @@
 .tl-picker-title { font-size: 14px; line-height: 1.4; }
 .tl-picker-meta { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
 .suggestion-item.is-selected .tl-picker-meta, .mod-cta .tl-picker-meta { color: inherit; opacity: .8; }
+
+/* Product controls are explicitly aligned so community themes cannot turn task
+   titles into centered buttons or schedule labels into filled pills. */
+.tl-view { color: var(--text-normal); box-sizing: border-box; }
+.tl-view *, .tl-view *::before, .tl-view *::after { box-sizing: border-box; }
+.tl-view .tl-header h2, .tl-view .tl-calendar-heading { color: var(--text-normal); }
+.tl-view .tl-task-title, .tl-view .tl-task-meta, .tl-view .tl-task-source,
+.tl-view .tl-note-heading button, .tl-view .tl-schedule-button {
+	background: transparent; background-image: none; box-shadow: none; border: 0;
+	color: inherit; height: auto; text-align: left; justify-content: flex-start;
+	letter-spacing: normal; text-transform: none;
+}
+.tl-view .tl-task-title { display: block; padding: 0; white-space: normal; font-weight: 400; }
+.tl-view .tl-task-meta, .tl-view .tl-task-source { display: block; padding: 2px 0; min-height: 0; color: var(--text-muted); }
+.tl-view .tl-task-row { align-items: flex-start; min-width: 0; }
+.tl-view .tl-task-row input[type=checkbox] { width: 16px; height: 16px; min-width: 16px; margin: 1px 0 0; flex: 0 0 16px; }
+.tl-view .tl-schedule-button { flex: 0 0 24px; padding: 0 3px; min-height: 20px; text-align: center; }
+.tl-view .tl-note-name { display: block; }
+.tl-view .tl-open-note { display: inline-flex; justify-content: center; }
+.tl-view .tl-planner { grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); }
+.tl-view .tl-header h2 { font-size: 18px; font-weight: 600; }
+.tl-view .tl-view-switch { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: var(--background-secondary); }
+.tl-view .tl-view-switch button { box-shadow: none; border: 0; background: transparent; padding: 6px 12px; }
+.tl-view .tl-view-switch button[aria-pressed=true], .tl-view .tl-note-filters button[aria-pressed=true] { background: var(--interactive-accent); color: var(--text-on-accent); }
+.tl-view .tl-notes-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 3px 18px; }
+.tl-view .tl-notes-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tl-view .tl-notes-controls .tl-search { flex: 1; width: auto; min-width: 160px; }
+.tl-view .tl-notes-controls select { max-width: 100%; height: 36px; border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; background: var(--background-primary); color: var(--text-normal); }
+.tl-view .tl-notes-controls input { height: 36px; border-radius: 8px; }
+.tl-view .tl-note-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-view .tl-note-filters button { font-size: 12px; border: 0; box-shadow: none; border-radius: 16px; padding: 5px 11px; background: var(--background-secondary); }
+.tl-view .tl-notes-count { color: var(--text-muted); font-size: 12px; margin: 14px 0; }
+.tl-view .tl-notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; align-items: start; }
+.tl-view .tl-note-card { min-width: 0; border: 1px solid var(--background-modifier-border); border-radius: 14px; background: var(--background-primary); padding: 16px; }
+.tl-view .tl-note-card > .tl-note-heading { margin-top: 0; }
+.tl-view .tl-note-card .tl-note-path { font-size: 11px; margin-bottom: 14px; }
+.tl-view .tl-note-preview .tl-task { border: 0; background: transparent; padding: 7px 0; margin: 0; box-shadow: none; }
+.tl-view .tl-note-preview .tl-task.is-subtask { margin-left: 14px; }
+.tl-view .tl-note-preview .tl-task-meta { font-size: 11px; margin-left: 22px; }
+.tl-view .tl-note-preview .tl-task-title { font-size: 13px; }
+.tl-view .tl-note-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--background-modifier-border); padding-top: 12px; margin-top: 12px; }
+.tl-view .tl-note-footer span { color: var(--text-muted); font-size: 11px; }
+.tl-view .tl-note-footer button, .tl-view .tl-note-expand { box-shadow: none; border: 0; background: transparent; color: var(--text-muted); font-size: 12px; padding: 4px; height: auto; }
+.tl-view .tl-note-expand { margin-top: 8px; }
+/* Event geometry remains duration-based. Details live in the task editor when
+   an event is too small to show them; there are no nested event scrollbars. */
+.tl-view .tl-timed-task > .tl-task-content { overflow: hidden; padding: 0 0 9px; }
+.tl-view .tl-timed-task .tl-task-row { gap: 4px; }
+.tl-view .tl-timed-task .tl-task-title { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11px; }
+.tl-view .tl-timed-task .tl-task-meta, .tl-view .tl-timed-task .tl-task-source { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.tl-view .tl-timed-task .tl-schedule-button { display: none; }
+.tl-view .tl-timed-task.is-short-event .tl-task-meta,
+.tl-view .tl-timed-task.is-short-event .tl-task-source { display: none; }
+.tl-view .tl-timed-task.is-tiny-event { padding: 1px 3px; }
+.tl-view .tl-timed-task.is-tiny-event .tl-task-title { display: block; white-space: nowrap; text-overflow: ellipsis; line-height: 16px; }
+.tl-view .tl-timed-task.is-tiny-event > .tl-task-content { padding-bottom: 5px; }
+.tl-view .tl-timed-task.is-tiny-event .tl-resize-handle { height: 6px; }
+@container (max-width: 680px) {
+	.tl-view .tl-planner { display: flex; }
+	.tl-view .tl-header { gap: 6px; }
+	.tl-view .tl-header h2 { width: 100%; }
+	.tl-view .tl-notes-grid { gap: 12px; }
+	.tl-view .tl-notes-controls select { flex: 1; }
+	.tl-view .tl-task-list { overscroll-behavior: contain; }
+}
+@container (max-width: 420px) {
+	.tl-view .tl-notes-controls .tl-search { flex-basis: 100%; }
+}
+@media (pointer: coarse) {
+	.tl-view .tl-header button, .tl-view .tl-note-filters button,
+	.tl-view .tl-note-footer button, .tl-view .tl-note-expand,
+	.tl-view .tl-note-heading button, .tl-view .tl-scales button,
+	.tl-view .tl-calendar-nav button { min-height: 44px; }
+	.tl-view .tl-note-preview .tl-task-row { min-height: 36px; align-items: center; }
+	.tl-view .tl-notes-controls input, .tl-view .tl-notes-controls select { min-height: 44px; font-size: 16px; }
+}
+@media (max-width: 480px) {
+	.tl-schedule-fields { grid-template-columns: 1fr; }
+	.tl-subtask-entry { flex-wrap: wrap; }
+}
+
+.tl-view .is-compact-grid .tl-notes-grid { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.tl-view .is-compact-grid .tl-note-card { padding: 10px; border-radius: 10px; }
+.tl-view .is-compact-grid .tl-note-preview .tl-task { padding: 4px 0; }
+.tl-view .is-compact-grid .tl-note-footer { padding-top: 8px; margin-top: 8px; }

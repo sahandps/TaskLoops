@@ -1,7 +1,7 @@
 {
   "name": "taskloops",
-  "version": "0.4.1",
-  "description": "Plan Markdown tasks in day, week, month and year calendars. Drag to schedule, resize durations, and group tasks by project note. Create subtasks or choose existing tasks from your notes.",
+  "version": "0.4.2",
+  "description": "Plan Markdown tasks in calendars or a filterable note grid. Schedule, resize and edit tasks, choose project notes, and manage subtasks.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -22,7 +22,7 @@
     "productivity"
   ],
   "author": "Sahand Poursadeghi Khiavi",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "@types/node": "^20.11.0",
     "esbuild": "0.20.2",

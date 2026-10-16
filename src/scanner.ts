@@ -1,6 +1,7 @@
 import { App, TFile } from "obsidian";
 import { DateFormat, ScannedTask, Schedule, TaskSource } from "./types";
 import { parseSchedule, writeSchedule } from "./schedule";
+import { inScanFolder } from "./note-grid";
 export * from "./schedule";
 
 export function escapeRegex(s: string): string {
@@ -212,10 +213,12 @@ export function assignParents(tasks: ScannedTask[], lines: string[]): void {
 export async function scanVault(
 	app: App,
 	tag: string,
-	source: TaskSource = "checkboxes"
+	source: TaskSource = "checkboxes",
+	folder = ""
 ): Promise<Map<string, ScannedTask[]>> {
 	const result = new Map<string, ScannedTask[]>();
 	for (const file of app.vault.getMarkdownFiles()) {
+		if (!inScanFolder(file.path, folder)) continue;
 		const tasks = await scanFile(app, file, tag, source);
 		if (tasks.length) result.set(file.path, tasks);
 	}
