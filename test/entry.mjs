@@ -9,3 +9,4 @@ export { applyNoteChanges } from "../src/note-transaction.ts";
 export * from "../src/note-grid.ts";
 export { TaskLoopsSettingTab } from "../src/settings.ts";
 export { weekOf, monthGrid, weekLabel } from "../src/dates.ts";
+export { panelSize } from "../src/panel-resize.ts";

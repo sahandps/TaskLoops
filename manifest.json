@@ -1,9 +1,9 @@
 {
 	"id": "taskloops",
 	"name": "TaskLoops",
-	"version": "0.4.3",
+	"version": "0.4.4",
 	"minAppVersion": "1.7.2",
-	"description": "Plan Markdown tasks in calendars or a filterable note grid. Schedule, resize and edit tasks, choose project notes, and manage subtasks.",
+	"description": "Plan Markdown tasks in calendars or a filterable note grid. Resize panels, schedule tasks, open source notes, choose project notes, and manage subtasks.",
 	"author": "Sahand Poursadeghi Khiavi",
 	"authorUrl": "https://github.com/sahandps",
 	"fundingUrl": "https://buymeacoffee.com/sahandprs",

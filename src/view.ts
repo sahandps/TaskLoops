@@ -6,6 +6,7 @@ import { todayISO } from "./dates";
 import { TaskEditorModal } from "./modals";
 import { renderCalendar } from "./calendar";
 import { noteFolder, noteGroups, NoteFilter } from "./note-grid";
+import { addPanelDivider } from "./panel-resize";
 
 export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
 
@@ -24,6 +25,7 @@ export class TaskLoopsView extends ItemView {
 	private noteFilter: NoteFilter = "open";
 	private folder: string | null = null;
 	private expandedNotes = new Set<string>();
+	private disposeDivider: (() => void) | null = null;
 
 	constructor(leaf: WorkspaceLeaf, public plugin: TaskLoopsPlugin) {
 		super(leaf);
@@ -35,7 +37,7 @@ export class TaskLoopsView extends ItemView {
 	getDisplayText(): string { return "TaskLoops"; }
 	getIcon(): string { return "calendar-days"; }
 	async onOpen(): Promise<void> { this.contentEl.addClass("tl-view"); this.render(); }
-	async onClose(): Promise<void> { this.cancelResize?.(); this.dragging = null; }
+	async onClose(): Promise<void> { this.pending = false; this.disposeDivider?.(); this.disposeDivider = null; this.cancelResize?.(); this.dragging = null; }
 
 	hasDraggedTask(): boolean { return this.dragging !== null; }
 
@@ -63,6 +65,7 @@ export class TaskLoopsView extends ItemView {
 		const active = root.ownerDocument.activeElement;
 		const searchFocused = active instanceof HTMLInputElement && active.classList.contains("tl-search");
 		const selection = searchFocused ? active.selectionStart : null;
+		this.disposeDivider?.(); this.disposeDivider = null;
 		root.empty();
 		const header = root.createDiv("tl-header");
 		header.createEl("h2", { text: "TaskLoops" });
@@ -121,8 +124,14 @@ export class TaskLoopsView extends ItemView {
 			this.card(list, task);
 		}
 		if (!listed.length) list.createEl("p", { cls: "tl-empty", text: q || this.onlyUndated ? "No matching tasks." : "No tasks yet. Add a task or write a checkbox in any note." });
+		const divider = layout.createDiv({ cls: "tl-panel-divider", attr: { role: "separator", tabindex: "0", "aria-label": "Resize task list and calendar", title: "Drag to resize panels · arrow keys adjust · double-click to reset" } });
 		const main = layout.createEl("main", { cls: "tl-calendar", attr: { "aria-label": "Task calendar" } });
 		renderCalendar(main, this, matching);
+		this.disposeDivider = addPanelDivider(layout, divider, {
+			width: this.plugin.settings.panelWidth ?? 260, height: this.plugin.settings.panelHeight ?? 220,
+			begin: cancel => this.beginResize(cancel), end: () => this.endResize(),
+			save: (size, stacked) => { if (stacked) this.plugin.settings.panelHeight = size; else this.plugin.settings.panelWidth = size; void this.plugin.saveSettings(); },
+		});
 		list.scrollTop = sideScroll;
 		const scroller = root.querySelector(".tl-calendar-content");
 		if (scroller) { scroller.scrollTop = calendarScroll ?? ((this.scale === "day" || this.scale === "week") ? (this.plugin.settings.startHour ?? 8) * 64 : 0); scroller.scrollLeft = calendarLeft; }

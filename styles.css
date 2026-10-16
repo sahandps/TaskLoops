@@ -213,3 +213,22 @@
 .tl-view .is-compact-grid .tl-note-card { padding: 10px; border-radius: 10px; }
 .tl-view .is-compact-grid .tl-note-preview .tl-task { padding: 4px 0; }
 .tl-view .is-compact-grid .tl-note-footer { padding-top: 8px; margin-top: 8px; }
+
+/* A dedicated splitter replaces the fixed task-list width. */
+.tl-view .tl-planner { grid-template-columns: minmax(0, var(--tl-panel-size, 260px)) 12px minmax(0, 1fr); gap: 0; }
+.tl-view .tl-sidebar { border-right: 0; padding-right: 6px; min-width: 0; }
+.tl-view .tl-panel-divider { position: relative; cursor: col-resize; touch-action: none; min-width: 12px; align-self: stretch; }
+.tl-view .tl-panel-divider::after { content: ""; position: absolute; top: 0; bottom: 0; left: 5px; width: 2px; background: var(--background-modifier-border); border-radius: 2px; }
+.tl-view .tl-panel-divider:hover::after, .tl-view .tl-panel-divider:focus-visible::after, .tl-view .is-panel-resizing .tl-panel-divider::after { background: var(--interactive-accent); }
+.tl-view .is-panel-resizing { user-select: none; }
+.tl-note-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.tl-note-links button, .tl-destination .tl-open-project { white-space: normal; height: auto; min-height: 32px; }
+@container (max-width: 680px) {
+	.tl-view .tl-sidebar { flex: 0 0 var(--tl-panel-size, 220px); max-height: none; min-height: 0; padding: 0 0 6px; border-bottom: 0; }
+	.tl-view .tl-panel-divider { cursor: row-resize; width: 100%; min-height: 12px; flex: 0 0 12px; }
+	.tl-view .tl-panel-divider::after { top: 5px; bottom: auto; left: 0; right: 0; height: 2px; width: auto; }
+	.tl-view .tl-calendar { min-height: 0; }
+}
+@media (pointer: coarse) {
+	.tl-note-links button, .tl-destination .tl-open-project { min-height: 44px; }
+}

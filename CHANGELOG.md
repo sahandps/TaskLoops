@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.4 — 2026-10-16
+
+- Resize the task list and calendar using a remembered divider: horizontal
+  adjustment on desktop and vertical adjustment in stacked layouts. Support
+  pointer/touch dragging, arrow keys, Shift for larger steps, Home/End limits,
+  double-click reset and Escape to cancel a drag.
+- Add Jump to task in note and Open project note buttons to the task editor.
+  Both open new tabs; the project link follows the selected destination. The
+  Add task dialog also includes the project-note link. Unsaved dialog edits stay
+  intact, and navigation never creates missing destination notes.
+- Separate new schedule details from task wording with ` - Due date:`.
+  Recognize manually typed `date:` suffixes, including ` - date: 2026-10-19`.
+  Continue reading older schedule suffixes. Ordinary bullet lists remain excluded.
+- Update the README, task-editor screenshot, plugin description and metadata.
+
+Validation: 479 tests pass; TypeScript, ESLint and production build pass. Browser
+checks cover desktop divider dragging, keyboard resizing, stacked orientation
+and editor navigation controls. License remains GPL-3.0-only.
+
 ## 0.4.3 — 2026-10-16
 
 - Replace the custom license with the unmodified GNU General Public License,

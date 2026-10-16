@@ -86,9 +86,13 @@ export class TaskEditorModal extends Modal {
 		const label = root.createEl("label", { text: "Task" });
 		const text = label.createEl("input", { type: "text", cls: "tl-task-input" });
 		text.value = taskWording(this.task.raw);
+		const links = root.createDiv("tl-note-links");
+		links.createEl("button", { text: "Jump to task in note ↗", attr: { title: "Open the source note at this task in a new tab. Unsaved edits stay in this dialog." } }).onclick = () => void this.plugin.reveal(this.task);
 		const destination = root.createDiv("tl-destination");
 		destination.createSpan({ text: "Project / note" });
 		const pick = destination.createEl("button", { text: this.path, attr: { "aria-label": "Pick project note", title: "Search notes in your vault" } });
+		const projectLink = destination.createEl("button", { cls: "tl-open-project", text: "Open project note ↗", attr: { title: "Open the selected project note in a new tab. Unsaved edits stay in this dialog." } });
+		projectLink.onclick = () => void this.plugin.openNote(this.path);
 		pick.onclick = () => new NotePicker(this.app, this.plugin.settings.standaloneNote, (path) => { this.path = path; pick.setText(path); }).open();
 		destination.createEl("small", { text: "Choosing another note moves this task and its subtasks under Tasks:." });
 		const fields = scheduleFields(root, this.task);
@@ -186,6 +190,8 @@ export class TaskModal extends Modal {
 		const destination = root.createDiv("tl-destination");
 		destination.createSpan({ text: "Project / note" });
 		const pick = destination.createEl("button", { text: this.path, attr: { "aria-label": "Pick project note", title: "Search notes in your vault" } });
+		const projectLink = destination.createEl("button", { cls: "tl-open-project", text: "Open project note ↗", attr: { title: "Open the selected project note in a new tab. Unsaved edits stay in this dialog." } });
+		projectLink.onclick = () => void this.plugin.openNote(this.path);
 		pick.onclick = () => new NotePicker(this.app, this.plugin.settings.standaloneNote, (path) => { this.path = path; pick.setText(path); }).open();
 		const fields = scheduleFields(root, this.initial);
 		const actions = root.createDiv("tl-dialog-actions");

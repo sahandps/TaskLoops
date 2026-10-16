@@ -19,11 +19,11 @@ export default async function run(mod) {
 	const first = (await scanFile(app, file, "#task"))[0];
 	const original = content;
 	eq(await setTaskSchedule(app, first, { due: "2026-10-16", time: "09:30", duration: 65 }, "YYYY-MM-DD"), true, "schedule exact task");
-	eq(content, original.replace("Call Ada", "Call Ada Due date: 2026-10-16 Time: 09:30 Duration: 1 Hour 5 Minutes"), "only task suffix changed, CRLF and properties intact");
+	eq(content, original.replace("Call Ada", "Call Ada - Due date: 2026-10-16 Time: 09:30 Duration: 1 Hour 5 Minutes"), "only task suffix changed, CRLF and properties intact");
 	const scheduled = (await scanFile(app, file, "#task"))[0];
 	content = "Introduction\r\n" + content;
 	eq(await setCheckboxDone(app, scheduled), true, "follow uniquely moved task");
-	eq(content.includes("- [x] Call Ada Due date: 2026-10-16 Time: 09:30 Duration: 1 Hour 5 Minutes"), true, "completion preserves schedule");
+	eq(content.includes("- [x] Call Ada - Due date: 2026-10-16 Time: 09:30 Duration: 1 Hour 5 Minutes"), true, "completion preserves schedule");
 	content = "- [ ] Call Ada\n- [ ] Call Ada\n";
 	eq(await setCheckboxDone(app, { ...first, line: 9, raw: "- [ ] Call Ada" }), false, "reject ambiguous moved duplicates");
 	eq(content, "- [ ] Call Ada\n- [ ] Call Ada\n", "ambiguous write changes nothing");
@@ -38,10 +38,10 @@ export default async function run(mod) {
 	plugin.saveData = async (value) => { Object.assign(data, value); };
 	await plugin.rescan();
 	eq(await plugin.createTask("New task", "Project.md", { due: "2026-10-16", time: "14:00", duration: 65 }), true, "create directly in project note");
-	eq(content, "# Project\n\n## Tasks:\n- [ ] Existing\n- [ ] New task Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes\n\n## Notes\nLeave this alone.\n", "project insertion uses Tasks heading");
+	eq(content, "# Project\n\n## Tasks:\n- [ ] Existing\n- [ ] New task - Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes\n\n## Notes\nLeave this alone.\n", "project insertion uses Tasks heading");
 	const task = plugin.allTasks().find((task) => task.text === "New task");
 	await Promise.all([plugin.schedule(task, { due: "2026-10-17", time: "10:00", duration: 90 }), plugin.complete(task)]);
-	eq(content.includes("- [x] New task Due date: 2026-10-17 Time: 10:00 Duration: 1 Hour 30 Minutes"), true, "queued reschedule and completion both survive");
+	eq(content.includes("- [x] New task - Due date: 2026-10-17 Time: 10:00 Duration: 1 Hour 30 Minutes"), true, "queued reschedule and completion both survive");
 	eq(plugin.allTasks().find((task) => task.text === "New task").checked, true, "Markdown completion is source of truth");
 	const existing = plugin.allTasks().find((task) => task.text === "Existing");
 	plugin.items = { [existing.id]: { id: existing.id, path: existing.path, text: existing.text, due: "2026-10-20", bucket: "waiting" } };
@@ -74,7 +74,7 @@ export default async function run(mod) {
 		standalonePlugin.createTask("Second thought", standaloneFile.path, {}),
 	]);
 	eq(createdFolders, ["Planning"], "standalone parent folder created once");
-	eq(standaloneContent, "## Tasks:\n- [ ] First thought Due date: 16.10.2026\n- [ ] Second thought\n", "rapid standalone captures share one note and heading");
+	eq(standaloneContent, "## Tasks:\n- [ ] First thought - Due date: 16.10.2026\n- [ ] Second thought\n", "rapid standalone captures share one note and heading");
 	eq(standalonePlugin.allTasks().map((task) => task.text), ["First thought", "Second thought"], "new standalone tasks discovered");
 	await standalonePlugin.createTask("Typed date 2026-10-18", standaloneFile.path, {});
 	eq(standaloneContent.includes("- [ ] Typed date 2026-10-18"), true, "capture preserves a date typed in task text");

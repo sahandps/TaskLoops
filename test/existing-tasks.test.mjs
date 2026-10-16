@@ -47,7 +47,7 @@ export default async function run(mod) {
 	await f1.plugin.rescan();
 	const selected = [f1.get("Existing action"), f1.get("Same note task")];
 	eq(await f1.plugin.editTask(f1.get("Parent"), "Parent updated", "Parent.md", { due: "2026-10-16" }, ["New subtask"], selected), true, "save selected existing tasks and new draft together");
-	eq(f1.notes.get("Parent.md"), "---\nstatus: active\n---\n## Tasks:\n- [ ] Parent updated Due date: 2026-10-16\n    - [ ] Already nested\n    - [ ] New subtask\n    - [ ] Existing action Due date: 2026-10-17 Time: 14:00 Duration: 1 Hour ^action\n        - [ ] Its child\n    - [ ] Same note task\n\n## Notes\nKeep parent prose.\n", "existing tasks are moved once and indented, with nested children and schedules intact");
+	eq(f1.notes.get("Parent.md"), "---\nstatus: active\n---\n## Tasks:\n- [ ] Parent updated - Due date: 2026-10-16\n    - [ ] Already nested\n    - [ ] New subtask\n    - [ ] Existing action Due date: 2026-10-17 Time: 14:00 Duration: 1 Hour ^action\n        - [ ] Its child\n    - [ ] Same note task\n\n## Notes\nKeep parent prose.\n", "existing tasks are moved once and indented, with nested children and schedules intact");
 	eq(f1.notes.get("Other.md"), "---\nproject: Other\n---\n## Tasks:\n- [ ] Unrelated\n", "source retains frontmatter and unrelated task");
 	eq(f1.get("Existing action").parentId, f1.get("Parent updated").id, "existing task becomes actual Markdown subtask");
 	eq(f1.get("Its child").parentId, f1.get("Existing action").id, "selected task retains its own subtask relationship");

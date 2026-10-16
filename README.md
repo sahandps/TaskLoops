@@ -16,7 +16,7 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-The calendar planner and Notes grid are available in **0.4.3**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+The calendar planner and Notes grid are available in **0.4.4**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -43,6 +43,11 @@ durations and overlaps. Drag to schedule and use the bottom handle to resize.
 ### Edit a task and its subtasks
 
 Open a task to change its text or schedule, pick a project note, and add subtasks.
+**Jump to task in note** opens the source at the task's line in a new tab.
+**Open project note** opens the currently selected destination in a new tab.
+Navigation does not save or discard the dialog's unsaved edits. New destinations
+must be saved before they can be opened. The Add task dialog also has the
+project-note link.
 
 ![Task editor with project selection, date, time, duration and subtasks](docs/images/task-editor.jpg)
 
@@ -64,6 +69,10 @@ Dots mark dates containing tasks. Select a date to open its daily timeline.
 The task sidebar and calendar appear together. In a main tab they sit side by
 side; in a narrow Obsidian sidebar the task list sits above the calendar. Use
 the command palette's **Open planner in a main tab** command for more room.
+Drag the divider between the task list and calendar to resize them. At narrow
+widths, drag it vertically instead. Panel sizes are remembered independently
+for desktop and stacked layouts. Focus the divider and use arrow keys (Shift
+for larger steps), Home/End for its limits, or double-click to reset.
 
 - **Day:** a 24-hour timeline with five-minute drag-and-drop scheduling.
 - **Week:** seven daily timelines, with simultaneous tasks shown alongside each other.
@@ -145,13 +154,13 @@ Click a task, its schedule details or **⋯** to open the task editor and set it
 optional due date, start time, and duration in whole hours and minutes. For example:
 
 ```markdown
-- [ ] Buy groceries Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes
+- [ ] Buy groceries - Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes
 ```
 
 Date-only tasks are supported:
 
 ```markdown
-- [ ] Renew insurance Due date: 2026-10-16
+- [ ] Renew insurance - Due date: 2026-10-16
 ```
 
 The originally supported bare ISO date also works:
@@ -159,6 +168,13 @@ The originally supported bare ISO date also works:
 ```markdown
 - [ ] Buy groceries 2026-10-16
 ```
+
+New schedules use ` - ` between the task wording and its details. You can also
+type `- [ ] Task - date: 2026-10-19` manually; it is discovered on the calendar
+without opening the task editor. `date:` and `Due date:` are case-insensitive.
+Only Markdown checkbox tasks are gathered; ordinary `- Text` bullets are not.
+Undated checkbox tasks stay in the sidebar. Older schedules without the separator
+remain readable and are converted only when you explicitly edit their schedule.
 
 Scheduling fields must be at the end of a task, before an optional Obsidian block
 id. A time or duration requires a date. A task with no time appears in the
@@ -256,7 +272,7 @@ New tasks go under a `Tasks:` heading in the note you pick:
 
 ```markdown
 ## Tasks:
-- [ ] Review homepage Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes
+- [ ] Review homepage - Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes
 ```
 
 An existing heading is reused; otherwise `## Tasks:` is appended at the end.

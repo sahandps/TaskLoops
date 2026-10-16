@@ -57,7 +57,7 @@ export function formatDuration(minutes: number): string {
 export function parseSchedule(raw: string): { body: string; schedule: Schedule; suffix: string; block: string } {
 	const block = raw.match(/(\s+\^[\w-]+)?(\r?)$/)?.[0] ?? "";
 	const body = raw.slice(0, raw.length - block.length);
-	const match = body.match(/\s+Due date: ([A-Za-z0-9.,/ -]+?)(?: Time: (\d{2}:\d{2}))?(?: Duration: (?:(\d+) Hours?(?: (\d+) Minutes?)?|(\d+) Minutes?))?\s*$/i);
+	const match = body.match(/\s+(?:- )?(?:Due date|date): ([A-Za-z0-9.,/ -]+?)(?: Time: (\d{2}:\d{2}))?(?: Duration: (?:(\d+) Hours?(?: (\d+) Minutes?)?|(\d+) Minutes?))?\s*$/i);
 	if (match) {
 		const due = parseDate(match[1]);
 		const time = match[2];
@@ -81,7 +81,7 @@ export function validSchedule(schedule: Schedule): boolean {
 export function writeSchedule(raw: string, schedule: Schedule, format: DateFormat): string {
 	if (!validSchedule(schedule)) throw new Error("A valid date is required for a time or duration.");
 	const parsed = parseSchedule(raw);
-	const suffix = schedule.due ? ` Due date: ${formatDate(schedule.due, format)}${schedule.time ? " Time: " + schedule.time : ""}${schedule.duration ? " Duration: " + formatDuration(schedule.duration) : ""}` : "";
+	const suffix = schedule.due ? ` - Due date: ${formatDate(schedule.due, format)}${schedule.time ? " Time: " + schedule.time : ""}${schedule.duration ? " Duration: " + formatDuration(schedule.duration) : ""}` : "";
 	return parsed.body + suffix + parsed.block;
 }
 

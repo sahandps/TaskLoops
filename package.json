@@ -1,7 +1,7 @@
 {
   "name": "taskloops",
-  "version": "0.4.3",
-  "description": "Plan Markdown tasks in calendars or a filterable note grid. Schedule, resize and edit tasks, choose project notes, and manage subtasks.",
+  "version": "0.4.4",
+  "description": "Plan Markdown tasks in calendars or a filterable note grid. Resize panels, schedule tasks, open source notes, choose project notes, and manage subtasks.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

@@ -9,11 +9,11 @@ export default async function run(mod) {
 	eq(taskWording(raw), "**Plan launch** #work", "editor preserves formatting and tags, protects block id");
 	eq(taskBlock(content, task).lines.length, 3, "task block includes child and continuation, excludes sibling and trailing blanks");
 	const edited = editedBlock(content, task, "**Launch site** #work", { due: "2026-10-17", time: "11:00", duration: 65 }, "YYYY-MM-DD", ["Check links"]);
-	eq(edited[0], "  1. [ ] **Launch site** #work Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\r", "editing preserves numbered checkbox, indentation, block id and CRLF");
+	eq(edited[0], "  1. [ ] **Launch site** #work - Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\r", "editing preserves numbered checkbox, indentation, block id and CRLF");
 	eq(edited[3], "      - [ ] Check links\r", "new subtask is indented beneath parent");
 	const replaced = replaceTaskBlock(content, task, edited);
 	eq(replaced.includes("  - [ ] Unrelated sibling\r\n## Notes\r\nLeave this here.\r\n"), true, "unrelated task and following section untouched");
-	eq(appendTaskBlock("# Destination\n", edited), "# Destination\n\n## Tasks:\n1. [ ] **Launch site** #work Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\n    - [ ] Prepare assets\n      Details stay here.\n    - [ ] Check links\n", "project move normalizes root indentation and destination line endings");
+	eq(appendTaskBlock("# Destination\n", edited), "# Destination\n\n## Tasks:\n1. [ ] **Launch site** #work - Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\n    - [ ] Prepare assets\n      Details stay here.\n    - [ ] Check links\n", "project move normalizes root indentation and destination line endings");
 	eq(editedBlock(content, task, taskWording(raw), { due: "2026-10-16", time: "10:00", duration: 60 }, "DD.MM.YYYY", [])[0], raw, "saving unchanged wording and schedule preserves source bytes");
 	let staleRejected = false;
 	try { replaceTaskBlock(content.replace("Prepare assets", "Updated assets"), task, [], taskBlock(content, task).lines); } catch { staleRejected = true; }
@@ -59,7 +59,7 @@ export default async function run(mod) {
 	await plugin.rescan();
 	let parent = plugin.allTasks().find((task) => task.text === "Plan launch");
 	eq(await plugin.editTask(parent, "Launch website", "Source.md", { due: parent.due, time: parent.time, duration: 90 }, ["Check links"]), true, "save wording, duration and child in same note");
-	eq(notes.get("Source.md").includes("- [ ] Launch website Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes ^launch"), true, "save writes edited text and duration");
+	eq(notes.get("Source.md").includes("- [ ] Launch website - Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes ^launch"), true, "save writes edited text and duration");
 	parent = plugin.allTasks().find((task) => task.text === "Launch website");
 	eq(plugin.allTasks().filter((task) => task.parentId === parent.id).map((task) => task.text), ["Prepare assets", "Check links"], "subtask relationships survive parent rename");
 	const sourceBefore = notes.get("Source.md");
@@ -93,7 +93,7 @@ export default async function run(mod) {
 	failRemoval = changeDestination = false;
 	eq(await plugin.editTask(parent, "Launch website", "Project.md", { due: parent.due, time: parent.time, duration: 90 }), true, "move parent and children to selected project");
 	eq(notes.get("Source.md"), "---\nstatus: active\n---\n## Tasks:\n\n- [ ] Sibling\n", "move removes only parent subtree");
-	eq(notes.get("Project.md"), "---\nproject: Website\n---\n## Tasks:\n- [ ] Existing\n- [ ] Launch website Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes ^launch\n    - [ ] Prepare assets\n    - [ ] Check links\n\n## Notes\nKeep.\n", "move inserts subtree under Tasks, preserves properties and other sections");
+	eq(notes.get("Project.md"), "---\nproject: Website\n---\n## Tasks:\n- [ ] Existing\n- [ ] Launch website - Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes ^launch\n    - [ ] Prepare assets\n    - [ ] Check links\n\n## Notes\nKeep.\n", "move inserts subtree under Tasks, preserves properties and other sections");
 	eq(plugin.allTasks().filter((task) => task.text === "Launch website").map((task) => task.path), ["Project.md"], "moved task appears only in destination group");
 	const quotedFile = { path: "Quoted.md" };
 	const quotedApp = {

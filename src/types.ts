@@ -36,6 +36,8 @@ export interface TaskLoopsSettings {
 	noteDensity: "comfortable" | "compact";
 	notePreviewLimit: number;
 	scanFolder: string;
+	panelWidth: number;
+	panelHeight: number;
 	standaloneNote: string;
 	dateFormat: DateFormat;
 	lastScale: CalendarScale;
@@ -51,6 +53,8 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	noteDensity: "comfortable",
 	notePreviewLimit: 5,
 	scanFolder: "",
+	panelWidth: 260,
+	panelHeight: 220,
 	standaloneNote: "Standalone Tasks.md",
 	dateFormat: "YYYY-MM-DD",
 	lastScale: "week",

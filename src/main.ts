@@ -33,6 +33,8 @@ export default class TaskLoopsPlugin extends Plugin {
 		if (!["planner", "notes"].includes(this.settings.defaultView)) this.settings.defaultView = "planner";
 		if (![3, 5, 10].includes(this.settings.notePreviewLimit)) this.settings.notePreviewLimit = 5;
 		if (typeof this.settings.scanFolder !== "string") this.settings.scanFolder = "";
+		if (!Number.isFinite(this.settings.panelWidth)) this.settings.panelWidth = 260;
+		if (!Number.isFinite(this.settings.panelHeight)) this.settings.panelHeight = 220;
 		if (!["12h", "24h"].includes(this.settings.timeFormat)) this.settings.timeFormat = "24h";
 		if (![0, 1, 6].includes(this.settings.weekStart)) this.settings.weekStart = 1;
 		if (!Number.isInteger(this.settings.startHour) || this.settings.startHour < 0 || this.settings.startHour > 23) this.settings.startHour = 8;
@@ -323,8 +325,14 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	async reveal(task: ScannedTask): Promise<void> {
-		const file = this.app.vault.getAbstractFileByPath(task.path);
-		if (file instanceof TFile) await this.app.workspace.getLeaf("tab").openFile(file, { eState: { line: task.line }, active: true });
+		await this.openNote(task.path, task.line);
+	}
+
+	async openNote(path: string, line?: number): Promise<boolean> {
+		const file = this.app.vault.getAbstractFileByPath(path);
+		if (!(file instanceof TFile)) { new Notice("This note does not exist yet. Save the task first to create it."); return false; }
+		await this.app.workspace.getLeaf("tab").openFile(file, { ...(line === undefined ? {} : { eState: { line } }), active: true });
+		return true;
 	}
 
 	async activateView(mainArea = false): Promise<void> {

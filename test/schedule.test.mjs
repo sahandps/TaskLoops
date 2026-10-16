@@ -4,7 +4,7 @@ export default function run(mod) {
 	const { parseSchedule, writeSchedule, formatDuration, validSchedule, formatDate, parseDate, appendTask, daySegment, cleanTaskText, taskId } = mod;
 	const { eq, results } = createSuite("scheduling, calendar and note sections");
 	const schedule = { due: "2026-10-16", time: "14:00", duration: 65 };
-	const full = "- [ ] Buy groceries Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes";
+	const full = "- [ ] Buy groceries - Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes";
 	eq(writeSchedule("- [ ] Buy groceries", schedule, "YYYY-MM-DD"), full, "write explicit scheduling fields");
 	eq(parseSchedule(full).schedule, schedule, "round trip all fields");
 	eq(cleanTaskText(full, "#task"), "Buy groceries", "schedule is not task wording");
@@ -15,8 +15,8 @@ export default function run(mod) {
 	}
 	eq(parseSchedule("- [ ] Groceries 2026-10-16").schedule, { due: "2026-10-16" }, "bare ISO suffix supported");
 	eq(writeSchedule(full, {}, "YYYY-MM-DD"), "- [ ] Buy groceries", "clear all schedule fields");
-	eq(writeSchedule(full, { due: "2027-01-01" }, "YYYY-MM-DD"), "- [ ] Buy groceries Due date: 2027-01-01", "replace without duplicate fields");
-	eq(writeSchedule("\t1. [ ] **Bold task** #tag ^block\r", schedule, "YYYY-MM-DD"), "\t1. [ ] **Bold task** #tag Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes ^block\r", "preserve indentation, wording, tags, block ids and CRLF");
+	eq(writeSchedule(full, { due: "2027-01-01" }, "YYYY-MM-DD"), "- [ ] Buy groceries - Due date: 2027-01-01", "replace without duplicate fields");
+	eq(writeSchedule("\t1. [ ] **Bold task** #tag ^block\r", schedule, "YYYY-MM-DD"), "\t1. [ ] **Bold task** #tag - Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes ^block\r", "preserve indentation, wording, tags, block ids and CRLF");
 	eq(formatDuration(60), "1 Hour", "singular hour");
 	eq(formatDuration(125), "2 Hours 5 Minutes", "plural hours");
 	eq(formatDuration(1), "1 Minute", "singular minute");
