@@ -74,7 +74,7 @@ export default async function run(mod) {
 		standalonePlugin.createTask("Second thought", standaloneFile.path, {}),
 	]);
 	eq(createdFolders, ["Planning"], "standalone parent folder created once");
-	eq(standaloneContent, "## Tasks:\n- [ ] First thought - Due date: 16.10.2026\n- [ ] Second thought\n", "rapid standalone captures share one note and heading");
+	eq(standaloneContent, "# Tasks\n- [ ] First thought - Due date: 16.10.2026\n- [ ] Second thought\n", "rapid standalone captures share one note and heading");
 	eq(standalonePlugin.allTasks().map((task) => task.text), ["First thought", "Second thought"], "new standalone tasks discovered");
 	await standalonePlugin.createTask("Typed date 2026-10-18", standaloneFile.path, {});
 	eq(standaloneContent.includes("- [ ] Typed date 2026-10-18"), true, "capture preserves a date typed in task text");

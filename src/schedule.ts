@@ -106,12 +106,12 @@ export function appendTask(content: string, line: string): string {
 		if (fence) continue;
 		const heading = text.match(/^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
 		if (!heading) continue;
-		if (start < 0 && /^Tasks:\s*$/i.test(heading[2])) { start = i; level = heading[1].length; }
+		if (start < 0 && /^Tasks:?\s*$/i.test(heading[2])) { start = i; level = heading[1].length; }
 		else if (start >= 0 && heading[1].length <= level) { end = i; break; }
 	}
 	if (start < 0) {
 		if (fence || frontmatter) throw new Error("Close the note's code fence or frontmatter before adding a task.");
-		return content + (content ? (content.endsWith(eol + eol) ? "" : content.endsWith(eol) ? eol : eol + eol) : "") + "## Tasks:" + eol + line + eol;
+		return content + (content ? (content.endsWith(eol + eol) ? "" : content.endsWith(eol) ? eol : eol + eol) : "") + "# Tasks" + eol + line + eol;
 	}
 	if (fence) throw new Error("Close the code fence in Tasks: before adding a task.");
 	while (end > start + 1 && lines[end - 1].trim() === "") end--;

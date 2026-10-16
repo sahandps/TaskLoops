@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Plan Markdown tasks in calendars or a note grid. Schedule from buttons beside tasks in your notes, resize panels, and open the planner in a main tab on mobile.",
   "main": "main.js",
   "scripts": {

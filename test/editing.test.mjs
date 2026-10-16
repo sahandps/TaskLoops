@@ -13,7 +13,7 @@ export default async function run(mod) {
 	eq(edited[3], "      - [ ] Check links\r", "new subtask is indented beneath parent");
 	const replaced = replaceTaskBlock(content, task, edited);
 	eq(replaced.includes("  - [ ] Unrelated sibling\r\n## Notes\r\nLeave this here.\r\n"), true, "unrelated task and following section untouched");
-	eq(appendTaskBlock("# Destination\n", edited), "# Destination\n\n## Tasks:\n1. [ ] **Launch site** #work - Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\n    - [ ] Prepare assets\n      Details stay here.\n    - [ ] Check links\n", "project move normalizes root indentation and destination line endings");
+	eq(appendTaskBlock("# Destination\n", edited), "# Destination\n\n# Tasks\n1. [ ] **Launch site** #work - Due date: 2026-10-17 Time: 11:00 Duration: 1 Hour 5 Minutes ^launch\n    - [ ] Prepare assets\n      Details stay here.\n    - [ ] Check links\n", "project move normalizes root indentation and destination line endings");
 	eq(editedBlock(content, task, taskWording(raw), { due: "2026-10-16", time: "10:00", duration: 60 }, "DD.MM.YYYY", [])[0], raw, "saving unchanged wording and schedule preserves source bytes");
 	let staleRejected = false;
 	try { replaceTaskBlock(content.replace("Prepare assets", "Updated assets"), task, [], taskBlock(content, task).lines); } catch { staleRejected = true; }

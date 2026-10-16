@@ -29,11 +29,11 @@ export default function run(mod) {
 	eq(validSchedule({ due: "2026-10-16", duration: -1 }), false, "negative duration rejected");
 	eq(validSchedule({ due: "2026-10-16", duration: 1.5 }), false, "fractional duration rejected");
 	eq(validSchedule({}), true, "undated task accepted");
-	eq(appendTask("", "- [ ] New"), "## Tasks:\n- [ ] New\n", "new standalone note");
-	eq(appendTask("---\nproject: test\n---\n\n# Project\nNotes.", "- [ ] New"), "---\nproject: test\n---\n\n# Project\nNotes.\n\n## Tasks:\n- [ ] New\n", "properties and existing prose unchanged");
+	eq(appendTask("", "- [ ] New"), "# Tasks\n- [ ] New\n", "new standalone note");
+	eq(appendTask("---\nproject: test\n---\n\n# Project\nNotes.", "- [ ] New"), "---\nproject: test\n---\n\n# Project\nNotes.\n\n# Tasks\n- [ ] New\n", "properties and existing prose unchanged");
 	eq(appendTask("# Project\n## Tasks:\n- [ ] Old\n\n## Notes\nKeep me\n", "- [ ] New"), "# Project\n## Tasks:\n- [ ] Old\n- [ ] New\n\n## Notes\nKeep me\n", "insert before next peer heading");
 	eq(appendTask("## Tasks:\n### Subsection\nExisting\n## Other\n", "- [ ] New"), "## Tasks:\n### Subsection\nExisting\n- [ ] New\n## Other\n", "nested headings stay in Tasks section");
-	eq(appendTask("```md\n## Tasks:\n```\nActual note\n", "- [ ] New"), "```md\n## Tasks:\n```\nActual note\n\n## Tasks:\n- [ ] New\n", "ignore heading in code fence");
+	eq(appendTask("```md\n## Tasks:\n```\nActual note\n", "- [ ] New"), "```md\n## Tasks:\n```\nActual note\n\n# Tasks\n- [ ] New\n", "ignore heading in code fence");
 	eq(appendTask("## Tasks:\r\n- [ ] Old\r\n\r\n## Other\r\n", "- [ ] New"), "## Tasks:\r\n- [ ] Old\r\n- [ ] New\r\n\r\n## Other\r\n", "preserve CRLF on insertion");
 	let rejected = false;
 	try { appendTask("## Tasks:\n```\nUnclosed", "- [ ] New"); } catch { rejected = true; }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.6 — 2026-10-16
+
+- Make project selection explicit with a Choose project note button and a
+  separate selected-note path in both task dialogs.
+- Save new tasks into the chosen note. When no Tasks section exists, append
+  `# Tasks` at the bottom of the note followed by the checkbox task.
+- Reuse existing Tasks and legacy Tasks: headings without changing note
+  properties or creating duplicate sections.
+- Disable Open project note until the destination exists, and explain when
+  the standalone note will be created.
+- Update project-capture documentation, screenshot and release metadata.
+
+Validation: 502 automated tests, TypeScript, ESLint and production build pass.
+Browser checks cover selecting an existing project note and adding its task.
+
 ## 0.4.5 — 2026-10-16
 
 - Default the Planner sidebar to unscheduled tasks. Scheduling a task removes

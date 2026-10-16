@@ -14,9 +14,9 @@ lets you schedule, resize and edit them without managing note properties.
 - Pick projects with **Obsidian's native fuzzy note search**.
 - Open a source note in a **new tab** using the arrow beside its sidebar heading
   or its name on a calendar task. The note opens at the task's line.
-- Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
+- Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-The calendar planner and Notes grid are available in **0.4.5**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+The calendar planner and Notes grid are available in **0.4.6**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -52,6 +52,20 @@ project-note link.
 ![Task editor with project selection, date, time, duration and subtasks](docs/images/task-editor.jpg)
 
 ### Search your project notes
+
+Use **Choose project note…** to search existing notes. The selected note path is
+shown separately; **Add task** writes into that note. When it has no Tasks
+section, TaskLoops appends the following at the end of the existing content:
+
+```markdown
+# Tasks
+- [ ] Your new task
+```
+
+Existing Tasks headings (including older `## Tasks:` sections) are reused without
+duplicating them. Choosing a note alone does not modify it.
+
+![Task creation with an explicitly selected project note](docs/images/project-destination.jpg)
 
 Type a note name or folder path to find the destination for a task. In Obsidian,
 this uses the native fuzzy note picker; the browser preview demonstrates the flow.

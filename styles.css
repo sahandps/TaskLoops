@@ -241,3 +241,4 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 	button.tl-inline-schedule { width: 36px; height: 36px; min-height: 36px; }
 }
 @media print { button.tl-inline-schedule { display: none; } }
+.tl-selected-project { max-width: 100%; overflow-wrap: anywhere; color: var(--text-muted); font-size: 12px; }
