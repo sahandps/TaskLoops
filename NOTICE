@@ -1,0 +1,22 @@
+TaskLoops
+Copyright (c) 2026 Sahand Poursadeghi Khiavi
+
+TaskLoops version 0.4.3 is licensed under the GNU General Public License,
+version 3 only (SPDX: GPL-3.0-only). See LICENSE for the complete terms.
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+Corresponding source and build instructions:
+https://github.com/sahandps/TaskLoops/tree/0.4.3
+The release includes a matching source archive. Build with npm ci and npm run build.
+
+Historical licenses:
+- Versions 0.4.1 and earlier retain their MIT rights; see licenses/MIT-previous-releases.txt.
+- Version 0.4.2 was distributed under the custom terms preserved in licenses/TaskLoops-0.4.2.txt.

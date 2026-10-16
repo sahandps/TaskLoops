@@ -32,7 +32,7 @@ const context = await esbuild.context({
   treeShaking: true,
   outfile: "main.js",
   minify: prod,
-  banner: { js: `/*! TaskLoops ${version} | Copyright (c) 2026 Sahand Poursadeghi Khiavi. Free-to-use proprietary license: https://github.com/sahandps/TaskLoops/blob/${version}/LICENSE */` },
+  banner: { js: `/*! TaskLoops ${version} | Copyright (c) 2026 Sahand Poursadeghi Khiavi. GNU GPL v3 only (GPL-3.0-only), without warranty. License: https://github.com/sahandps/TaskLoops/blob/${version}/LICENSE */` },
 });
 
 if (prod) {

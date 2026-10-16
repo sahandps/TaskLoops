@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Plan Markdown tasks in calendars or a filterable note grid. Schedule, resize and edit tasks, choose project notes, and manage subtasks.",
   "main": "main.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "productivity"
   ],
   "author": "Sahand Poursadeghi Khiavi",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@types/node": "^20.11.0",
     "esbuild": "0.20.2",

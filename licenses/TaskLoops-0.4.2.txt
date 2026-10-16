@@ -1,0 +1,79 @@
+TaskLoops Free-to-Use Proprietary License 1.0
+
+Copyright (c) 2026 Sahand Poursadeghi Khiavi. All rights reserved.
+
+1. Scope
+
+This license applies to TaskLoops version 0.4.2 and subsequent versions that
+include this license, including their source code, compiled plugin files,
+documentation and project screenshots (the "Software"). It is a proprietary
+license, not an open-source license.
+
+Versions 0.4.1 and earlier were released under the MIT License. Nothing in this
+license withdraws or limits rights already granted under those releases' MIT
+License. A copy of that license is retained in
+licenses/MIT-previous-releases.txt. Separately licensed third-party components,
+if any, remain governed by their own licenses.
+
+2. Free use
+
+The copyright holder grants you a non-exclusive, worldwide, royalty-free license
+to download, install and run unmodified copies of the Software for personal or
+commercial use, provided you comply with this license. You may make copies
+needed for installation, internal deployment and backup on devices you own or
+administer for your organization. You may inspect the source and build an
+unmodified copy solely for such permitted use. Keep copyright and license
+notices with these copies.
+
+Your notes, tasks and other user-created data belong to you. This license places
+no restrictions on using, modifying, exporting or sharing that data.
+
+3. Restrictions
+
+Except as expressly permitted above, by applicable law, or by separate written
+permission from the copyright holder, you may not:
+
+- Modify, adapt or create derivative works of the Software.
+- Redistribute, publish, share, sublicense, sell or rent copies of the Software,
+  whether in source or compiled form, modified or unmodified.
+- Remove or alter copyright, ownership or license notices.
+
+Source visibility does not grant permission to modify or redistribute it. You
+may share links to the official project and its official releases instead.
+
+4. Official distribution and platform rights
+
+The copyright holder authorizes GitHub and Obsidian's plugin distribution
+services to host, cache and deliver unmodified official releases and associated
+license notices for discovery, installation and updates. This authorization does
+not grant other users a general right to redistribute the Software.
+
+This license does not override rights separately granted under applicable
+hosting-platform terms, including GitHub's terms for viewing and forking public
+repositories within its service. Such platform rights do not grant additional
+permission under this license to modify or redistribute the Software elsewhere.
+
+5. Future versions and termination
+
+The copyright holder may stop development, stop distributing the Software, or
+offer future versions under different terms or pricing. There is no promise of
+free future versions, updates, support or continued availability. A change to
+future terms does not itself change the terms of a copy already received under
+this license.
+
+Your permissions under this license terminate if you breach its terms. On
+termination, stop using the Software and delete your copies, except where
+applicable law requires otherwise. Your own notes and task data are unaffected.
+
+6. No warranty; limitation of liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED
+"AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE, WHETHER
+IN CONTRACT, TORT OR OTHERWISE. NOTHING IN THIS LICENSE EXCLUDES LIABILITY OR
+RIGHTS THAT CANNOT LAWFULLY BE EXCLUDED.
+
+For permission to modify or redistribute the Software, contact the copyright
+holder through https://github.com/sahandps/TaskLoops.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.3 — 2026-10-16
+
+- Replace the custom license with the unmodified GNU General Public License,
+  version 3 only (`GPL-3.0-only`). Update package metadata, README, build banner
+  and copyright notice. Historical releases keep their original licenses.
+- Attach the corresponding source archive, license and notice to the release
+  alongside the compiled plugin files.
+- No planner or task-data behavior changes from 0.4.2.
+
 ## 0.4.2 — 2026-10-16
 
 - Add a Notes task grid alongside the calendar Planner, with note/task search,

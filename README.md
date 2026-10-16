@@ -1,7 +1,7 @@
 # TaskLoops
 
 [![Obsidian plugin](https://img.shields.io/badge/Obsidian-TaskLoops-7c3aed?logo=obsidian&logoColor=white)](https://obsidian.md/plugins?id=taskloops)
-[![License: Free-to-use proprietary](https://img.shields.io/badge/License-Free--to--use_proprietary-blue.svg)](LICENSE)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
@@ -16,7 +16,7 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-The calendar planner and Notes grid are available in **0.4.2**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+The calendar planner and Notes grid are available in **0.4.3**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -424,12 +424,16 @@ versions may have different terms or pricing.
 
 Copyright © 2026 Sahand Poursadeghi Khiavi.
 
-**0.4.2 onward:** [TaskLoops Free-to-Use Proprietary License](LICENSE).
-You may use the unmodified plugin for free, including at work. Modification or
-redistribution requires written permission, subject to the exceptions in the
-license. Source visibility does not make this release open source. Link people
-to the official releases instead of sharing copies.
+**0.4.3 onward:** [GNU General Public License, version 3 only](LICENSE)
+(`GPL-3.0-only`). Use, modification and redistribution, including commercial use,
+are permitted under GPLv3. Distributing covered binaries requires supplying the
+corresponding source under GPLv3's terms. Private modifications do not need to
+be published. Copyright and license notices must be retained. See [NOTICE](NOTICE).
 
-**0.4.1 and earlier:** remain under their original [MIT License](licenses/MIT-previous-releases.txt).
-Existing MIT grants are not revoked. Your own notes and tasks remain yours.
-The author may change the terms or pricing of future versions.
+The matching source archive is attached to each release; the repository also
+contains the build instructions and dependency lockfile. Your own notes and
+tasks remain yours.
+
+**Historical releases:** 0.4.1 and earlier retain their [MIT rights](licenses/MIT-previous-releases.txt).
+0.4.2 was published under the [custom license preserved here](licenses/TaskLoops-0.4.2.txt).
+The 0.4.3 release replaces that custom license with standard GPLv3.
