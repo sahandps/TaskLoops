@@ -5,8 +5,10 @@ import { scanFile, scanVault, setCheckboxDone, setTaskSchedule } from "./scanner
 import { appendTask, DATE_FORMATS, validSchedule, writeSchedule } from "./schedule";
 import { TaskLoopsView, VIEW_TYPE_TASKLOOPS } from "./view";
 import { TaskLoopsSettingTab } from "./settings";
+import { existingSubtaskCandidates } from "./existing-tasks";
+import { applyNoteChanges, NoteChange } from "./note-transaction";
 import { TaskModal } from "./modals";
-import { appendTaskBlock, editedBlock, replaceTaskBlock, taskBlock } from "./task-edits";
+import { appendTaskBlock, editedBlock, replaceTaskBlock, taskBlock, nestTaskBlock, validateWording } from "./task-edits";
 
 export default class TaskLoopsPlugin extends Plugin {
 	settings: TaskLoopsSettings = { ...DEFAULT_SETTINGS };
@@ -161,7 +163,8 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	/** Save the editor in one source operation; moving preserves the whole subtree. */
-	async editTask(task: ScannedTask, text: string, path: string, schedule: Schedule, subtasks: string[] = []): Promise<boolean> {
+	async editTask(task: ScannedTask, text: string, path: string, schedule: Schedule, subtasks: string[] = [], existing: ScannedTask[] = []): Promise<boolean> {
+		if (existing.length) return this.editWithExisting(task, text, path, schedule, subtasks, existing);
 		let saved = false;
 		await this.enqueue(async () => {
 			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
@@ -221,6 +224,67 @@ export default class TaskLoopsPlugin extends Plugin {
 			saved = true;
 			await this.reloadWrittenFile(current.path);
 			if (path !== current.path) await this.reloadWrittenFile(path);
+		});
+		return saved;
+	}
+
+	/** Assemble all affected notes before moving existing tasks under a parent. */
+	private async editWithExisting(task: ScannedTask, text: string, path: string, schedule: Schedule, subtasks: string[], existing: ScannedTask[]): Promise<boolean> {
+		let saved = false;
+		await this.enqueue(async () => {
+			if (!validSchedule(schedule)) throw new Error("Enter a valid schedule.");
+			validateWording(text);
+			subtasks.forEach(validateWording);
+			const parent = this.current(task);
+			const children = existing.map((child) => this.current(child));
+			const selected: ScannedTask[] = [];
+			for (const child of children) {
+				if (!existingSubtaskCandidates(this.allTasks(), parent, selected).some((candidate) => candidate.id === child.id)) throw new Error("A selected task is already related to this parent or another selection. Choose it again.");
+				selected.push(child);
+			}
+			path = normalizePath(path);
+			if (!path.endsWith(".md")) throw new Error("Choose a Markdown project note.");
+			const changes = new Map<string, NoteChange>();
+			for (const note of new Set([parent.path, ...children.map((child) => child.path), path])) {
+				const file = this.app.vault.getAbstractFileByPath(note);
+				if (file instanceof TFile) {
+					const before = await this.app.vault.read(file);
+					changes.set(note, { file, before, after: before });
+				} else if (!file && note === path && note === normalizePath(this.settings.standaloneNote)) {
+					const folder = note.split("/").slice(0, -1).join("/");
+					if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+					const created = await this.app.vault.create(note, "");
+					changes.set(note, { file: created, before: "", after: "" });
+				} else throw new Error("A selected note no longer exists.");
+			}
+			const source = changes.get(parent.path)!;
+			const parentBlock = taskBlock(source.before, parent);
+			const replacement = editedBlock(source.before, parent, text, schedule, this.settings.dateFormat, subtasks);
+			const ranges = [{ path: parent.path, start: parentBlock.start, end: parentBlock.end }];
+			for (const child of children) {
+				const change = changes.get(child.path)!;
+				const block = taskBlock(change.before, child);
+				if (ranges.some((range) => range.path === child.path && range.start < block.end && block.start < range.end)) throw new Error("Selected tasks overlap or would create a subtask loop. Refresh and try again.");
+				ranges.push({ path: child.path, start: block.start, end: block.end });
+				// Preserve dates retained from older plugin versions when moving.
+				if (!child.hasSchedule && child.due) block.lines[0] = writeSchedule(block.lines[0], { due: child.due, time: child.time, duration: child.duration }, this.settings.dateFormat);
+				replacement.push(...nestTaskBlock(replacement[0], block.lines));
+			}
+			for (const [note, change] of changes) {
+				const lines = change.before.split("\n");
+				for (const range of ranges.filter((range) => range.path === note).sort((a, b) => b.start - a.start)) {
+					const contents = note === parent.path && range.start === parentBlock.start && path === parent.path ? replacement : [];
+					lines.splice(range.start, range.end - range.start, ...contents);
+				}
+				change.after = lines.join("\n");
+			}
+			const destination = changes.get(path)!;
+			if (path !== parent.path) destination.after = appendTaskBlock(destination.after, replacement);
+			await applyNoteChanges(this.app, [destination, ...[...changes.values()].filter((change) => change !== destination)]);
+			for (const moved of [parent, ...children]) if (this.items[moved.id]?.due) delete this.items[moved.id].due;
+			saved = true;
+			try { await this.saveSettings(); } catch (error) { this.report(error, "Tasks were saved, but the settings backup could not be updated."); }
+			for (const change of changes.values()) await this.reloadWrittenFile(change.file.path);
 		});
 		return saved;
 	}

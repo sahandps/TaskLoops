@@ -113,3 +113,16 @@
 
 .tl-drop-time { display: none; position: absolute; top: var(--tl-drop-top); left: 0; right: 0; height: 0; border-top: 2px solid var(--interactive-accent); z-index: 6; pointer-events: none; color: var(--interactive-accent); font-size: 11px; font-weight: 600; text-shadow: 0 0 3px var(--background-primary); }
 .tl-drop-time.is-visible { display: block; }
+
+.tl-existing-subtasks, .tl-selected-subtasks, .tl-subtask-drafts { max-height: 150px; overflow: auto; }
+.tl-existing-subtasks:empty, .tl-selected-subtasks:empty { display: none; }
+.tl-existing-subtasks .tl-existing-subtask { display: flex; align-items: center; gap: 8px; width: 100%; height: auto; min-height: 34px; padding: 6px 8px; margin-bottom: 4px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); box-shadow: none; text-align: left; white-space: normal; }
+.tl-subtask-state, .tl-subtask-open { color: var(--text-muted); flex-shrink: 0; }
+.tl-subtask-open { margin-left: auto; }
+.tl-existing-subtask:hover .tl-subtask-open { color: var(--interactive-accent); }
+.tl-choose-existing { width: 100%; margin-top: 12px; border-style: dashed; }
+.tl-subtask-hint { display: block; font-size: 11px; line-height: 1.5; color: var(--text-muted); margin-top: 6px; }
+.tl-selected-subtask { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-left: 2px solid var(--interactive-accent); padding: 7px 9px; margin-top: 8px; background: var(--background-secondary); font-size: 13px; }
+.tl-picker-title { font-size: 14px; line-height: 1.4; }
+.tl-picker-meta { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.suggestion-item.is-selected .tl-picker-meta, .mod-cta .tl-picker-meta { color: inherit; opacity: .8; }

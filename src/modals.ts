@@ -1,13 +1,14 @@
 import { App, FuzzySuggestModal, Modal, Notice } from "obsidian";
 import type TaskLoopsPlugin from "./main";
 import type { ScannedTask, Schedule } from "./types";
-import { validSchedule } from "./schedule";
+import { existingSubtaskCandidates } from "./existing-tasks";
+import { formatDate, formatDuration, validSchedule } from "./schedule";
 import { taskWording } from "./task-edits";
 
 export class NotePicker extends FuzzySuggestModal<string> {
-	constructor(app: App, private standalone: string, private onPick: (path: string) => void) {
+	constructor(app: App, private standalone: string, private onPick: (path: string) => void, private choices?: string[]) {
 		super(app);
-		this.setPlaceholder("Search project notes…");
+		this.setPlaceholder(choices ? "Search notes with available tasks…" : "Search project notes…");
 		this.setInstructions([
 			{ command: "↑ ↓", purpose: "navigate notes" },
 			{ command: "↵", purpose: "pick project" },
@@ -15,10 +16,32 @@ export class NotePicker extends FuzzySuggestModal<string> {
 		]);
 	}
 	getItems(): string[] {
-		return [...new Set([this.standalone, ...this.app.vault.getMarkdownFiles().map((file) => file.path)])].sort((a, b) => a.localeCompare(b));
+		return [...new Set(this.choices ?? [this.standalone, ...this.app.vault.getMarkdownFiles().map((file) => file.path)])].sort((a, b) => a.localeCompare(b));
 	}
 	getItemText(path: string): string { return path === this.standalone ? "Standalone tasks — " + path : path.replace(/\.md$/, ""); }
 	onChooseItem(path: string): void { this.onPick(path); }
+}
+
+/** Choose the actual source task; selection alone never changes Markdown. */
+export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
+	constructor(app: App, private tasks: ScannedTask[], private plugin: TaskLoopsPlugin, private onPick: (task: ScannedTask) => void) {
+		super(app);
+		this.setPlaceholder("Search tasks in " + this.plugin.noteName(tasks[0]?.path ?? "this note") + "…");
+		this.setInstructions([
+			{ command: "↑ ↓", purpose: "navigate tasks" },
+			{ command: "↵", purpose: "select subtask" },
+			{ command: "esc", purpose: "cancel" },
+		]);
+	}
+	getItems(): ScannedTask[] { return this.tasks; }
+	getItemText(task: ScannedTask): string { return task.text; }
+	renderSuggestion(match: { item: ScannedTask }, el: HTMLElement): void {
+		const task = match.item;
+		el.createDiv({ cls: "tl-picker-title", text: task.text });
+		const schedule = [task.due ? formatDate(task.due, this.plugin.settings.dateFormat) : "No date", task.time, task.duration ? formatDuration(task.duration) : undefined].filter(Boolean).join(" · ");
+		el.createDiv({ cls: "tl-picker-meta", text: schedule + " · Line " + (task.line + 1) });
+	}
+	onChooseItem(task: ScannedTask): void { this.onPick(task); }
 }
 
 function scheduleFields(parent: HTMLElement, initial: Schedule): { read: () => Schedule | null; clear: () => void } {
@@ -53,7 +76,7 @@ function scheduleFields(parent: HTMLElement, initial: Schedule): { read: () => S
 
 export class TaskEditorModal extends Modal {
 	private path: string;
-	constructor(app: App, private plugin: TaskLoopsPlugin, private task: ScannedTask) {
+	constructor(app: App, private plugin: TaskLoopsPlugin, private task: ScannedTask, private onUpdated?: () => void) {
 		super(app);
 		this.path = task.path;
 	}
@@ -71,10 +94,18 @@ export class TaskEditorModal extends Modal {
 		const fields = scheduleFields(root, this.task);
 		root.createEl("button", { text: "Remove schedule", cls: "tl-clear-schedule" }).onclick = () => fields.clear();
 		root.createEl("h3", { text: "Subtasks" });
-		const existing = this.plugin.allTasks().filter((task) => task.path === this.task.path && task.parentId === this.task.id);
-		for (const child of existing) {
-			root.createDiv({ cls: "tl-existing-subtask", text: (child.checked ? "✓ " : "○ ") + child.text });
-		}
+		const children = root.createDiv("tl-existing-subtasks");
+		const drawChildren = () => {
+			children.empty();
+			for (const child of this.plugin.allTasks().filter((task) => task.path === this.task.path && task.parentId === this.task.id)) {
+				const button = children.createEl("button", { cls: "tl-existing-subtask", attr: { "aria-label": "Open subtask " + child.text } });
+				button.createSpan({ cls: "tl-subtask-state", text: child.checked ? "✓" : "○" });
+				button.createSpan({ text: child.text });
+				button.createSpan({ cls: "tl-subtask-open", text: "↗" });
+				button.onclick = () => new TaskEditorModal(this.app, this.plugin, child, drawChildren).open();
+			}
+		};
+		drawChildren();
 		const drafts: string[] = [];
 		const list = root.createDiv("tl-subtask-drafts");
 		const row = root.createDiv("tl-subtask-entry");
@@ -97,6 +128,32 @@ export class TaskEditorModal extends Modal {
 		};
 		row.createEl("button", { text: "Add subtask" }).onclick = add;
 		subtask.onkeydown = (event) => { if (event.key === "Enter") { event.preventDefault(); add(); } };
+		const selected: ScannedTask[] = [];
+		const selectedList = root.createDiv("tl-selected-subtasks");
+		const existingButton = root.createEl("button", { cls: "tl-choose-existing", text: "Choose existing task…" });
+		const hint = root.createEl("small", { cls: "tl-subtask-hint", text: "Find a task in your notes. It and its subtasks will move here when you save." });
+		const drawSelected = () => {
+			selectedList.empty();
+			for (const [index, child] of selected.entries()) {
+				const item = selectedList.createDiv("tl-selected-subtask");
+				const label = item.createDiv();
+				label.createDiv({ text: child.text });
+				label.createDiv({ cls: "tl-picker-meta", text: "From " + child.path + " · Added on save" });
+				item.createEl("button", { text: "×", attr: { "aria-label": "Remove selection " + child.text } }).onclick = () => { selected.splice(index, 1); drawSelected(); };
+			}
+			existingButton.disabled = !existingSubtaskCandidates(this.plugin.allTasks(), this.task, selected).length;
+			hint.setText(existingButton.disabled ? "No other open tasks available. Create a subtask above, or add a checkbox in another note." : "Find a task in your notes. It and its subtasks will move here when you save.");
+		};
+		existingButton.onclick = () => {
+			const candidates = existingSubtaskCandidates(this.plugin.allTasks(), this.task, selected);
+			const notes = [...new Set(candidates.map((task) => task.path))];
+			new NotePicker(this.app, this.plugin.settings.standaloneNote, (path) => {
+				const tasks = existingSubtaskCandidates(this.plugin.allTasks(), this.task, selected).filter((task) => task.path === path);
+				if (!tasks.length) { new Notice("No available open tasks remain in that note."); drawSelected(); return; }
+				new ExistingTaskPicker(this.app, tasks, this.plugin, (task) => { selected.push(task); drawSelected(); }).open();
+			}, notes).open();
+		};
+		drawSelected();
 		const actions = root.createDiv("tl-dialog-actions");
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
@@ -106,13 +163,13 @@ export class TaskEditorModal extends Modal {
 			if (!text.value.trim()) { text.focus(); return; }
 			add();
 			save.disabled = true;
-			void this.plugin.editTask(this.task, text.value, this.path, schedule, drafts).then((ok) => {
+			void this.plugin.editTask(this.task, text.value, this.path, schedule, drafts, selected).then((ok) => {
 				if (ok) this.close(); else save.disabled = false;
 			});
 		};
 		text.focus();
 	}
-	onClose(): void { this.contentEl.empty(); }
+	onClose(): void { this.contentEl.empty(); this.onUpdated?.(); }
 }
 
 export class TaskModal extends Modal {

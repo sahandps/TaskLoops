@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Choose existing tasks as subtasks from a searchable note and task picker.
+  Selections remain drafts until Save; guard multi-note moves and recover source
+  notes before the destination if saving fails. Click an existing subtask row
+  to open its own task editor.
+
 - Replace GTD buckets, clarification and the board with a calendar planner and
   a sidebar grouped alphabetically by source note.
 - Plan in Day, Week, Month and Year. Timed events show duration, overlap lanes

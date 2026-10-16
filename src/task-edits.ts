@@ -79,3 +79,24 @@ export function appendTaskBlock(content: string, block: string[]): string {
 	});
 	return appendTask(content, normalized.join(eol));
 }
+
+/** Rebase an existing task subtree into the parent's list/quote container. */
+export function nestTaskBlock(parent: string, block: string[]): string[] {
+	const parentContainer = parent.match(TASK_PREFIX)?.[1];
+	const sourceContainer = block[0].match(TASK_PREFIX)?.[1];
+	if (parentContainer === undefined || sourceContainer === undefined) throw new Error("Select Markdown checkbox tasks.");
+	const quoteDepth = (sourceContainer.match(/>/g) ?? []).length;
+	const stripQuotes = (line: string) => {
+		let rest = line;
+		for (let n = 0; n < quoteDepth; n++) rest = rest.replace(/^[ \t]*>[ \t]?/, "");
+		return rest;
+	};
+	const indent = indentOf(stripQuotes(block[0]));
+	return block.map((raw) => {
+		const line = stripQuotes(raw).replace(/\r$/, "");
+		let removed = 0;
+		let i = 0;
+		while (i < line.length && removed < indent && (line[i] === " " || line[i] === "\t")) removed += line[i++] === "\t" ? 4 : 1;
+		return parentContainer + "    " + " ".repeat(Math.max(0, removed - indent)) + line.slice(i) + (parent.endsWith("\r") ? "\r" : "");
+	});
+}

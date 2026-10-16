@@ -144,12 +144,31 @@ schedule, and add subtasks. Changes are applied only when you select
 **Save changes**; **Cancel** discards the draft. **Remove schedule** clears the
 form's scheduling fields and is applied when you save.
 
-Existing direct subtasks are listed in the popup. Add new ones with the subtask
-field and **Add subtask** or Enter. An unfinished entry is also included when
+Existing direct subtasks are clickable rows in the popup: select one to open
+its own editor, then return to the parent. Add new ones with the subtask field
+and **Add subtask** or Enter. An unfinished entry is also included when
 you save. New subtasks are ordinary indented Markdown checkboxes beneath their
 parent, so they work in the source note and appear indented in the sidebar.
 Each subtask has its own completion and optional schedule; completing a parent
 does not complete its subtasks.
+
+### Choose an existing task as a subtask
+
+Use **Choose existing task…** in the parent's popup to browse tasks already in
+your notes:
+
+1. Search for a note that contains available open tasks.
+2. Search its task list; each result shows its current schedule and source line.
+3. Select one or more tasks. The pending rows show where they come from and can
+   be removed before saving.
+4. Select **Save changes** to move them beneath the parent. Their schedules,
+   formatting and own subtasks are preserved; successful saves keep one copy.
+
+Selecting a task makes no note changes until you save. Cancel discards the
+selection. Existing descendants, ancestors and overlapping selections are
+excluded to prevent loops. Open an added subtask's popup by clicking its row.
+
+![Searchable existing tasks with their schedules in the selected note](docs/images/existing-subtask-picker.jpg)
 
 Choosing another **Project / note** moves the task and its indented subtree to
 that note's `Tasks:` section. Formatting, block ids and existing subtask content
@@ -280,6 +299,8 @@ src/
 ├── modals.ts     creation/editor popups, note picker and scheduling fields
 ├── task-edits.ts exact task blocks, wording edits, subtasks and project moves
 ├── resize.ts     pointer/keyboard duration resizing
+├── existing-tasks.ts  eligible existing subtask selections
+├── note-transaction.ts  guarded multi-note saves and recovery
 ├── settings.ts   date format and standalone-note destination
 ├── types.ts      task, schedule and settings shapes
 └── dates.ts      local calendar-day arithmetic
@@ -291,7 +312,8 @@ Tests bundle the plugin against a small Obsidian substitute. They cover field
 round trips, supported date formats, invalid dates/times, overnight durations,
 `Tasks:` insertion boundaries, code fences, CRLF preservation, stale or ambiguous
 lines, queued rescheduling/completion, legacy date fallback, task editing, subtask
-creation, subtree moves, rollback safety and duration resizing. They do not
+creation, existing task selection, subtree moves, multi-note rollback safety
+and duration resizing. They do not
 replace an in-app smoke test of native Obsidian drag and drop or mobile touch.
 
 `main.js` is generated at the repository root; `manifest.json` and `styles.css`
