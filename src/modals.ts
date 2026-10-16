@@ -1,261 +1,150 @@
-import { App, FuzzySuggestModal, Modal, Setting, TFolder } from "obsidian";
-import { JoinedTask } from "./types";
-import { shiftISO, todayISO } from "./dates";
+import { App, FuzzySuggestModal, Modal, Notice } from "obsidian";
+import type TaskLoopsPlugin from "./main";
+import type { ScannedTask, Schedule } from "./types";
+import { validSchedule } from "./schedule";
+import { taskWording } from "./task-edits";
 
-export const CAPTURE_BASENAME = "TaskLoops Inbox.md";
-
-/**
- * Choose the folder captures live in. Dismissing without choosing is a valid
- * answer — it means "just put it somewhere sensible" — so the caller gets null
- * and falls back to the vault root.
- */
-export class FolderPicker extends FuzzySuggestModal<string> {
-	private folders: string[];
-	private picked = false;
-	private onDone: (folder: string | null) => void;
-
-	constructor(app: App, onDone: (folder: string | null) => void) {
+export class NotePicker extends FuzzySuggestModal<string> {
+	constructor(app: App, private standalone: string, private onPick: (path: string) => void) {
 		super(app);
-		this.onDone = onDone;
-
-		const found: string[] = ["/"];
-		for (const file of app.vault.getAllLoadedFiles()) {
-			if (file instanceof TFolder && file.path !== "/") found.push(file.path);
-		}
-		this.folders = found.sort((a, b) => a.localeCompare(b));
-
-		this.setPlaceholder("Where should captured tasks go?");
+		this.setPlaceholder("Search project notes…");
 		this.setInstructions([
-			{ command: "↵", purpose: "put " + CAPTURE_BASENAME + " here" },
-			{ command: "esc", purpose: "use the vault root" },
+			{ command: "↑ ↓", purpose: "navigate notes" },
+			{ command: "↵", purpose: "pick project" },
+			{ command: "esc", purpose: "cancel" },
 		]);
 	}
-
 	getItems(): string[] {
-		return this.folders;
+		return [...new Set([this.standalone, ...this.app.vault.getMarkdownFiles().map((file) => file.path)])].sort((a, b) => a.localeCompare(b));
 	}
-
-	getItemText(folder: string): string {
-		return folder === "/" ? "Vault root" : folder;
-	}
-
-	onChooseItem(folder: string): void {
-		this.picked = true;
-		this.onDone(folder);
-	}
-
-	onClose(): void {
-		super.onClose();
-		if (!this.picked) this.onDone(null);
-	}
+	getItemText(path: string): string { return path === this.standalone ? "Standalone tasks — " + path : path.replace(/\.md$/, ""); }
+	onChooseItem(path: string): void { this.onPick(path); }
 }
 
-interface ProjectChoice {
-	uid: string | null;
-	label: string;
-}
-
-/** Pick the project a task belongs to, or detach it. */
-export class ProjectPicker extends FuzzySuggestModal<ProjectChoice> {
-	private choices: ProjectChoice[];
-	private onPick: (uid: string | null) => void;
-
-	constructor(
-		app: App,
-		projects: JoinedTask[],
-		onPick: (uid: string | null) => void
-	) {
-		super(app);
-		this.onPick = onPick;
-		this.choices = [
-			...projects.map((p) => ({ uid: p.item.uid, label: p.text })),
-			{ uid: null, label: "— Standalone —" },
-		];
-		this.setPlaceholder("Which project does this belong to?");
-	}
-
-	getItems(): ProjectChoice[] {
-		return this.choices;
-	}
-
-	getItemText(choice: ProjectChoice): string {
-		return choice.label;
-	}
-
-	onChooseItem(choice: ProjectChoice): void {
-		this.onPick(choice.uid);
-	}
-}
-
-/** Pick an existing task to file under a project. */
-export class TaskPicker extends FuzzySuggestModal<JoinedTask> {
-	private tasks: JoinedTask[];
-	private onPick: (task: JoinedTask) => void;
-
-	constructor(app: App, tasks: JoinedTask[], onPick: (t: JoinedTask) => void) {
-		super(app);
-		this.tasks = tasks;
-		this.onPick = onPick;
-		this.setPlaceholder("Search tasks to file under this project…");
-	}
-
-	getItems(): JoinedTask[] {
-		return this.tasks;
-	}
-
-	getItemText(task: JoinedTask): string {
-		return task.text + " " + task.path;
-	}
-
-	renderSuggestion(match: { item: JoinedTask }, el: HTMLElement): void {
-		const task = match.item;
-		el.createDiv({ cls: "tl-suggest-text", text: task.text });
-		el.createDiv({
-			cls: "tl-suggest-meta",
-			text: task.path.replace(/\.md$/, ""),
-		});
-	}
-
-	onChooseItem(task: JoinedTask): void {
-		this.onPick(task);
-	}
-}
-
-/** Set, change or clear a task's date. */
-export class DateModal extends Modal {
-	private value: string;
-	private title: string;
-	private allowClear: boolean;
-	private onPick: (iso: string | null) => void;
-
-	constructor(
-		app: App,
-		opts: {
-			title?: string;
-			initial?: string;
-			allowClear?: boolean;
-			onPick: (iso: string | null) => void;
+function scheduleFields(parent: HTMLElement, initial: Schedule): { read: () => Schedule | null; clear: () => void } {
+	const fields = parent.createDiv("tl-schedule-fields");
+	const field = (label: string, type: string, value: string) => {
+		const wrap = fields.createEl("label");
+		wrap.createSpan({ text: label });
+		const input = wrap.createEl("input", { type });
+		input.value = value;
+		return input;
+	};
+	const due = field("Due date", "date", initial.due ?? "");
+	const time = field("Time", "time", initial.time ?? "");
+	const hours = field("Duration · hours", "number", initial.duration ? String(Math.floor(initial.duration / 60)) : "");
+	const minutes = field("Duration · minutes", "number", initial.duration ? String(initial.duration % 60) : "");
+	hours.min = minutes.min = "0";
+	hours.step = minutes.step = "1";
+	minutes.max = "59";
+	const read = () => {
+		const h = Number(hours.value || 0);
+		const m = Number(minutes.value || 0);
+		const duration = h * 60 + m;
+		const result: Schedule = { ...(due.value ? { due: due.value } : {}), ...(time.value ? { time: time.value } : {}), ...(duration ? { duration } : {}) };
+		if (!due.checkValidity() || !time.checkValidity() || !Number.isInteger(h) || !Number.isInteger(m) || h < 0 || m < 0 || m > 59 || !validSchedule(result)) {
+			new Notice("Choose a valid date before adding a time or duration. Duration uses whole hours and minutes.");
+			return null;
 		}
-	) {
-		super(app);
-		this.title = opts.title ?? "When does it happen?";
-		this.value = opts.initial || todayISO();
-		this.allowClear = opts.allowClear ?? false;
-		this.onPick = opts.onPick;
-	}
+		return result;
+	};
+	return { read, clear: () => { due.value = time.value = hours.value = minutes.value = ""; } };
+}
 
+export class TaskEditorModal extends Modal {
+	private path: string;
+	constructor(app: App, private plugin: TaskLoopsPlugin, private task: ScannedTask) {
+		super(app);
+		this.path = task.path;
+	}
 	onOpen(): void {
-		const { contentEl } = this;
-		contentEl.addClass("tl-date-modal");
-		contentEl.createEl("h3", { text: this.title });
-
-		const quick = contentEl.createDiv("tl-chips");
-		const today = todayISO();
-		const presets: Array<[string, string]> = [
-			["Today", today],
-			["Tomorrow", shiftISO(today, 1)],
-			["In a week", shiftISO(today, 7)],
-		];
-		for (const [label, iso] of presets) {
-			const b = quick.createEl("button", { cls: "tl-chip-btn", text: label });
-			b.onclick = () => this.commit(iso);
+		const root = this.contentEl;
+		root.createEl("h2", { text: "Edit task" });
+		const label = root.createEl("label", { text: "Task" });
+		const text = label.createEl("input", { type: "text", cls: "tl-task-input" });
+		text.value = taskWording(this.task.raw);
+		const destination = root.createDiv("tl-destination");
+		destination.createSpan({ text: "Project / note" });
+		const pick = destination.createEl("button", { text: this.path, attr: { "aria-label": "Pick project note", title: "Search notes in your vault" } });
+		pick.onclick = () => new NotePicker(this.app, this.plugin.settings.standaloneNote, (path) => { this.path = path; pick.setText(path); }).open();
+		destination.createEl("small", { text: "Choosing another note moves this task and its subtasks under Tasks:." });
+		const fields = scheduleFields(root, this.task);
+		root.createEl("button", { text: "Remove schedule", cls: "tl-clear-schedule" }).onclick = () => fields.clear();
+		root.createEl("h3", { text: "Subtasks" });
+		const existing = this.plugin.allTasks().filter((task) => task.path === this.task.path && task.parentId === this.task.id);
+		for (const child of existing) {
+			root.createDiv({ cls: "tl-existing-subtask", text: (child.checked ? "✓ " : "○ ") + child.text });
 		}
-
-		const input = contentEl.createEl("input", {
-			cls: "tl-input",
-			type: "date",
-		});
-		input.value = this.value;
-		input.oninput = () => (this.value = input.value);
-		input.onkeydown = (e) => {
-			if (e.key === "Enter") this.commit(this.value);
+		const drafts: string[] = [];
+		const list = root.createDiv("tl-subtask-drafts");
+		const row = root.createDiv("tl-subtask-entry");
+		const subtask = row.createEl("input", { type: "text", placeholder: "Add a subtask…", attr: { "aria-label": "New subtask" } });
+		const add = () => {
+			const value = subtask.value.trim();
+			if (!value) return;
+			drafts.push(value);
+			subtask.value = "";
+			drawDrafts();
+			subtask.focus();
 		};
-
-		const buttons = new Setting(contentEl);
-		if (this.allowClear) {
-			buttons.addButton((b) =>
-				b.setButtonText("Clear date").onClick(() => this.commit(null))
-			);
-		}
-		buttons.addButton((b) =>
-			b
-				.setButtonText("Save")
-				.setCta()
-				.onClick(() => this.commit(this.value))
-		);
-
-		window.setTimeout(() => input.focus(), 0);
+		const drawDrafts = () => {
+			list.empty();
+			drafts.forEach((value, index) => {
+				const item = list.createDiv("tl-subtask-draft");
+				item.createSpan({ text: value });
+				item.createEl("button", { text: "×", attr: { "aria-label": "Remove subtask " + value } }).onclick = () => { drafts.splice(index, 1); drawDrafts(); };
+			});
+		};
+		row.createEl("button", { text: "Add subtask" }).onclick = add;
+		subtask.onkeydown = (event) => { if (event.key === "Enter") { event.preventDefault(); add(); } };
+		const actions = root.createDiv("tl-dialog-actions");
+		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
+		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
+		save.onclick = () => {
+			const schedule = fields.read();
+			if (!schedule) return;
+			if (!text.value.trim()) { text.focus(); return; }
+			add();
+			save.disabled = true;
+			void this.plugin.editTask(this.task, text.value, this.path, schedule, drafts).then((ok) => {
+				if (ok) this.close(); else save.disabled = false;
+			});
+		};
+		text.focus();
 	}
-
-	private commit(iso: string | null): void {
-		this.close();
-		this.onPick(iso);
-	}
-
-	onClose(): void {
-		this.contentEl.empty();
-	}
+	onClose(): void { this.contentEl.empty(); }
 }
 
-/** Ask for a single line of text. */
-export class TextPromptModal extends Modal {
-	private value: string;
-	private title: string;
-	private placeholder: string;
-	private cta: string;
-	private onSubmit: (value: string) => void;
-
-	constructor(
-		app: App,
-		opts: {
-			title: string;
-			placeholder?: string;
-			initial?: string;
-			cta?: string;
-			onSubmit: (value: string) => void;
-		}
-	) {
+export class TaskModal extends Modal {
+	private path: string;
+	constructor(app: App, private plugin: TaskLoopsPlugin, private initial: Schedule = {}, path?: string) {
 		super(app);
-		this.title = opts.title;
-		this.placeholder = opts.placeholder ?? "";
-		this.value = opts.initial ?? "";
-		this.cta = opts.cta ?? "Save";
-		this.onSubmit = opts.onSubmit;
+		this.path = path ?? plugin.settings.standaloneNote;
 	}
-
 	onOpen(): void {
-		const { contentEl } = this;
-		contentEl.addClass("tl-date-modal");
-		contentEl.createEl("h3", { text: this.title });
-
-		const input = contentEl.createEl("input", {
-			cls: "tl-input",
-			attr: { placeholder: this.placeholder, spellcheck: "false" },
-		});
-		input.value = this.value;
-		input.oninput = () => (this.value = input.value);
-		input.onkeydown = (e) => {
-			if (e.key === "Enter") this.commit();
+		const root = this.contentEl;
+		root.createEl("h2", { text: "Add a task" });
+		const label = root.createEl("label", { text: "Task" });
+		const text = label.createEl("input", { type: "text", cls: "tl-task-input", placeholder: "What needs doing?" });
+		const destination = root.createDiv("tl-destination");
+		destination.createSpan({ text: "Project / note" });
+		const pick = destination.createEl("button", { text: this.path, attr: { "aria-label": "Pick project note", title: "Search notes in your vault" } });
+		pick.onclick = () => new NotePicker(this.app, this.plugin.settings.standaloneNote, (path) => { this.path = path; pick.setText(path); }).open();
+		const fields = scheduleFields(root, this.initial);
+		const actions = root.createDiv("tl-dialog-actions");
+		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
+		const save = actions.createEl("button", { text: "Add task", cls: "mod-cta" });
+		const commit = async () => {
+			const schedule = fields.read();
+			if (!schedule) return;
+			if (!text.value.trim()) { text.focus(); return; }
+			save.disabled = true;
+			if (await this.plugin.createTask(text.value, this.path, schedule)) this.close();
+			else save.disabled = false;
 		};
-
-		new Setting(contentEl).addButton((b) =>
-			b
-				.setButtonText(this.cta)
-				.setCta()
-				.onClick(() => this.commit())
-		);
-
-		window.setTimeout(() => input.focus(), 0);
+		save.onclick = () => void commit();
+		text.onkeydown = (event) => { if (event.key === "Enter" && !save.disabled) void commit(); };
+		text.focus();
 	}
-
-	private commit(): void {
-		const value = this.value.trim();
-		if (!value) return;
-		this.close();
-		this.onSubmit(value);
-	}
-
-	onClose(): void {
-		this.contentEl.empty();
-	}
+	onClose(): void { this.contentEl.empty(); }
 }

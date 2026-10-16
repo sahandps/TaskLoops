@@ -1,7 +1,7 @@
 {
   "name": "taskloops",
   "version": "0.4.0",
-  "description": "Automatically gathers Markdown tasks into a GTD sidebar with projects, drag-and-drop planning, and calendar views.",
+  "description": "Plan Markdown tasks in day, week, month and year calendars. Drag to schedule, resize durations, and organize tasks and subtasks by project note.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -14,8 +14,11 @@
   "keywords": [
     "obsidian",
     "obsidian-plugin",
-    "gtd",
+    "calendar",
+    "task-planner",
     "tasks",
+    "projects",
+    "subtasks",
     "productivity"
   ],
   "author": "Sahand Poursadeghi Khiavi",

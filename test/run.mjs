@@ -1,8 +1,7 @@
 /**
- * Bundles scanner.ts against a stubbed `obsidian` module, then runs every
- * *.test.mjs beside this file. The scanner is where the risky logic lives —
- * finding task lines, deriving identity, and the single write transform — so
- * that is what gets covered.
+ * Bundles planner code against a stubbed `obsidian` module, then runs every
+ * *.test.mjs beside this file. Covers discovery, scheduling, calendar
+ * arithmetic, section insertion and serialized operations against a mock vault.
  */
 import esbuild from "esbuild";
 import { readdir } from "fs/promises";
@@ -10,11 +9,10 @@ import { dirname, join } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
 const bundle = join(here, ".bundle.mjs");
 
 await esbuild.build({
-	entryPoints: [join(root, "src", "scanner.ts")],
+	entryPoints: [join(here, "entry.mjs")],
 	bundle: true,
 	format: "esm",
 	outfile: bundle,

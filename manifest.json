@@ -1,11 +1,11 @@
 {
-	"id": "taskloops",
-	"name": "TaskLoops",
-	"version": "0.4.0",
-	"minAppVersion": "1.7.2",
-	"description": "Automatically gathers Markdown tasks into a GTD sidebar with projects, drag-and-drop planning, and calendar views.",
-	"author": "Sahand Poursadeghi Khiavi",
-	"authorUrl": "https://github.com/sahandps",
-	"fundingUrl": "https://buymeacoffee.com/sahandprs",
-	"isDesktopOnly": false
+  "id": "taskloops",
+  "name": "TaskLoops",
+  "version": "0.4.0",
+  "minAppVersion": "1.7.2",
+  "description": "Plan Markdown tasks in day, week, month and year calendars. Drag to schedule, resize durations, and organize tasks and subtasks by project note.",
+  "author": "Sahand Poursadeghi Khiavi",
+  "authorUrl": "https://github.com/sahandps",
+  "fundingUrl": "https://buymeacoffee.com/sahandprs",
+  "isDesktopOnly": false
 }

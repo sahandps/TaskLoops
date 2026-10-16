@@ -1,1228 +1,169 @@
-import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
+import { ItemView, WorkspaceLeaf } from "obsidian";
 import type TaskLoopsPlugin from "./main";
-import {
-	BUCKETS,
-	Bucket,
-	JoinedTask,
-	PRIORITIES,
-	ViewMode,
-} from "./types";
-import type { CardOptions, PanelHost } from "./host";
-import { renderBoard } from "./board";
-import {
-	CalendarState,
-	initialCalendarState,
-	renderCalendar,
-} from "./calendar";
-import {
-	DateModal,
-	FolderPicker,
-	ProjectPicker,
-	TaskPicker,
-	TextPromptModal,
-} from "./modals";
-import { DUE_GROUP_ORDER, daysUntil, dueGroup, formatDue } from "./dates";
-import { truncate } from "./text";
-import { Wizard, WizardHost, renderWizard } from "./wizard";
+import type { CalendarScale, ScannedTask } from "./types";
+import { formatDate, formatDuration } from "./schedule";
+import { todayISO } from "./dates";
+import { TaskEditorModal } from "./modals";
+import { renderCalendar } from "./calendar";
 
 export const VIEW_TYPE_TASKLOOPS = "taskloops-view";
 
-/**
- * One ordering for every layout: what you arranged by hand, then how urgent it
- * is, then how recently it was filed. Each rule only applies where you have
- * actually expressed a preference, so nothing reshuffles until you ask.
- */
-function compareTasks(a: JoinedTask, b: JoinedTask): number {
-	const ao = a.item.order;
-	const bo = b.item.order;
-	if (ao !== undefined && bo !== undefined && ao !== bo) return ao - bo;
-	if (ao !== undefined && bo === undefined) return -1;
-	if (bo !== undefined && ao === undefined) return 1;
-
-	const ap = a.item.priority ?? 9;
-	const bp = b.item.priority ?? 9;
-	if (ap !== bp) return ap - bp;
-
-	return (b.item.sortedAt ?? 0) - (a.item.sortedAt ?? 0);
-}
-
-export class TaskLoopsView extends ItemView implements WizardHost, PanelHost {
-	plugin: TaskLoopsPlugin;
-	private active: Bucket | "done";
-	private wizards = new Map<string, Wizard>();
-	private expanded = new Set<string>();
+export class TaskLoopsView extends ItemView {
+	scale: CalendarScale;
+	anchor = todayISO();
 	private query = "";
-	/** When set, the capture row is open; a uid scopes it to that project. */
-	private capturing: { for: string | null; fresh: boolean } | null = null;
-	private dragging: string | null = null;
-	/** A render asked for while a drag was in flight. */
-	private renderPending = false;
-	/** The list as currently displayed, so a reorder knows the arrangement. */
-	private currentList: JoinedTask[] = [];
-	private mode: ViewMode;
-	private calendar: CalendarState = initialCalendarState();
-	/** uid -> project text, rebuilt each render for chip labels. */
-	private projectNames = new Map<string, string>();
+	private showDone = false;
+	private onlyUndated = false;
+	private dragging: ScannedTask | null = null;
+	private resizing = false;
+	private cancelResize: (() => void) | null = null;
+	private pending = false;
+	private calendarKey = "";
 
-	constructor(leaf: WorkspaceLeaf, plugin: TaskLoopsPlugin) {
+	constructor(leaf: WorkspaceLeaf, public plugin: TaskLoopsPlugin) {
 		super(leaf);
-		this.plugin = plugin;
-		this.active = plugin.settings.lastBucket ?? "inbox";
-		this.mode = plugin.settings.lastMode ?? "list";
+		this.scale = plugin.settings.lastScale;
 	}
+	getViewType(): string { return VIEW_TYPE_TASKLOOPS; }
+	getDisplayText(): string { return "TaskLoops"; }
+	getIcon(): string { return "calendar-days"; }
+	async onOpen(): Promise<void> { this.contentEl.addClass("tl-view"); this.render(); }
+	async onClose(): Promise<void> { this.cancelResize?.(); this.dragging = null; }
 
-	getViewType(): string {
-		return VIEW_TYPE_TASKLOOPS;
-	}
+	hasDraggedTask(): boolean { return this.dragging !== null; }
 
-	getDisplayText(): string {
-		return "TaskLoops";
-	}
+	beginResize(cancel: () => void): void { this.resizing = true; this.cancelResize = cancel; }
+	endResize(): void { this.resizing = false; this.cancelResize = null; if (this.pending) this.render(); }
 
-	getIcon(): string {
-		return "inbox";
-	}
-
-	async onOpen(): Promise<void> {
-		this.contentEl.addClass("tl-view");
+	setScale(scale: CalendarScale): void {
+		this.scale = scale;
+		this.plugin.settings.lastScale = scale;
+		void this.plugin.saveSettings();
 		this.render();
 	}
-
-	async onClose(): Promise<void> {
-		this.wizards.clear();
-	}
-
-	/** WizardHost and PanelHost: redraw the panel. */
-	rerender(): void {
-		this.render();
-	}
-
-	// PanelHost — the surface the board and calendar are built on, so cards,
-	// dragging and filing behave the same in every layout.
-
-	card(parent: HTMLElement, task: JoinedTask, opts: CardOptions = {}): void {
-		this.renderCard(parent, task, opts);
-	}
-
-	draggable(el: HTMLElement, task: JoinedTask): void {
-		this.makeDraggable(el, task);
-	}
-
-	dropTarget(el: HTMLElement, onDrop: (task: JoinedTask) => void): void {
-		this.makeDropTarget(el, onDrop);
-	}
-
-	fileInto(task: JoinedTask, bucket: Bucket | "done"): void {
-		this.dropOnBucket(task, bucket);
-	}
-
-	draggingId(): string | null {
-		return this.dragging;
-	}
-
-	readonly compare = compareTasks;
-
-	/** WizardHost: forget an in-progress clarification. */
-	cancelWizard(id: string): void {
-		this.wizards.delete(id);
-	}
-
-	show(bucket: Bucket | "done"): void {
-		this.active = bucket;
-		this.plugin.settings.lastBucket = bucket;
-		void this.plugin.saveData_();
-		this.render();
-	}
-
-	// ---------------------------------------------------------------- render
 
 	render(): void {
-		// Re-rendering mid-drag would destroy the element under the cursor and
-		// cancel the drag, so a render that arrives now is deferred to dragend.
-		if (this.dragging) {
-			this.renderPending = true;
-			return;
-		}
-		this.renderPending = false;
-		// A drop renders before dragend fires, so clear the drag state here
-		// rather than relying on an event on an element we are about to remove.
-		this.contentEl.removeClass("is-dragging-task");
-
-		const scroll = this.contentEl.querySelector(".tl-list")?.scrollTop ?? 0;
-		const focused =
-			this.contentEl.querySelector(".tl-capture-input") ===
-			document.activeElement;
-
-		this.contentEl.empty();
-
-		const tasks = this.plugin.joined();
-
-		this.projectNames.clear();
-		for (const p of this.plugin.projects(tasks)) {
-			this.projectNames.set(p.item.uid, p.text);
-		}
-
-		this.renderHeader(this.contentEl, tasks);
-		this.renderModeBar(this.contentEl, tasks);
-		this.renderSearch(this.contentEl);
-		if (this.capturing && this.capturing.for === null) {
-			this.renderCapture(this.contentEl, null, focused);
-		}
-
-		const body = this.contentEl.createDiv("tl-list is-mode-" + this.mode);
-		const q = this.query.trim().toLowerCase();
-		const matches = (task: JoinedTask) => this.matches(task, q);
-
-		if (this.mode === "board") {
-			this.currentList = [];
-			renderBoard(body, this, tasks, matches);
-		} else if (this.mode === "calendar") {
-			this.currentList = [];
-			renderCalendar(body, this, this.calendar, tasks, matches);
-		} else {
-			this.renderList(body, tasks);
-		}
-
-		// Always present, revealed by CSS only while a drag is in flight, so the
-		// DOM never changes mid-drag.
-		this.renderDropRail(this.contentEl, tasks);
-
-		body.scrollTop = scroll;
-	}
-
-	private setMode(mode: ViewMode): void {
-		this.mode = mode;
-		this.plugin.settings.lastMode = mode;
-		void this.plugin.saveData_();
-		this.render();
-	}
-
-	/**
-	 * One row: the GTD button, which names the list on screen and opens the
-	 * bucket picker, then the two other layouts.
-	 */
-	private renderModeBar(root: HTMLElement, tasks: JoinedTask[]): void {
-		const bar = root.createDiv("tl-modes");
-
-		const activeDef = BUCKETS.find((b) => b.id === this.active);
-		const count =
-			this.active === "done"
-				? tasks.filter((t) => t.item.done).length
-				: tasks.filter((t) => t.item.bucket === this.active && !t.item.done)
-						.length;
-
-		const gtd = bar.createEl("button", {
-			cls: "tl-mode is-gtd" + (this.mode === "list" ? " is-active" : ""),
-			attr: { "aria-label": "GTD lists" },
-		});
-		const gtdIcon = gtd.createSpan("tl-mode-icon");
-		setIcon(gtdIcon, activeDef?.icon ?? "inbox");
-		gtd.createSpan({ cls: "tl-mode-label", text: "GTD" });
-		if (this.mode === "list") {
-			gtd.createSpan({
-				cls: "tl-mode-sub",
-				text: activeDef?.label ?? "Inbox",
-			});
-			if (count > 0) {
-				gtd.createSpan({ cls: "tl-mode-count", text: String(count) });
+		if (this.dragging || this.resizing) { this.pending = true; return; }
+		this.pending = false;
+		const root = this.contentEl;
+		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
+		const nextCalendarKey = this.scale + ":" + this.anchor;
+		const preserveCalendar = this.calendarKey === nextCalendarKey;
+		const calendarScroll = preserveCalendar ? root.querySelector(".tl-calendar-content")?.scrollTop : undefined;
+		this.calendarKey = nextCalendarKey;
+		const calendarLeft = preserveCalendar ? root.querySelector(".tl-calendar-content")?.scrollLeft ?? 0 : 0;
+		const active = root.ownerDocument.activeElement;
+		const searchFocused = active instanceof HTMLInputElement && active.classList.contains("tl-search");
+		const selection = searchFocused ? active.selectionStart : null;
+		root.empty();
+		const header = root.createDiv("tl-header");
+		header.createEl("h2", { text: "TaskLoops" });
+		header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () => this.plugin.newTask();
+		header.createEl("button", { text: "Open full view" }).onclick = () => void this.plugin.activateView(true);
+		header.createEl("button", { text: "Refresh" }).onclick = () => void this.plugin.rescan();
+		const layout = root.createDiv("tl-planner");
+		const side = layout.createEl("aside", { cls: "tl-sidebar", attr: { "aria-label": "Tasks by note" } });
+		const tasks = this.plugin.allTasks().filter((task) => this.showDone || !task.checked);
+		const search = side.createEl("input", { cls: "tl-search", type: "search", placeholder: "Search tasks or notes…", attr: { "aria-label": "Search tasks or notes" } });
+		search.value = this.query;
+		search.oninput = () => { this.query = search.value; this.render(); };
+		const filters = side.createDiv("tl-filters");
+		const doneLabel = filters.createEl("label");
+		const done = doneLabel.createEl("input", { type: "checkbox" });
+		done.checked = this.showDone;
+		doneLabel.createSpan({ text: "Show completed" });
+		done.onchange = () => { this.showDone = done.checked; this.render(); };
+		const undatedLabel = filters.createEl("label");
+		const undated = undatedLabel.createEl("input", { type: "checkbox" });
+		undated.checked = this.onlyUndated;
+		undatedLabel.createSpan({ text: "Undated only" });
+		undated.onchange = () => { this.onlyUndated = undated.checked; this.render(); };
+		const unschedule = side.createDiv({ cls: "tl-unschedule", text: "Drop here to remove a schedule" });
+		this.dropTarget(unschedule, (task) => void this.plugin.schedule(task, {}));
+		const list = side.createDiv("tl-task-list");
+		const q = this.query.trim().toLocaleLowerCase();
+		const matching = tasks.filter((task) => (task.text + " " + task.path).toLocaleLowerCase().includes(q));
+		const listed = matching.filter((task) => !this.onlyUndated || !task.due);
+		let path: string | undefined;
+		for (const task of listed) {
+			if (task.path !== path) {
+				path = task.path;
+				const heading = list.createDiv("tl-note-heading");
+				heading.createEl("button", { text: this.plugin.noteName(path), attr: { title: path } }).onclick = () => void this.plugin.reveal(task);
+				heading.createEl("button", { text: "+", attr: { "aria-label": "Add task to " + path } }).onclick = () => this.plugin.newTask({}, task.path);
+				list.createDiv({ cls: "tl-note-path", text: path });
 			}
+			this.card(list, task);
 		}
-		const caret = gtd.createSpan("tl-mode-caret");
-		setIcon(caret, "chevron-down");
-
-		const stalled = this.plugin
-			.projects(tasks)
-			.filter((p) =>
-				this.plugin.isStalled(this.plugin.actionsOf(tasks, p.item.uid))
-			).length;
-		if (stalled > 0) gtd.addClass("has-alert");
-
-		gtd.onclick = (e) => {
-			if (this.mode !== "list") {
-				this.setMode("list");
-				return;
-			}
-			this.showBucketMenu(e, tasks);
-		};
-
-		const board = bar.createEl("button", {
-			cls: "tl-mode" + (this.mode === "board" ? " is-active" : ""),
-			attr: { "aria-label": "Board" },
-		});
-		setIcon(board.createSpan("tl-mode-icon"), "columns-3");
-		board.createSpan({ cls: "tl-mode-label", text: "Board" });
-		board.onclick = () => this.setMode("board");
-
-		const cal = bar.createEl("button", {
-			cls: "tl-mode" + (this.mode === "calendar" ? " is-active" : ""),
-			attr: { "aria-label": "Calendar" },
-		});
-		setIcon(cal.createSpan("tl-mode-icon"), "calendar-days");
-		cal.createSpan({ cls: "tl-mode-label", text: "Calendar" });
-		cal.onclick = () => this.setMode("calendar");
+		if (!listed.length) list.createEl("p", { cls: "tl-empty", text: q || this.onlyUndated ? "No matching tasks." : "No tasks yet. Add a task or write a checkbox in any note." });
+		const main = layout.createEl("main", { cls: "tl-calendar", attr: { "aria-label": "Task calendar" } });
+		renderCalendar(main, this, matching);
+		list.scrollTop = sideScroll;
+		const scroller = root.querySelector(".tl-calendar-content");
+		if (scroller) { scroller.scrollTop = calendarScroll ?? ((this.scale === "day" || this.scale === "week") ? 8 * 64 : 0); scroller.scrollLeft = calendarLeft; }
+		if (searchFocused) { search.focus(); if (selection !== null) search.setSelectionRange(selection, selection); }
 	}
 
-	private showBucketMenu(evt: MouseEvent, tasks: JoinedTask[]): void {
-		const menu = new Menu();
-		for (const def of BUCKETS) {
-			const count =
-				def.id === "done"
-					? tasks.filter((t) => t.item.done).length
-					: tasks.filter((t) => t.item.bucket === def.id && !t.item.done)
-							.length;
-			menu.addItem((i) =>
-				i
-					.setTitle(count > 0 ? `${def.label}  ·  ${String(count)}` : def.label)
-					.setIcon(def.icon)
-					.setChecked(this.active === def.id)
-					.onClick(() => this.show(def.id))
-			);
-		}
-		menu.showAtMouseEvent(evt);
+	card(parent: HTMLElement, task: ScannedTask, compact = false): HTMLElement {
+		const card = parent.createDiv("tl-task" + (task.checked ? " is-done" : "") + (compact ? " is-compact" : "") + (task.parentId ? " is-subtask" : ""));
+		const content = card.createDiv("tl-task-content");
+		const row = content.createDiv("tl-task-row");
+		const check = row.createEl("input", { type: "checkbox", attr: { "aria-label": "Complete " + task.text } });
+		check.checked = task.checked;
+		check.disabled = task.checked;
+		check.onchange = () => { check.disabled = true; void this.plugin.complete(task); };
+		const open = () => new TaskEditorModal(this.app, this.plugin, task).open();
+		row.createEl("button", { cls: "tl-task-title", text: task.text, attr: { "aria-label": "Edit " + task.text } }).onclick = open;
+		card.onclick = (event) => {
+			if (event.target instanceof Element && !event.target.closest("button, input, a")) open();
+		};
+		const schedule = row.createEl("button", { cls: "tl-schedule-button", text: "⋯", attr: { "aria-label": "Schedule " + task.text } });
+		schedule.onclick = () => new TaskEditorModal(this.app, this.plugin, task).open();
+		const details = [task.due ? formatDate(task.due, this.plugin.settings.dateFormat) : "No date", task.time, task.duration ? formatDuration(task.duration) : undefined].filter(Boolean).join(" · ");
+		card.title = task.text + " · " + details + " · " + task.path;
+		content.createEl("button", { cls: "tl-task-meta", text: details, attr: { "aria-label": "Change schedule: " + details } }).onclick = () => new TaskEditorModal(this.app, this.plugin, task).open();
+		if (compact) content.createEl("button", { cls: "tl-task-source", text: this.plugin.noteName(task.path), attr: { title: task.path } }).onclick = () => void this.plugin.reveal(task);
+		if (!task.checked) this.makeDraggable(card, task);
+		return card;
 	}
 
-	/**
-	 * A strip of bucket targets that only exists visually during a drag. Filing
-	 * across buckets stays a drag even though the tab rail is now one button.
-	 */
-	private renderDropRail(root: HTMLElement, tasks: JoinedTask[]): void {
-		const rail = root.createDiv("tl-droprail");
-		rail.createSpan({ cls: "tl-droprail-hint", text: "Drop to file:" });
-
-		for (const def of BUCKETS) {
-			const chip = rail.createDiv({ cls: "tl-droprail-chip" });
-			setIcon(chip.createSpan("tl-droprail-icon"), def.icon);
-			chip.createSpan({ text: def.label });
-			this.dropTarget(chip, (task) => this.fileInto(task, def.id));
-		}
-		void tasks;
-	}
-
-	private renderHeader(root: HTMLElement, tasks: JoinedTask[]): void {
-		const head = root.createDiv("tl-header");
-		const title = head.createDiv("tl-header-title");
-		title.createSpan({ text: "TaskLoops" });
-
-		const inbox = tasks.filter((t) => t.item.bucket === "inbox").length;
-		if (inbox > 0) {
-			title.createSpan({ cls: "tl-header-badge", text: String(inbox) });
-		}
-
-		const actions = head.createDiv("tl-header-actions");
-
-		const add = actions.createEl("button", {
-			cls: "tl-header-action is-primary",
-			attr: { "aria-label": "Capture a task" },
+	private makeDraggable(card: HTMLElement, task: ScannedTask): void {
+		card.draggable = true;
+		card.addEventListener("dragstart", (event) => {
+			this.dragging = task;
+			event.dataTransfer?.setData("application/x-taskloops", task.id);
+			if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+			card.addClass("is-dragging");
 		});
-		setIcon(add, "plus");
-		add.createSpan({ text: "Task" });
-		add.onclick = () => {
-			this.capturing =
-				this.capturing?.for === null ? null : { for: null, fresh: true };
-			if (this.capturing) this.show("inbox");
-			else this.render();
-		};
-
-		const project = actions.createEl("button", {
-			cls: "tl-header-action",
-			attr: { "aria-label": "Create a project" },
-		});
-		setIcon(project, "layers");
-		project.createSpan({ text: "Project" });
-		project.onclick = () => this.promptProject();
-
-		const refresh = actions.createEl("button", {
-			cls: "tl-icon-btn",
-			attr: { "aria-label": "Rescan vault" },
-		});
-		setIcon(refresh, "refresh-cw");
-		refresh.onclick = async () => {
-			refresh.addClass("is-spinning");
-			await this.plugin.rescan();
-			refresh.removeClass("is-spinning");
-		};
-
-		const settings = actions.createEl("button", {
-			cls: "tl-icon-btn",
-			attr: { "aria-label": "Settings" },
-		});
-		setIcon(settings, "settings");
-		settings.onclick = () => this.plugin.openSettings();
-	}
-
-	/**
-	 * The capture row stays open after each entry — capture is bursty, and
-	 * reopening it between two thoughts is exactly the friction GTD warns about.
-	 */
-	private renderCapture(
-		root: HTMLElement,
-		projectUid: string | null,
-		autofocus: boolean
-	): void {
-		const wrap = root.createDiv("tl-capture");
-		const top = wrap.createDiv("tl-capture-row");
-		const input = top.createEl("input", {
-			cls: "tl-capture-input",
-			attr: {
-				placeholder: projectUid
-					? "New action for this project…"
-					: "What's on your mind?",
-				spellcheck: "false",
-			},
-		});
-
-		const write = async (text: string) => {
-			// Typing an action under a project is itself the clarifying act, so
-			// it is filed as a next action rather than landing back in the inbox.
-			const ok = await this.plugin.captureTask(
-				text,
-				projectUid,
-				projectUid ? "next" : "inbox"
-			);
-			if (ok) new Notice("Captured to " + this.plugin.settings.captureNote);
-		};
-
-		const commit = async () => {
-			const text = input.value.trim();
-			if (!text) return;
-			input.value = "";
-
-			// Ask once where captures should live, then never nag again.
-			if (!this.plugin.settings.captureFolderChosen) {
-				new FolderPicker(this.app, (folder) => {
-					void (async () => {
-						await this.plugin.setCaptureFolder(folder);
-						await write(text);
-					})();
-				}).open();
-				return;
-			}
-			await write(text);
-		};
-
-		input.onkeydown = (e) => {
-			if (e.key === "Enter") void commit();
-			if (e.key === "Escape") {
-				this.capturing = null;
-				this.render();
-			}
-		};
-
-		const done = top.createEl("button", {
-			cls: "tl-icon-btn",
-			attr: { "aria-label": "Close capture" },
-		});
-		setIcon(done, "x");
-		done.onclick = () => {
-			this.capturing = null;
-			this.render();
-		};
-
-		// The destination is always visible and always one tap from changing.
-		const dest = wrap.createEl("button", {
-			cls: "tl-capture-dest",
-			attr: { "aria-label": "Change capture folder" },
-		});
-		const pin = dest.createSpan("tl-capture-dest-icon");
-		setIcon(pin, "folder");
-		dest.createSpan({
-			cls: "tl-capture-dest-path",
-			text: this.plugin.settings.captureNote,
-		});
-		dest.onclick = () => {
-			new FolderPicker(this.app, (folder) => {
-				void this.plugin.setCaptureFolder(folder);
-			}).open();
-		};
-
-		// Focus on first open, and keep it across the re-render that follows a
-		// capture — but never steal it back from wherever you moved on to.
-		if (autofocus || this.capturing?.fresh) {
-			if (this.capturing) this.capturing.fresh = false;
-			window.setTimeout(() => input.focus(), 0);
-		}
-	}
-
-	private renderTabs(root: HTMLElement, tasks: JoinedTask[]): void {
-		const bar = root.createDiv("tl-tabs");
-
-		for (const def of BUCKETS) {
-			const count =
-				def.id === "done"
-					? tasks.filter((t) => t.item.done).length
-					: tasks.filter(
-							(t) => t.item.bucket === def.id && !t.item.done
-					  ).length;
-
-			// Keep the rail short: empty side-buckets are hidden until used,
-			// and revealed by CSS during a drag. Hiding rather than omitting
-			// means the rail never has to be rebuilt mid-drag.
-			const optional =
-				def.id === "reference" || def.id === "trash" || def.id === "done";
-			const quiet = optional && count === 0 && this.active !== def.id;
-
-			const tab = bar.createEl("button", {
-				cls:
-					"tl-tab" +
-					(this.active === def.id ? " is-active" : "") +
-					(quiet ? " is-quiet" : ""),
-				attr: { "aria-label": def.label },
-			});
-			const icon = tab.createSpan("tl-tab-icon");
-			setIcon(icon, def.icon);
-			tab.createSpan({ cls: "tl-tab-label", text: def.label });
-			if (count > 0) {
-				tab.createSpan({ cls: "tl-tab-count", text: String(count) });
-			}
-
-			// A stalled project is the one thing worth interrupting the rail for.
-			if (def.id === "project") {
-				const stalled = this.plugin
-					.projects(tasks)
-					.filter((p) =>
-						this.plugin.isStalled(this.plugin.actionsOf(tasks, p.item.uid))
-					).length;
-				if (stalled > 0) tab.addClass("has-alert");
-			}
-
-			tab.onclick = () => this.show(def.id);
-			this.makeDropTarget(tab, (task) => this.dropOnBucket(task, def.id));
-		}
-	}
-
-	private renderSearch(root: HTMLElement): void {
-		const wrap = root.createDiv("tl-search");
-		const input = wrap.createEl("input", {
-			type: "search",
-			attr: { placeholder: "Filter…", spellcheck: "false" },
-		});
-		input.value = this.query;
-		input.oninput = () => {
-			this.query = input.value;
-			const list = this.contentEl.querySelector(".tl-list") as HTMLElement;
-			if (list) {
-				list.empty();
-				this.renderList(list, this.plugin.joined());
-			}
-		};
-	}
-
-	// ----------------------------------------------------------- drag & drop
-
-	private makeDraggable(el: HTMLElement, task: JoinedTask): void {
-		el.setAttr("draggable", "true");
-		el.setAttr("aria-grabbed", "false");
-		el.addEventListener("dragstart", (e) => {
-			this.dragging = task.id;
-			el.setAttr("aria-grabbed", "true");
-			e.dataTransfer?.setData("text/plain", task.id);
-			if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-			el.addClass("is-dragging");
-			this.contentEl.addClass("is-dragging-task");
-		});
-		el.addEventListener("dragend", () => {
+		card.addEventListener("dragend", () => {
 			this.dragging = null;
-			el.setAttr("aria-grabbed", "false");
-			el.removeClass("is-dragging");
-			this.contentEl.removeClass("is-dragging-task");
-			this.render();
+			card.removeClass("is-dragging");
+			this.contentEl.querySelectorAll(".is-drop-target").forEach((el) => el.removeClass("is-drop-target"));
+			this.contentEl.querySelectorAll(".tl-drop-time").forEach((el) => el.removeClass("is-visible"));
+			if (this.pending) this.render();
 		});
 	}
 
-	/**
-	 * Dropping one card onto another sets a manual order for that list. The
-	 * insertion point follows which half of the card the cursor is over.
-	 */
-	private makeReorderTarget(card: HTMLElement, target: JoinedTask): void {
-		const clear = () => card.removeClasses(["is-drop-above", "is-drop-below"]);
-
-		const below = (e: DragEvent) => {
-			const box = card.getBoundingClientRect();
-			return e.clientY > box.top + box.height / 2;
-		};
-
-		card.addEventListener("dragover", (e) => {
-			if (!this.dragging || this.dragging === target.id) return;
-			// Only reorder within the list actually on screen.
-			if (!this.currentList.some((t) => t.id === this.dragging)) return;
-			e.preventDefault();
-			e.stopPropagation();
-			if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-			clear();
-			card.addClass(below(e) ? "is-drop-below" : "is-drop-above");
-		});
-
-		card.addEventListener("dragleave", clear);
-
-		card.addEventListener("drop", (e) => {
-			const id = e.dataTransfer?.getData("text/plain") ?? this.dragging;
-			clear();
-			if (!id || id === target.id) return;
-
-			const source = this.currentList.find((t) => t.id === id);
-			if (!source) return; // dragged in from another list; let the tab handle it
-
-			e.preventDefault();
-			e.stopPropagation();
-			this.dragging = null;
-
-			const rest = this.currentList.filter((t) => t.id !== source.id);
-			const at = rest.indexOf(target) + (below(e) ? 1 : 0);
-			rest.splice(at, 0, source);
-			void this.plugin.reorder(rest);
-		});
-	}
-
-	private makeDropTarget(
-		el: HTMLElement,
-		onDrop: (task: JoinedTask) => void
-	): void {
-		el.addEventListener("dragover", (e) => {
+	dropTarget(el: HTMLElement, onDrop: (task: ScannedTask, event: DragEvent) => void): void {
+		el.addEventListener("dragover", (event) => {
 			if (!this.dragging) return;
-			e.preventDefault();
-			if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+			event.preventDefault();
+			event.stopPropagation();
+			if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
 			el.addClass("is-drop-target");
 		});
-		el.addEventListener("dragleave", (e) => {
-			const next = e.relatedTarget;
-			if (next instanceof Node && el.contains(next)) return;
-			el.removeClass("is-drop-target");
+		el.addEventListener("dragleave", (event) => {
+			if (!(event.relatedTarget instanceof Node) || !el.contains(event.relatedTarget)) el.removeClass("is-drop-target");
 		});
-		el.addEventListener("drop", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			el.removeClass("is-drop-target");
-			const id = e.dataTransfer?.getData("text/plain") || this.dragging;
+		el.addEventListener("drop", (event) => {
+			if (!this.dragging) return;
+			event.preventDefault();
+			event.stopPropagation();
+			const task = this.dragging;
 			this.dragging = null;
-			if (!id) return;
-			const task = this.plugin.joined().find((t) => t.id === id);
-			if (task) onDrop(task);
+			el.removeClass("is-drop-target");
+			onDrop(task, event);
+			if (this.pending) this.render();
 		});
-	}
-
-	/** Dropping onto a bucket files the task, asking only for what it must. */
-	private dropOnBucket(task: JoinedTask, bucket: Bucket | "done"): void {
-		if (bucket === "done") {
-			if (!task.item.done) void this.plugin.toggleDone(task);
-			return;
-		}
-		if (bucket === task.item.bucket && !task.item.done) return;
-
-		if (bucket === "scheduled") {
-			new DateModal(this.app, {
-				initial: task.item.due,
-				onPick: (iso) => {
-					if (iso) void this.plugin.file(task, { bucket, due: iso });
-				},
-			}).open();
-			return;
-		}
-
-		if (bucket === "waiting") {
-			new TextPromptModal(this.app, {
-				title: "Waiting on whom?",
-				placeholder: "Name",
-				initial: task.item.waitingFor,
-				cta: "File it",
-				onSubmit: (who) =>
-					void this.plugin.file(task, { bucket, waitingFor: who }),
-			}).open();
-			return;
-		}
-
-		void this.plugin.file(task, { bucket });
-	}
-
-	// -------------------------------------------------------------- listing
-
-	private matches(task: JoinedTask, q: string): boolean {
-		if (!q) return true;
-		return (
-			task.text.toLowerCase().includes(q) ||
-			task.path.toLowerCase().includes(q) ||
-			(task.item.context ?? "").toLowerCase().includes(q) ||
-			(task.item.waitingFor ?? "").toLowerCase().includes(q)
-		);
-	}
-
-	private renderEmpty(list: HTMLElement, icon: string, text: string): void {
-		const empty = list.createDiv("tl-empty");
-		const el = empty.createDiv("tl-empty-icon");
-		setIcon(el, icon);
-		empty.createDiv({ cls: "tl-empty-text", text });
-		if (this.active === "inbox" && !this.query) {
-			empty.createDiv({
-				cls: "tl-empty-hint",
-				text:
-					this.plugin.settings.taskSource === "tagged"
-						? `Write ${this.plugin.settings.tag} anywhere in a note, or capture a task above.`
-						: "Add a Markdown checkbox anywhere in your vault, or capture a task above.",
-			});
-		}
-	}
-
-	private renderList(list: HTMLElement, all: JoinedTask[]): void {
-		const def = BUCKETS.find((b) => b.id === this.active)!;
-		const q = this.query.trim().toLowerCase();
-
-		if (this.active === "project") {
-			this.renderProjects(list, all, q);
-			return;
-		}
-
-		let tasks =
-			this.active === "done"
-				? all.filter((t) => t.item.done)
-				: all.filter((t) => t.item.bucket === this.active && !t.item.done);
-
-		tasks = tasks.filter((t) => this.matches(t, q)).sort(compareTasks);
-		this.currentList = tasks;
-
-		if (tasks.length === 0) {
-			this.renderEmpty(
-				list,
-				def.icon,
-				q ? "Nothing matches that filter." : def.empty
-			);
-			return;
-		}
-
-		for (const [heading, group] of this.groupTasks(tasks)) {
-			if (heading) list.createDiv({ cls: "tl-group", text: heading });
-			for (const task of group) {
-				this.renderCard(list, task, { terse: this.active === "inbox" });
-			}
-		}
-	}
-
-	/** Returns [heading, tasks][]; a null heading means "no grouping". */
-	private groupTasks(tasks: JoinedTask[]): Array<[string | null, JoinedTask[]]> {
-		const by = (key: (t: JoinedTask) => string, order?: string[]) => {
-			const map = new Map<string, JoinedTask[]>();
-			for (const t of tasks) {
-				const k = key(t);
-				if (!map.has(k)) map.set(k, []);
-				map.get(k)!.push(t);
-			}
-			const keys = Array.from(map.keys()).sort((a, b) => {
-				if (order) {
-					const ia = order.indexOf(a);
-					const ib = order.indexOf(b);
-					if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-				}
-				return a.localeCompare(b);
-			});
-			return keys.map((k) => [k, map.get(k)!] as [string, JoinedTask[]]);
-		};
-
-		if (this.active === "inbox") return by((t) => this.plugin.sourceLabel(t));
-		if (this.active === "next") return by((t) => t.item.context || "No context");
-		if (this.active === "waiting") {
-			return by((t) => t.item.waitingFor || "Unassigned");
-		}
-		if (this.active === "scheduled") {
-			return by((t) => dueGroup(t.item.due), DUE_GROUP_ORDER);
-		}
-		return [[null, tasks]];
-	}
-
-	// ---------------------------------------------------------------- projects
-
-	/**
-	 * The projects list stays a list of outcomes. Actions live one level down
-	 * and only when you ask to see them; what is always visible is whether a
-	 * project still has something open against it.
-	 */
-	private renderProjects(list: HTMLElement, all: JoinedTask[], q: string): void {
-		const create = list.createEl("button", {
-			cls: "tl-project-create",
-		});
-		setIcon(create.createSpan(), "plus");
-		create.createSpan({ text: "Create project" });
-		create.onclick = () => this.promptProject();
-
-		const projects = this.plugin
-			.projects(all)
-			.filter((p) => this.matches(p, q));
-
-		if (projects.length === 0) {
-			this.renderEmpty(
-				list,
-				"layers",
-				q
-					? "Nothing matches that filter."
-					: BUCKETS.find((b) => b.id === "project")!.empty
-			);
-			return;
-		}
-
-		const stalled = projects.filter((p) =>
-			this.plugin.isStalled(this.plugin.actionsOf(all, p.item.uid))
-		);
-
-		if (stalled.length > 0) {
-			list.createDiv({
-				cls: "tl-group is-alert",
-				text: `${stalled.length} waiting on a next action`,
-			});
-		}
-
-		const ordered = [
-			...stalled,
-			...projects.filter((p) => !stalled.includes(p)),
-		];
-
-		for (const project of ordered) {
-			const actions = this.plugin.actionsOf(all, project.item.uid);
-			this.renderProjectCard(list, project, actions, all);
-		}
-	}
-
-	private renderProjectCard(
-		list: HTMLElement,
-		project: JoinedTask,
-		actions: JoinedTask[],
-		all: JoinedTask[]
-	): void {
-		const open = actions.filter((a) => !a.item.done);
-		const isStalled = this.plugin.isStalled(actions);
-		const uid = project.item.uid;
-		const isOpen = this.expanded.has(uid);
-
-		const card = list.createDiv(
-			"tl-card tl-project" + (isStalled ? " is-stalled" : "")
-		);
-		const row = card.createDiv("tl-card-row");
-
-		// Dropping a task onto a project files it under that project.
-		this.makeDropTarget(card, (task) => {
-			if (task.item.uid === uid) return;
-			void this.plugin.linkToProject(task, uid);
-			this.expanded.add(uid);
-		});
-		this.makeDraggable(card, project);
-
-		const chevron = row.createEl("button", {
-			cls: "tl-chevron",
-			attr: { "aria-label": isOpen ? "Collapse" : "Expand" },
-		});
-		setIcon(chevron, isOpen ? "chevron-down" : "chevron-right");
-		chevron.onclick = (e) => {
-			e.stopPropagation();
-			if (isOpen) this.expanded.delete(uid);
-			else this.expanded.add(uid);
-			this.render();
-		};
-
-		const body = row.createDiv("tl-card-body");
-		body.createDiv({ cls: "tl-card-text", text: project.text });
-
-		const meta = body.createDiv("tl-card-meta");
-		const src = meta.createSpan({
-			cls: "tl-source",
-			text: this.plugin.sourceLabel(project),
-		});
-		src.onclick = (e) => {
-			e.stopPropagation();
-			void this.plugin.reveal(project);
-		};
-
-		if (isStalled) {
-			meta.createSpan({ cls: "tl-chip is-warn", text: "no next action" });
-		} else {
-			meta.createSpan({
-				cls: "tl-chip",
-				text: open.length === 1 ? "1 action" : `${open.length} actions`,
-			});
-		}
-
-		const tools = row.createDiv("tl-card-tools");
-		const more = tools.createEl("button", {
-			cls: "tl-icon-btn",
-			attr: { "aria-label": "More" },
-		});
-		setIcon(more, "more-horizontal");
-		more.onclick = (e) => {
-			e.stopPropagation();
-			this.showMenu(e, project);
-		};
-
-		if (!isOpen) return;
-
-		const children = card.createDiv("tl-project-children");
-		for (const action of actions) {
-			this.renderCard(children, action, { nested: true });
-		}
-
-		if (this.capturing && this.capturing.for === uid) {
-			this.renderCapture(children, uid, true);
-		}
-
-		const add = children.createDiv("tl-add-row");
-
-		const create = add.createEl("button", {
-			cls: "tl-link",
-			text: "+ New action",
-		});
-		create.onclick = (e) => {
-			e.stopPropagation();
-			this.capturing =
-				this.capturing?.for === uid ? null : { for: uid, fresh: true };
-			this.expanded.add(uid);
-			this.render();
-		};
-
-		const link = add.createEl("button", {
-			cls: "tl-link",
-			text: "Link existing…",
-		});
-		link.onclick = (e) => {
-			e.stopPropagation();
-			const candidates = this.plugin.unattached(all);
-			if (candidates.length === 0) {
-				new Notice("Every open task is already filed under a project.");
-				return;
-			}
-			new TaskPicker(this.app, candidates, (task) => {
-				void this.plugin.linkToProject(task, uid);
-			}).open();
-		};
-	}
-
-	// ------------------------------------------------------------------ card
-
-	private renderCard(
-		list: HTMLElement,
-		task: JoinedTask,
-		opts: CardOptions = {}
-	): void {
-		const wizard = this.wizards.get(task.id);
-		const card = list.createDiv(
-			"tl-card" +
-				(wizard ? " is-clarifying" : "") +
-				(task.item.done ? " is-done" : "") +
-				(opts.nested ? " is-nested" : "")
-		);
-
-		if (!wizard) {
-			this.makeDraggable(card, task);
-			if (!opts.nested && !opts.noReorder) this.makeReorderTarget(card, task);
-		}
-
-		const row = card.createDiv("tl-card-row");
-		const showCheck = task.checkbox;
-
-		if (showCheck) {
-			const box = row.createEl("input", {
-				type: "checkbox",
-				cls: "tl-check",
-			});
-			box.checked = !!task.item.done;
-			box.disabled = task.checked;
-			box.onclick = (e) => {
-				e.stopPropagation();
-				void this.plugin.toggleDone(task);
-			};
-		}
-
-		if (!wizard) {
-			const grip = row.createSpan({
-				cls: "tl-drag-grip",
-				attr: { "aria-hidden": "true" },
-			});
-			setIcon(grip, "grip-vertical");
-		}
-
-		if (task.item.priority) {
-			card.addClass("is-p" + String(task.item.priority));
-		}
-
-		const body = row.createDiv("tl-card-body");
-
-		body.createDiv({ cls: "tl-card-text", text: task.text });
-
-		const meta = body.createDiv("tl-card-meta");
-
-		if (!opts.terse) {
-			const src = meta.createSpan({
-				cls: "tl-source",
-				text: this.plugin.sourceLabel(task),
-			});
-			src.onclick = (e) => {
-				e.stopPropagation();
-				void this.plugin.reveal(task);
-			};
-		}
-
-		const prio = PRIORITIES.find((p) => p.value === task.item.priority);
-		const prioChip = meta.createSpan({
-			cls: prio
-				? "tl-chip is-editable is-prio is-p" + String(prio.value)
-				: "tl-chip is-editable is-prio is-empty",
-			text: prio ? prio.short : "+ priority",
-			attr: { "aria-label": "Change priority" },
-		});
-		prioChip.onclick = (e) => {
-			e.stopPropagation();
-			this.pickPriority(task, e);
-		};
-
-		if (opts.nested) {
-			const label = BUCKETS.find((b) => b.id === task.item.bucket)?.label;
-			if (label) meta.createSpan({ cls: "tl-chip", text: label });
-		}
-		const contextChip = meta.createSpan({
-			cls: task.item.context
-				? "tl-chip is-editable"
-				: "tl-chip is-editable is-empty",
-			text: task.item.context ?? "+ context",
-			attr: { "aria-label": "Change context" },
-		});
-		contextChip.onclick = (e) => {
-			e.stopPropagation();
-			this.pickContext(task, e);
-		};
-
-		if (task.item.waitingFor || task.item.bucket === "waiting") {
-			const whoChip = meta.createSpan({
-				cls: "tl-chip is-editable",
-				text: task.item.waitingFor ? "→ " + task.item.waitingFor : "→ who?",
-				attr: { "aria-label": "Change who you are waiting on" },
-			});
-			whoChip.onclick = (e) => {
-				e.stopPropagation();
-				this.pickWaitingFor(task);
-			};
-		}
-
-		// The date chip is the natural place to reach for when rescheduling.
-		const d = task.item.due ? daysUntil(task.item.due) : 0;
-		const dateChip = meta.createSpan({
-			cls: task.item.due
-				? "tl-chip is-date" +
-				  (d < 0 ? " is-overdue" : d === 0 ? " is-today" : "")
-				: "tl-chip is-date is-empty",
-			text: task.item.due ? formatDue(task.item.due) : "+ date",
-			attr: { "aria-label": "Change date" },
-		});
-		dateChip.onclick = (e) => {
-			e.stopPropagation();
-			this.pickDate(task);
-		};
-
-		if (!opts.nested && task.projectUid) {
-			const name = this.projectNames.get(task.projectUid);
-			if (name) {
-				meta.createSpan({
-					cls: "tl-chip is-project",
-					text: truncate(name, 22),
-					attr: { "aria-label": name },
-				});
-			}
-		}
-
-		const tools = row.createDiv("tl-card-tools");
-		const more = tools.createEl("button", {
-			cls: "tl-icon-btn",
-			attr: { "aria-label": "More" },
-		});
-		setIcon(more, "more-horizontal");
-		more.onclick = (e) => {
-			e.stopPropagation();
-			this.showMenu(e, task);
-		};
-
-		if (this.active === "inbox" && !opts.nested) {
-			if (wizard) {
-				renderWizard(this, card, task, wizard);
-			} else {
-				const start = tools.createEl("button", {
-					cls: "tl-icon-btn is-primary",
-					attr: { "aria-label": "Clarify" },
-				});
-				setIcon(start, "wand-2");
-				start.onclick = (e) => {
-					e.stopPropagation();
-					this.wizards.set(task.id, {
-						step: "actionable",
-						history: [],
-						draft: {},
-					});
-					this.render();
-				};
-			}
-		}
-	}
-
-	private promptProject(): void {
-		new TextPromptModal(this.app, {
-			title: "Create a project",
-			placeholder: "What outcome are you working toward?",
-			cta: "Create project",
-			onSubmit: (text) => {
-				void (async () => {
-					const ok = await this.plugin.createProject(text);
-					if (ok) {
-						this.show("project");
-						new Notice("Project created");
-					}
-				})();
-			},
-		}).open();
-	}
-
-	private pickPriority(task: JoinedTask, evt: MouseEvent): void {
-		const menu = new Menu();
-		for (const def of PRIORITIES) {
-			menu.addItem((i) =>
-				i
-					.setTitle(`${def.short} · ${def.label}`)
-					.setChecked(task.item.priority === def.value)
-					.onClick(() => void this.plugin.setPriority(task, def.value))
-			);
-		}
-		menu.addSeparator();
-		menu.addItem((i) =>
-			i
-				.setTitle("No priority")
-				.setChecked(!task.item.priority)
-				.onClick(() => void this.plugin.setPriority(task, null))
-		);
-		menu.showAtMouseEvent(evt);
-	}
-
-	private pickContext(task: JoinedTask, evt: MouseEvent): void {
-		const menu = new Menu();
-		for (const ctx of this.plugin.settings.contexts) {
-			menu.addItem((i) =>
-				i
-					.setTitle(ctx)
-					.setChecked(task.item.context === ctx)
-					.onClick(() => void this.plugin.setContext(task, ctx))
-			);
-		}
-		menu.addSeparator();
-		menu.addItem((i) =>
-			i
-				.setTitle("No context")
-				.setChecked(!task.item.context)
-				.onClick(() => void this.plugin.setContext(task, null))
-		);
-		menu.showAtMouseEvent(evt);
-	}
-
-	private pickWaitingFor(task: JoinedTask): void {
-		new TextPromptModal(this.app, {
-			title: "Waiting on whom?",
-			placeholder: "Name",
-			initial: task.item.waitingFor,
-			cta: "Save",
-			onSubmit: (who) => void this.plugin.setWaitingFor(task, who),
-		}).open();
-	}
-
-	private pickDate(task: JoinedTask): void {
-		new DateModal(this.app, {
-			title: task.item.due ? "Change date" : "Set a date",
-			initial: task.item.due,
-			allowClear: !!task.item.due,
-			onPick: (iso) => void this.plugin.setDue(task, iso),
-		}).open();
-	}
-
-	// ------------------------------------------------------------------ menu
-
-	private showMenu(evt: MouseEvent, task: JoinedTask): void {
-		const menu = new Menu();
-
-		menu.addItem((i) =>
-			i
-				.setTitle("Open note")
-				.setIcon("file-text")
-				.onClick(() => void this.plugin.reveal(task))
-		);
-
-		menu.addItem((i) =>
-			i
-				.setTitle("Priority…")
-				.setIcon("flag")
-				.onClick((e) => this.pickPriority(task, e as MouseEvent))
-		);
-
-		menu.addItem((i) =>
-			i
-				.setTitle(task.item.context ? "Change context…" : "Set a context…")
-				.setIcon("map-pin")
-				.onClick((e) => this.pickContext(task, e as MouseEvent))
-		);
-
-		menu.addItem((i) =>
-			i
-				.setTitle(task.item.due ? "Change date…" : "Set a date…")
-				.setIcon("calendar")
-				.onClick(() => this.pickDate(task))
-		);
-
-		if (task.item.due) {
-			menu.addItem((i) =>
-				i
-					.setTitle("Clear date")
-					.setIcon("calendar-x")
-					.onClick(() => void this.plugin.setDue(task, null))
-			);
-		}
-
-		if (task.item.bucket !== "project") {
-			menu.addItem((i) =>
-				i
-					.setTitle("Part of project…")
-					.setIcon("layers")
-					.onClick(() => {
-						const projects = this.plugin.projects(this.plugin.joined());
-						if (projects.length === 0) {
-							new Notice("No projects yet. File a task as a project first.");
-							return;
-						}
-						new ProjectPicker(this.app, projects, (uid) => {
-							void this.plugin.linkToProject(task, uid);
-						}).open();
-					})
-			);
-		}
-
-		menu.addSeparator();
-
-		for (const def of BUCKETS) {
-			if (def.id === "done") continue;
-			const target = def.id;
-			if (target === task.item.bucket && !task.item.done) continue;
-			menu.addItem((i) =>
-				i
-					.setTitle(
-						target === "inbox" ? "Return to Inbox" : "Move to " + def.label
-					)
-					.setIcon(def.icon)
-					.onClick(() => this.dropOnBucket(task, target))
-			);
-		}
-
-		menu.addSeparator();
-		if (task.item.done) {
-			menu.addItem((i) =>
-				i
-					.setTitle("Reopen in source note")
-					.setIcon("file-pen-line")
-					.onClick(() => void this.plugin.reveal(task))
-			);
-		} else {
-			menu.addItem((i) =>
-				i
-					.setTitle("Mark done")
-					.setIcon("check")
-					.onClick(() => void this.plugin.toggleDone(task))
-			);
-		}
-
-		menu.showAtMouseEvent(evt);
 	}
 }

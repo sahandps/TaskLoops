@@ -1,217 +1,229 @@
 # TaskLoops
 
 [![Obsidian plugin](https://img.shields.io/badge/Obsidian-TaskLoops-7c3aed?logo=obsidian&logoColor=white)](https://obsidian.md/plugins?id=taskloops)
-[![Release](https://img.shields.io/github/v/release/sahandps/TaskLoops?sort=semver)](https://github.com/sahandps/TaskLoops/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An Obsidian plugin that automatically collects Markdown tasks (`- [ ]`) from
-anywhere in your vault into a sidebar inbox and walks them through a friendly
-GTD workflow. Optional `#task` discovery remains available in settings.
+Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
+with. TaskLoops gathers tasks from your notes, groups them by note name, and
+lets you schedule, resize and edit them without managing note properties.
 
-An *open loop* is anything you've committed to that isn't closed yet. TaskLoops
-finds them, helps you file them, and tells you when a project has quietly
-stalled.
+- Plan in **Day, Week, Month and Year** views.
+- Drag tasks to a date or time in **five-minute intervals** and resize durations.
+- Click a task to edit its wording, schedule, project note and subtasks.
+- Pick projects with **Obsidian's native fuzzy note search**.
+- Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-## What it writes to your notes
+The calendar planner documented here is the current development version on
+`main`. For packaged versions, see [Releases](https://github.com/sahandps/TaskLoops/releases);
+to try the latest changes, [build from source](#installing).
 
-Only two deliberate actions write to Markdown:
+## Screenshots
 
-1. **Completing a task** changes only its checkbox from `[ ]` to `[x]`.
-   Reopening is intentionally done in the source note.
-2. **Quick capture** appends a new `- [ ] …` line to the capture note. That note
-   defaults to `TaskLoops Inbox.md` and is created on first use.
+These browser previews use sample notes from the current project. Obsidian
+provides its own theme, native note picker and vault access when the plugin runs
+inside the app.
 
-Beyond those, nothing. Filing, dates, priorities, contexts, delegation, manual
-order, and project links never rewrite the note. TaskLoops does not add handled
-markers, change task text, touch frontmatter, move lines, or delete anything.
-If you never capture or complete a task, it never writes to Markdown.
+### Plan your day
 
-Workflow state — bucket, context, delegate, date, priority, order, and project
-links — lives in the plugin's own `data.json`. Completion stays visible and
-portable in the Markdown checkbox itself.
+Tasks stay grouped by source note while the calendar shows their start times,
+durations and overlaps. Drag to schedule and use the bottom handle to resize.
 
-## Three layouts
+![Day planner with note-grouped tasks, overlapping events and resize handles](docs/images/day-planner.jpg)
 
-One row of controls at the top of the panel:
+### Edit a task and its subtasks
 
-- **GTD** — the bucket lists. The button names the list on screen; clicking it
-  opens the picker for the other buckets, each with its count. What used to be
-  a rail of nine tabs is now one button, so the panel stays quiet.
-- **Board** — a Kanban board, one column per bucket, cards dragged between
-  them. Columns fill the panel height, so the empty space under the last card
-  is a drop target too.
-- **Calendar** — day, week or month, with the tasks themselves shown rather
-  than summarised.
+Open a task to change its text or schedule, pick a project note, and add subtasks.
 
-A sidebar is narrow for a board, so the columns scroll horizontally. For the
-full width, run *Open in a main tab* from the command palette — it is the same
-view over the same data, just with room.
+![Task editor with project selection, date, time, duration and subtasks](docs/images/task-editor.jpg)
 
-## The clarify flow
+### Search your project notes
 
-Standard GTD, one question at a time:
+Type a note name or folder path to find the destination for a task. In Obsidian,
+this uses the native fuzzy note picker; the browser preview demonstrates the flow.
 
-1. **Is it actionable?** No leads to Trash, Someday/Maybe or Reference.
-2. **Under two minutes?** Yes means do it now; it is filed as done immediately.
-3. **What kind of thing is it?** Next action (pick a context), Project
-   (multi-step), Delegate (name the person), or Schedule (pick a date).
+![Searching project notes for the Website note](docs/images/project-search.jpg)
 
-You can back out of any step, and re-file anything later from the `⋯` menu.
+### See tasks across the year
 
-## Capture
+Dots mark dates containing tasks. Select a date to open its daily timeline.
 
-The **+ Task** button in the panel header opens a capture row. Type, press Enter,
-and a checkbox is appended to your capture note and appears in the Inbox unsorted —
-the row stays open so a burst of thoughts costs one keystroke each. Escape
-closes it. There is also a *Capture a task to the inbox* command you can bind to
-a hotkey.
+![Year calendar showing task dots beneath October dates](docs/images/year-calendar.jpg)
 
-The first time you capture anything, you are asked which folder captures should
-live in, and `TaskLoops Inbox.md` is created there. Dismissing that prompt is a
-valid answer — it puts the note at the vault root. You are only asked once; the
-capture row shows the destination underneath it, and clicking it moves the
-capture note somewhere else at any time.
+## The planner
 
-## Projects
+The task sidebar and calendar appear together. In a main tab they sit side by
+side; in a narrow Obsidian sidebar the task list sits above the calendar. Use
+**Open full view** for more room.
 
-Use **Project** in the header to create an outcome in one step. The projects
-list stays a list of *outcomes*, not a place to keep steps. The
-plugin tracks one thing about a project: which actions belong to it, so it can
-tell you when a project has nothing open against it. A project showing **no next
-action** has stalled, which is the single failure mode the weekly review exists
-to catch. Those projects sort to the top and put a dot on the Projects tab.
+- **Day:** a 24-hour timeline with five-minute drag-and-drop scheduling.
+- **Week:** seven daily timelines, with simultaneous tasks shown alongside each other.
+- **Month:** tasks inside day cells. Each cell scrolls to show its full list.
+- **Year:** twelve mini calendars with dots beneath dates containing tasks.
+  Up to three dots are shown per date; its accessible label gives the full task
+  count. Click a month heading to open that month, or a day to open its timeline.
 
-Actions get attached to a project three ways:
+Arrows navigate by the selected scale. **Today** returns to the current day.
+Weeks begin on Monday. Dates and times are local wall-clock values.
 
-1. **Indentation.** A checkbox indented under a project's checkbox is
-   its action. Blank lines are transparent; any non-blank line at column zero
-   ends the block, so an outline further down the note won't attach itself to
-   something unrelated. This is read-only inference — nothing is written.
-2. **During clarify.** If you have projects and the task isn't already
-   attached, the last step of the flow offers them. Indented tasks skip this
-   step, because the answer is already known.
-3. **Afterwards**, via `⋯` → *Part of project…*.
+## Tasks grouped by note
 
-Expanding a project shows its actions one level deep. There is no nesting beyond
-that, and a project can't belong to another project — choosing *Standalone* pins
-a task as unattached even if it sits under a project in the outline.
+All Markdown checkbox tasks are discovered automatically, using Obsidian's
+metadata cache so frontmatter and fenced code examples do not become tasks.
+The sidebar groups them by note name, alphabetically, and preserves source-line
+order within each note. Full paths distinguish notes with the same name.
 
-A project whose only children are unclarified inbox items still counts as
-stalled. That is deliberate: an uncaptured thought is not something you can act
-on.
+Search by task text or note path. **Undated only** narrows the sidebar while
+keeping scheduled tasks on the calendar. **Show completed** includes completed
+tasks in both places. Completed tasks are hidden by default.
 
-## Editing a task
+Click a note heading or a calendar card's note name to open the source. Click a
+task title or the card itself to open its editor. You can also edit task wording
+directly in the source note.
 
-Task text is edited in its source note. Click the note name under a card to jump
-straight to the line. The sidebar intentionally never rewrites task wording.
+## Dates, times and durations
 
-The context, waiting-on and date chips under each task are clickable: one click
-changes any of them. Empty ones appear on hover as `+ context` and `+ date`, and
-on touch they live on the `⋯` menu instead.
+Click a task, its schedule details or **⋯** to open the task editor and set its
+optional due date, start time, and duration in whole hours and minutes. For example:
 
-**Changing an attribute never re-files a task.** A context, a date and a person
-are orthogonal to the filing decision — a delegated task can have a context, a
-next action can have a date — so setting one leaves the task exactly where it
-is. Buckets change only through the clarify flow, the `⋯` menu, or a drag, all
-of which are explicit. Attributes also survive a re-file; returning a task to
-the Inbox is the one reset, since that means it is unclarified again.
+```markdown
+- [ ] Buy groceries Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes
+```
 
-## Priority
+Date-only tasks are supported:
 
-Each task has a priority slot: **P1** high, **P2** medium, **P3** low, or none.
-Click the chip, or use `⋯` → *Priority*. P1 and P2 also colour the card's left
-edge, so urgency reads without reading the chip, and priority tints calendar
-count badges.
+```markdown
+- [ ] Renew insurance Due date: 2026-10-16
+```
 
-Priority is a sort key, applied after any manual order you set and before how
-recently a task was filed. Tasks without one sort last, so nothing reshuffles
-until you start using it.
+The originally supported bare ISO date also works:
 
-## Dragging
+```markdown
+- [ ] Buy groceries 2026-10-16
+```
 
-Everything files by dragging, in every layout:
+Scheduling fields must be at the end of a task, before an optional Obsidian block
+id. A time or duration requires a date. A task with no time appears in the
+all-day row. Timed tasks occupy their duration; a task with no duration uses a
+30-minute block. Events extending past midnight continue on the following day.
 
-- **Onto a bucket.** Start dragging and a strip of bucket targets appears along
-  the bottom. It only exists while you drag, which is what lets the tab rail
-  collapse into one button without losing drag-to-file.
-- **Between board columns.** The obvious one.
-- **Onto a calendar day**, which sets that date — rescheduling without opening
-  a picker.
-- **Onto another task**, which sets a manual order. The line across the card
-  shows where it will land. Ordering lives in the plugin's data, so the order
-  of lines in your notes is never touched.
-- **Onto a project card**, which files the task under that project.
+**Settings → TaskLoops → Date format** offers `YYYY-MM-DD` (default),
+`DD/MM/YYYY`, `DD.MM.YYYY`, and `YYYY/MM/DD`. The choice applies to the interface
+and future scheduling edits. All four formats remain readable, so changing the
+setting never triggers a vault-wide rewrite. Invalid scheduling text is left
+untouched as part of the task's wording.
 
-Dropping onto **Scheduled** asks for a date and **Waiting** asks for a name,
-because those buckets are meaningless without them; every other target files
-immediately.
+## Drag to plan
 
-Cards show a drag grip on hover and every valid destination gets a clear active
-state. Every drag action is also available from the `⋯` menu, which is the
-accessible path on touch devices and for keyboard-driven workflows.
+- Drag a sidebar task onto a day to assign that date.
+- Drop anywhere on a Day or Week timeline to set its start time in five-minute
+  intervals. A marker shows the exact time while dragging.
+- Drag a calendar task to another day or time to reschedule it. Duration is preserved.
+- Drop on the all-day row to clear the start time while keeping the date and duration.
+- Drop on **Drop here to remove a schedule** in the sidebar to clear date, time and duration.
 
-## Calendar
+Day cells in Month and Year preserve an existing start time. Every scheduling
+action is also available through the task editor for keyboard and touch use.
 
-Three scales, switched with the Day / Week / Month buttons. The arrows step back
-and forward by whichever scale you are on, and **Today** jumps back immediately.
+## Resize a task's duration
 
-- **Day** — one day, its tasks in full.
-- **Week** — seven day panels, stacked in a sidebar and fanned into columns once
-  the panel is wide enough.
-- **Month** — a grid where each day carries a count badge, tinted by the highest
-  priority on it, followed by every dated day of that month with its tasks. The
-  grid tells you where things are; the list underneath tells you what they are.
+In Day and Week, drag the handle at the bottom of a timed task to shorten or
+lengthen it. The preview shows the duration while you drag; releasing writes
+it to the task's Markdown line. Resizing snaps to five minutes, with a
+five-minute minimum. The start date and time stay the same.
 
-Every day shown is a drop target, at every scale, so rescheduling is a drag.
-Each day also has a **+** to create a task already dated to it. Undated tasks
-are listed at the bottom so there is always something to drag onto the calendar.
+Focus the resize handle and press **↑ / ↓** to subtract or add five minutes;
+**Shift + ↑ / ↓** adjusts by fifteen minutes. **Escape** cancels a resize.
+Completed tasks cannot be resized. Overnight tasks have a handle only on their
+final day's segment. You can still enter an exact duration in the editor.
 
-## Dates
+## Edit tasks and add subtasks
 
-Every task row has a date chip. Click it to set, change or clear the date —
-there are Today / Tomorrow / In a week shortcuts plus a picker. The same is on
-the `⋯` menu. Setting a date records the date and nothing more — it does not
-move the task to Scheduled. Use the clarify flow, the `⋯` menu or a drag onto
-the Scheduled tab for that, all of which ask for the date too.
+Click a task title, its card, schedule details or **⋯** to open **Edit task**.
+The popup lets you change its wording, choose its project note, edit its
+schedule, and add subtasks. Changes are applied only when you select
+**Save changes**; **Cancel** discards the draft. **Remove schedule** clears the
+form's scheduling fields and is applied when you save.
 
-## How lines are found
+Existing direct subtasks are listed in the popup. Add new ones with the subtask
+field and **Add subtask** or Enter. An unfinished entry is also included when
+you save. New subtasks are ordinary indented Markdown checkboxes beneath their
+parent, so they work in the source note and appear indented in the sidebar.
+Each subtask has its own completion and optional schedule; completing a parent
+does not complete its subtasks.
 
-Checkbox and optional tag positions come from Obsidian's own metadata cache,
-not a text search, so fenced code blocks, inline code and YAML frontmatter are
-excluded automatically. `#task/work` and other child tags count when tag
-discovery is enabled. List markers, checkbox state, blockquotes, headings and
-block ids are stripped from the display text but left untouched in the note.
+Choosing another **Project / note** moves the task and its indented subtree to
+that note's `Tasks:` section. Formatting, block ids and existing subtask content
+are preserved; unrelated sections and note properties stay in place. Moving a
+task into a different note updates its sidebar group automatically.
 
-## Identity and edit safety
+## Projects are notes
 
-A task is identified by a hash of its note path, its cleaned text, and its index
-among identical lines in that file. Two consequences worth knowing:
+Use **+ Task**, a note group's **+**, a calendar day's **+**, or an empty timeline
+slot to create a task. The task form lets you **pick a project / note** from all
+Markdown notes in the vault. The picker uses Obsidian’s native fuzzy search:
+type part of a note name or folder path, use the arrow keys to navigate, and
+press Enter to select. Escape cancels. No project properties or special project
+tasks are required.
 
-- **Editing a sorted line's wording gives it a new identity.** When one orphaned
-  record lines up with one replacement at the same source line, the record moves
-  across intact — so a reworded project keeps its actions. Project links survive
-  this because they reference an internal id, not the line's text. Ambiguous
-  changes are treated as newly discovered tasks instead of risking a wrong link.
-- **Deleting a task line drops its record.** This only happens after a full,
-  successful vault scan, so a partial view can never prune anything.
+New tasks go under a `Tasks:` heading in the note you pick:
 
-Before changing a checkbox, the plugin re-locates the line by its exact prior
-text. If the line moved and the text is still unique, it follows it; if it
-cannot identify the line unambiguously, it writes nothing and tells you.
+```markdown
+## Tasks:
+- [ ] Review homepage Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour 30 Minutes
+```
 
-Renaming or moving a note carries its filed tasks along with it.
+An existing heading is reused; otherwise `## Tasks:` is appended at the end.
+Insertion stops before the next heading of the same or higher level. Headings
+inside code fences and frontmatter are ignored. Existing tasks elsewhere in the
+note stay where they are.
 
-## Layout
+Choose **Standalone tasks** for tasks without a project. These go in
+`Standalone Tasks.md`, created on first use. Its path is configurable in
+settings. Changing that path changes the destination for future tasks; it does
+not move earlier tasks.
 
-The panel sizes itself against **its own width**, not the window's, using a CSS
-container query — a desktop sidebar is often narrower than a phone screen, so
-viewport media queries would tune the wrong thing. Below about 290px the tab
-labels drop and the rail becomes icons and counts.
+## What changes in your notes
 
-Touch devices get larger targets and lose nothing to hover: the `⋯` button is
-always visible rather than fading in, and the hover-only "add a date" chip is
-hidden outright, since its actions live on the `⋯` menu anyway. Verified with no
-horizontal overflow down to a 260px panel.
+TaskLoops makes these deliberate edits:
+
+1. Completing a task changes its checkbox from `[ ]` to `[x]`. Reopen it in the source note.
+2. Scheduling adds, updates or clears the scheduling suffix on that task line.
+3. Adding a task inserts a new checkbox under `Tasks:` in the selected note,
+   creating that heading or the standalone note when needed.
+4. Saving edited wording changes that task's text while preserving its checkbox,
+   Markdown list prefix and block id. New subtasks are added as indented checkboxes.
+5. Choosing another project in the editor moves that task's subtree into the
+   destination note's `Tasks:` section.
+
+Frontmatter, note properties and unrelated lines are preserved. Task wording
+and task locations change only when you explicitly edit or move a task.
+Scheduling and completion re-find the original line before writing; if it moved, only a unique exact match is accepted. An edited or
+ambiguous task is left untouched and a notice asks you to refresh.
+
+Moves between notes cannot be atomic. TaskLoops writes the destination first,
+then removes the original only if the source subtree still matches. On failure
+it rolls back its destination write when safe. If another edit prevents a safe
+rollback, both copies remain and a notice tells you to review them; no external
+edit is overwritten.
+
+## Upgrading from the GTD planner
+
+The GTD lists, board, contexts, priorities and clarification wizard have been
+removed. Tasks are now grouped by their source notes; old project links do not
+move tasks between notes.
+
+Previous plugin data is retained in `data.json` as a reversible backup. Existing
+saved dates remain visible where task identities still match. An explicit
+scheduling edit writes the new schedule into Markdown and removes that task's
+old date fallback. No migration writes are made to notes automatically. Legacy
+handled markers are recognized for display but never added or removed.
+
+## Commands
+
+- **Open planner**
+- **Open planner in a main tab**
+- **Add a task**
+- **Refresh tasks**
 
 ## Installing
 
@@ -243,43 +255,47 @@ npm run deploy
 ```
 
 `deploy` builds and copies only the three files Obsidian loads. It never touches
-`data.json`, so your sorting survives a redeploy.
+`data.json`, so settings and retained legacy data survive a redeploy. Scheduling
+fields remain in the Markdown notes themselves.
 
 ## Development
 
 ```bash
 npm install
 npm run dev      # watch build
-npm run build    # typecheck + minified build
-npm test         # 100 tests over the scanner
-npm run deploy   # build, then copy into a vault
+npm run build    # typecheck, lint, production build
+npm test         # scanner, scheduling, calendar and vault-write checks
+npm run deploy   # build, then copy plugin files into a vault
 ```
 
 Source layout:
 
-```
+```text
 src/
-├── main.ts       plugin lifecycle, state, reconciliation, filing actions
-├── scanner.ts    checkbox/tag discovery, identity, safe completion writes
-├── view.ts       sidebar: tabs, lists, cards, projects, drag and drop
-├── wizard.ts     the GTD clarify flow
-├── modals.ts     folder, project, task and date pickers
-├── settings.ts   settings pane
-├── types.ts      buckets, stored shapes, defaults
-├── dates.ts      calendar-day helpers
-└── text.ts       string helpers
-scripts/          build tooling: deploy, version bump
-test/             node test suite over scanner.ts
+├── main.ts       plugin lifecycle, scanning, serialized note operations
+├── scanner.ts    metadata-backed task discovery and exact-line writes
+├── schedule.ts   scheduling suffixes, date formats, Tasks: insertion
+├── view.ts       note-grouped sidebar, shared task cards, drag and drop
+├── calendar.ts   day/week timelines, month and year views
+├── modals.ts     creation/editor popups, note picker and scheduling fields
+├── task-edits.ts exact task blocks, wording edits, subtasks and project moves
+├── resize.ts     pointer/keyboard duration resizing
+├── settings.ts   date format and standalone-note destination
+├── types.ts      task, schedule and settings shapes
+└── dates.ts      local calendar-day arithmetic
+scripts/          build, deploy and version tooling
+test/             parsing, discovery, scheduling and vault-write tests
 ```
 
-`main.js` is built to the repository root, because that is where Obsidian loads
-it from and where the release workflow picks it up. `styles.css` and
-`manifest.json` stay at the root for the same reason — they ship verbatim rather
-than being compiled.
+Tests bundle the plugin against a small Obsidian substitute. They cover field
+round trips, supported date formats, invalid dates/times, overnight durations,
+`Tasks:` insertion boundaries, code fences, CRLF preservation, stale or ambiguous
+lines, queued rescheduling/completion, legacy date fallback, task editing, subtask
+creation, subtree moves, rollback safety and duration resizing. They do not
+replace an in-app smoke test of native Obsidian drag and drop or mobile touch.
 
-The tests cover the risky parts: which lines count as tasks, discovery modes,
-identity, indentation-based parents, capture formatting, and the guarantee that
-completion changes only the checkbox state character.
+`main.js` is generated at the repository root; `manifest.json` and `styles.css`
+ship alongside it. Build output and dependencies are ignored by Git.
 
 ## Releasing
 

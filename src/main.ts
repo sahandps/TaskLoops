@@ -1,726 +1,259 @@
-import {
-	App,
-	Notice,
-	Plugin,
-	TAbstractFile,
-	TFile,
-	WorkspaceLeaf,
-	debounce,
-	normalizePath,
-} from "obsidian";
-import {
-	Bucket,
-	Priority,
-	DEFAULT_SETTINGS,
-	TaskLoopsData,
-	TaskLoopsItem,
-	TaskLoopsSettings,
-	JoinedTask,
-	ScannedTask,
-} from "./types";
-import {
-	scanFile,
-	scanVault,
-	setCheckboxDone,
-	taskId,
-} from "./scanner";
-import { CAPTURE_BASENAME, TextPromptModal } from "./modals";
-import { TaskLoopsSettingTab } from "./settings";
+import { Notice, Plugin, TFile, normalizePath } from "obsidian";
+import type { LegacyItem, ScannedTask, Schedule, TaskLoopsData, TaskLoopsSettings } from "./types";
+import { DEFAULT_SETTINGS } from "./types";
+import { scanFile, scanVault, setCheckboxDone, setTaskSchedule } from "./scanner";
+import { appendTask, DATE_FORMATS, validSchedule, writeSchedule } from "./schedule";
 import { TaskLoopsView, VIEW_TYPE_TASKLOOPS } from "./view";
-
-/**
- * The settings window, which Obsidian exposes at runtime but leaves out of the
- * public typings. Declared narrowly rather than reached for through `any`.
- */
-interface SettingsOpener {
-	open(): void;
-	openTabById(id: string): void;
-}
-
-let uidCounter = 0;
-function newUid(): string {
-	uidCounter += 1;
-	return (
-		Date.now().toString(36) +
-		"-" +
-		uidCounter.toString(36) +
-		"-" +
-		Math.floor(Math.random() * 1e6).toString(36)
-	);
-}
-
-/** Buckets that count as a live open loop when judging whether a project stalled. */
-const OPEN_BUCKETS: Bucket[] = ["next", "waiting", "scheduled"];
+import { TaskLoopsSettingTab } from "./settings";
+import { TaskModal } from "./modals";
+import { appendTaskBlock, editedBlock, replaceTaskBlock, taskBlock } from "./task-edits";
 
 export default class TaskLoopsPlugin extends Plugin {
-	settings: TaskLoopsSettings;
-	items: Record<string, TaskLoopsItem> = {};
-
-	/** Current `#task` lines in the vault, keyed by file path. */
+	settings: TaskLoopsSettings = { ...DEFAULT_SETTINGS };
 	private tasks = new Map<string, ScannedTask[]>();
-	/** Paths this plugin is mid-write on, so its own edits don't loop. */
-	private writing = new Set<string>();
+	private items: Record<string, LegacyItem> = {};
+	private retained: Record<string, unknown> = {};
+	private timers = new Map<string, number>();
+	private scanVersion = 0;
+	private fullScanVersion = 0;
+	private fileVersions = new Map<string, number>();
+	/** Serialize mutations so rapid capture / schedule / completion cannot race. */
+	private mutations: Promise<unknown> = Promise.resolve();
 
 	async onload(): Promise<void> {
-		await this.loadState();
-
+		const data = (await this.loadData()) as (Partial<TaskLoopsData> & Record<string, unknown>) | null;
+		this.retained = data ?? {};
+		this.items = data?.items ?? {};
+		this.settings = { ...DEFAULT_SETTINGS, ...data?.settings };
+		if (!DATE_FORMATS.includes(this.settings.dateFormat)) this.settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
+		if (!["day", "week", "month", "year"].includes(this.settings.lastScale)) this.settings.lastScale = "week";
 		this.registerView(VIEW_TYPE_TASKLOOPS, (leaf) => new TaskLoopsView(leaf, this));
-
-		this.addRibbonIcon("inbox", "TaskLoops", () => void this.activateView());
-
-		this.addCommand({
-			id: "open-panel",
-			name: "Open panel",
-			callback: () => void this.activateView(),
-		});
-
-		this.addCommand({
-			id: "rescan-vault",
-			name: "Rescan vault for tasks",
-			callback: () => void this.rescan(),
-		});
-
-		this.addCommand({
-			id: "open-in-main-area",
-			name: "Open in a main tab (for the board)",
-			callback: () => void this.activateView(true),
-		});
-
-		this.addCommand({
-			id: "capture-task",
-			name: "Capture a task to the inbox",
-			callback: () => {
-				new TextPromptModal(this.app, {
-					title: "Capture to inbox",
-					placeholder: "What's on your mind?",
-					cta: "Capture",
-					onSubmit: (text) => void this.captureTask(text),
-				}).open();
-			},
-		});
-
-		this.addCommand({
-			id: "create-project",
-			name: "Create a project",
-			callback: () => {
-				new TextPromptModal(this.app, {
-					title: "Create a project",
-					placeholder: "What outcome are you working toward?",
-					cta: "Create project",
-					onSubmit: (text) => void this.createProject(text),
-				}).open();
-			},
-		});
-
+		this.addRibbonIcon("calendar-days", "TaskLoops", () => void this.activateView());
+		this.addCommand({ id: "open-panel", name: "Open planner", callback: () => void this.activateView() });
+		this.addCommand({ id: "open-in-main-area", name: "Open planner in a main tab", callback: () => void this.activateView(true) });
+		this.addCommand({ id: "rescan-vault", name: "Refresh tasks", callback: () => void this.rescan() });
+		this.addCommand({ id: "capture-task", name: "Add a task", callback: () => this.newTask() });
 		this.addSettingTab(new TaskLoopsSettingTab(this.app, this));
-
-		this.app.workspace.onLayoutReady(() => {
-			void this.rescan();
-		});
-
-		const onMetaChange = debounce(
-			(file: TFile) => void this.refreshFile(file),
-			300,
-			true
-		);
-		this.registerEvent(
-			this.app.metadataCache.on("changed", (file) => {
-				if (this.writing.has(file.path)) return;
-				onMetaChange(file);
-			})
-		);
-
-		this.registerEvent(
-			this.app.vault.on("delete", (file) => {
-				if (this.tasks.delete(file.path)) {
-					this.reconcileAll();
-					void this.saveData_();
-					this.refreshViews();
-				}
-			})
-		);
-
-		this.registerEvent(
-			this.app.vault.on("rename", (file, oldPath) => {
-				void this.handleRename(file, oldPath);
-			})
-		);
+		this.app.workspace.onLayoutReady(() => void this.rescan());
+		this.registerEvent(this.app.metadataCache.on("changed", (file) => {
+			window.clearTimeout(this.timers.get(file.path));
+			this.timers.set(file.path, window.setTimeout(() => {
+				this.timers.delete(file.path);
+				void this.refreshFile(file);
+			}, 150));
+		}));
+		this.registerEvent(this.app.vault.on("delete", () => void this.rescan()));
+		this.registerEvent(this.app.vault.on("rename", () => void this.rescan()));
 	}
 
 	onunload(): void {
-		// Leaves are left in place so the panel survives a plugin reload.
+		for (const timer of this.timers.values()) window.clearTimeout(timer);
+		this.timers.clear();
 	}
 
-	// ----------------------------------------------------------------- state
-
-	private async loadState(): Promise<void> {
-		const data = (await this.loadData()) as Partial<TaskLoopsData> | null;
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, data?.settings ?? {});
-		this.items = data?.items ?? {};
+	async saveSettings(): Promise<void> {
+		// Keep the previous release's filing data as a reversible backup.
+		await this.saveData({ ...this.retained, settings: { ...(this.retained.settings as object ?? {}), ...this.settings }, items: this.items });
 	}
-
-	async saveData_(): Promise<void> {
-		const data: TaskLoopsData = { settings: this.settings, items: this.items };
-		await this.saveData(data);
-	}
-
-	// --------------------------------------------------------------- scanning
 
 	async rescan(): Promise<void> {
-		this.tasks = await scanVault(
-			this.app,
-			this.settings.tag,
-			this.settings.taskSource
-		);
-		this.reconcileAll();
-		await this.saveData_();
-		this.refreshViews();
+		const version = ++this.scanVersion;
+		const fullScan = ++this.fullScanVersion;
+		try {
+			const tasks = await scanVault(this.app, "#task", "checkboxes");
+			if (fullScan !== this.fullScanVersion) return;
+			// Keep per-file refreshes that finished after this scan started.
+			for (const [path, revision] of this.fileVersions) {
+				if (revision > version) {
+					const latest = this.tasks.get(path);
+					if (latest) tasks.set(path, latest);
+					else tasks.delete(path);
+				}
+			}
+			this.tasks = tasks;
+			this.refreshViews();
+		} catch (error) { this.report(error, "Could not refresh tasks."); }
 	}
 
 	private async refreshFile(file: TFile): Promise<void> {
 		if (file.extension !== "md") return;
-		const found = await scanFile(
-			this.app,
-			file,
-			this.settings.tag,
-			this.settings.taskSource
-		);
-		if (found.length) this.tasks.set(file.path, found);
-		else this.tasks.delete(file.path);
-		// Re-home only: a single file's view is too narrow to justify deleting
-		// records, and a line mid-edit can briefly stop looking like a task.
-		if (this.rehomePath(file.path)) await this.saveData_();
+		const version = ++this.scanVersion;
+		this.fileVersions.set(file.path, version);
+		try {
+			const tasks = await scanFile(this.app, file, "#task", "checkboxes");
+			if (this.fileVersions.get(file.path) !== version) return;
+			this.tasks.set(file.path, tasks);
+			this.refreshViews();
+		} catch (error) { this.report(error, "Could not read " + file.path); }
+	}
+
+	allTasks(): ScannedTask[] {
+		return [...this.tasks.values()].flat().filter((task) => task.checkbox).map((task) => {
+			const old = this.items[task.id];
+			return !task.hasSchedule && old?.due ? { ...task, due: old.due } : task;
+		}).sort((a, b) => this.noteName(a.path).localeCompare(this.noteName(b.path)) || a.path.localeCompare(b.path) || a.line - b.line);
+	}
+
+	noteName(path: string): string { return path.split("/").pop()?.replace(/\.md$/i, "") ?? path; }
+
+	newTask(schedule: Schedule = {}, path?: string): void {
+		new TaskModal(this.app, this, schedule, path).open();
+	}
+
+	private async enqueue(action: () => Promise<void>): Promise<void> {
+		const next = this.mutations.then(action).catch((error: unknown) => this.report(error, "Could not update the task."));
+		this.mutations = next;
+		await next;
 		this.refreshViews();
 	}
 
-	private async handleRename(file: TAbstractFile, oldPath: string): Promise<void> {
-		const moved = Object.values(this.items).filter((i) => i.path === oldPath);
-		for (const item of moved) {
-			delete this.items[item.id];
-			item.path = file.path;
-			item.id = taskId(file.path, item.text, item.occ ?? 0);
-			this.items[item.id] = item;
-		}
-		this.tasks.delete(oldPath);
-		if (file instanceof TFile) await this.refreshFile(file);
-		if (moved.length) await this.saveData_();
-		this.refreshViews();
+	/** Re-find the clicked task after earlier queued operations, without guessing. */
+	private current(task: ScannedTask): ScannedTask {
+		return this.allTasks().find((t) => t.id === task.id) ?? task;
 	}
 
-	/**
-	 * Re-attach records whose line was reworded.
-	 *
-	 * A record is orphaned when its id no longer matches any scanned line. If
-	 * exactly one orphan in a file lines up with one replacement at its last
-	 * known line (or a legacy marked/checked line), that is a rewording, and
-	 * the record moves across with its uid intact — so a renamed project keeps
-	 * the actions pointing at it.
-	 */
-	private rehomePath(path: string): boolean {
-		const live = this.tasks.get(path) ?? [];
-		const liveIds = new Set(live.map((t) => t.id));
-
-		const orphans = Object.values(this.items).filter(
-			(i) => i.path === path && !liveIds.has(i.id)
-		);
-		if (orphans.length !== 1) return false;
-
-		const candidates = live.filter(
-			(t) =>
-				!this.items[t.id] &&
-				(t.line === orphans[0].line || t.handled || t.checked)
-		);
-		if (candidates.length !== 1) return false;
-
-		const item = orphans[0];
-		const task = candidates[0];
-		delete this.items[item.id];
-		item.id = task.id;
-		item.text = task.text;
-		item.line = task.line;
-		item.occ = live.indexOf(task);
-		this.items[task.id] = item;
-		return true;
-	}
-
-	/**
-	 * Full reconciliation: re-home what can be re-homed, drop records whose
-	 * line is genuinely gone, then clear links pointing at projects that no
-	 * longer exist. Only runs after a complete scan, so a partial view of the
-	 * vault can never delete anything.
-	 */
-	private reconcileAll(): void {
-		const paths = new Set<string>(this.tasks.keys());
-		for (const item of Object.values(this.items)) paths.add(item.path);
-		for (const path of paths) this.rehomePath(path);
-
-		const live = new Set<string>();
-		for (const list of this.tasks.values()) {
-			for (const t of list) live.add(t.id);
-		}
-		for (const id of Object.keys(this.items)) {
-			if (!live.has(id)) delete this.items[id];
-		}
-
-		const uids = new Set(Object.values(this.items).map((i) => i.uid));
-		for (const item of Object.values(this.items)) {
-			if (item.projectUid && !uids.has(item.projectUid)) {
-				item.projectUid = undefined;
+	async schedule(task: ScannedTask, schedule: Schedule): Promise<void> {
+		await this.enqueue(async () => {
+			if (!validSchedule(schedule)) throw new Error("Choose a date before setting time or duration.");
+			const current = this.current(task);
+			const expected = writeSchedule(current.raw, schedule, this.settings.dateFormat);
+			if (expected !== current.raw && !await setTaskSchedule(this.app, current, schedule, this.settings.dateFormat)) {
+				throw new Error("The task changed or moved ambiguously. Refresh and try again.");
 			}
-		}
-	}
-
-	/**
-	 * Every current `#task` line, paired with its stored GTD state and its
-	 * resolved project link.
-	 *
-	 * Records for lines the plugin has never seen are derived here but not
-	 * saved. Persisting them on sight would defeat re-homing, which recognises
-	 * a reworded line precisely by its lack of a record.
-	 */
-	joined(): JoinedTask[] {
-		const out: JoinedTask[] = [];
-		const byId = new Map<string, TaskLoopsItem>();
-		const paths = Array.from(this.tasks.keys()).sort();
-
-		for (const path of paths) {
-			const list = this.tasks.get(path)!;
-			for (let occ = 0; occ < list.length; occ++) {
-				const task = list[occ];
-				let item = this.items[task.id];
-				if (item) {
-					if (!item.uid) item.uid = newUid();
-					item.path = task.path;
-					item.text = task.text;
-					item.line = task.line;
-					item.occ = occ;
-					if (task.checkbox) {
-						item.done = task.checked;
-						if (!task.checked) item.doneAt = undefined;
-					}
-				} else {
-					item = {
-						id: task.id,
-						uid: "provisional:" + task.id,
-						// A line already carrying the marker was sorted at some
-						// point; the marker doesn't record which bucket, so it
-						// lands in Next where it stays visible and re-filable.
-						bucket: task.handled || task.checked ? "next" : "inbox",
-						path: task.path,
-						text: task.text,
-						line: task.line,
-						occ,
-						provisional: true,
-						done: task.checked,
-					};
-				}
-				byId.set(task.id, item);
-				out.push({ ...task, item });
+			// Clear a legacy fallback only after the Markdown operation succeeds.
+			if (this.items[current.id]?.due) {
+				delete this.items[current.id].due;
+				await this.saveSettings();
 			}
-		}
-
-		for (const task of out) {
-			if (task.item.projectUid === null) continue; // deliberately standalone
-			if (task.item.projectUid) {
-				task.projectUid = task.item.projectUid;
-				continue;
-			}
-			if (!task.parentId) continue;
-			const parent = byId.get(task.parentId);
-			if (parent?.bucket === "project" && !parent.provisional) {
-				task.projectUid = parent.uid;
-				task.inherited = true;
-			}
-		}
-
-		out.sort((a, b) => (b.item.sortedAt ?? 0) - (a.item.sortedAt ?? 0));
-		return out;
-	}
-
-	// --------------------------------------------------------------- projects
-
-	/** Live projects, most recently filed first. */
-	projects(all: JoinedTask[]): JoinedTask[] {
-		return all.filter((t) => t.item.bucket === "project" && !t.item.done);
-	}
-
-	/** Everything filed under a project, excluding trashed items. */
-	actionsOf(all: JoinedTask[], uid: string): JoinedTask[] {
-		return all.filter(
-			(t) =>
-				t.projectUid === uid &&
-				t.item.bucket !== "project" &&
-				t.item.bucket !== "trash"
-		);
-	}
-
-	/**
-	 * The check the weekly review exists to perform: a project with nothing
-	 * open against it has quietly stalled.
-	 */
-	isStalled(actions: JoinedTask[]): boolean {
-		return !actions.some(
-			(a) => !a.item.done && OPEN_BUCKETS.includes(a.item.bucket)
-		);
-	}
-
-	/** Tasks not already filed under any project, offered when linking. */
-	unattached(all: JoinedTask[]): JoinedTask[] {
-		return all.filter(
-			(t) =>
-				!t.projectUid &&
-				t.item.bucket !== "project" &&
-				t.item.bucket !== "trash" &&
-				!t.item.done
-		);
-	}
-
-	/** Link a task to a project, or to nothing at all. */
-	async linkToProject(
-		task: JoinedTask,
-		projectUid: string | null | undefined
-	): Promise<void> {
-		const item = this.persist(task);
-		item.projectUid = projectUid;
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/** Promote a derived record into the saved set so edits to it stick. */
-	private persist(task: JoinedTask): TaskLoopsItem {
-		let item = this.items[task.id];
-		if (!item) {
-			item = { ...task.item, uid: newUid(), provisional: undefined };
-			this.items[task.id] = item;
-		}
-		if (!item.uid) item.uid = newUid();
-		return item;
-	}
-
-	// ---------------------------------------------------------------- actions
-
-	/** File a task in plugin data; only an explicit done state touches Markdown. */
-	async file(
-		task: JoinedTask,
-		patch: {
-			bucket: Bucket;
-			context?: string;
-			waitingFor?: string;
-			due?: string;
-			done?: boolean;
-			projectUid?: string | null;
-		}
-	): Promise<void> {
-		const done = task.checkbox ? patch.done : undefined;
-		if (patch.done !== undefined && !task.checkbox) {
-			new Notice(
-				"Filed, but not completed: this tagged line must be a Markdown checkbox before TaskLoops can mark it done."
-			);
-		}
-		const item = this.persist(task);
-
-		item.bucket = patch.bucket;
-		item.sortedAt = Date.now();
-
-		/*
-		 * Attributes survive a re-file. They are orthogonal to the bucket — a
-		 * waiting task can have a context, a next action can have a date — and
-		 * discarding them here would silently undo what the chips just set.
-		 * Returning to the inbox is the one reset, handled below.
-		 */
-		if (patch.context !== undefined) item.context = patch.context;
-		if (patch.waitingFor !== undefined) item.waitingFor = patch.waitingFor;
-		if (patch.due !== undefined) item.due = patch.due;
-
-		if (done !== undefined) {
-			item.done = done;
-			item.doneAt = done ? Date.now() : undefined;
-		}
-		if (patch.projectUid !== undefined) item.projectUid = patch.projectUid;
-
-		if (patch.bucket === "inbox") {
-			// Back to unclarified: drop everything the clarify flow decided.
-			item.done = false;
-			item.doneAt = undefined;
-			item.projectUid = undefined;
-			item.context = undefined;
-			item.waitingFor = undefined;
-			item.due = undefined;
-			item.order = undefined;
-		}
-		// A project cannot belong to another project; GTD keeps the list flat.
-		if (patch.bucket === "project") item.projectUid = null;
-
-		await this.saveData_();
-		if (done === true && !task.checked) {
-			await this.writeDoneState(task);
-		}
-		this.refreshViews();
-	}
-
-	async toggleDone(task: JoinedTask): Promise<void> {
-		if (!task.checkbox) {
-			new Notice(
-				"This tagged line is not a Markdown checkbox. Convert it to - [ ] to complete it from TaskLoops."
-			);
-			return;
-		}
-		if (task.checked) {
-			new Notice("Reopen this task in its source note.");
-			return;
-		}
-		const done = true;
-		const item = this.persist(task);
-		item.done = done;
-		item.doneAt = done ? Date.now() : undefined;
-		if (done && item.bucket === "inbox") {
-			item.bucket = "next";
-			item.sortedAt = Date.now();
-		}
-		await this.writeDoneState(task);
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/** Point capture at a folder. A null folder means the vault root. */
-	async setCaptureFolder(folder: string | null): Promise<void> {
-		const dir = !folder || folder === "/" ? "" : folder.replace(/\/+$/, "");
-		this.settings.captureNote = dir
-			? dir + "/" + CAPTURE_BASENAME
-			: CAPTURE_BASENAME;
-		this.settings.captureFolderChosen = true;
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/** Set or clear a priority. Like a context, this does not re-file the task. */
-	async setPriority(task: JoinedTask, priority: Priority | null): Promise<void> {
-		const item = this.persist(task);
-		item.priority = priority ?? undefined;
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/** Set or clear a date. Like a context, this does not re-file the task. */
-	async setDue(task: JoinedTask, iso: string | null): Promise<void> {
-		const item = this.persist(task);
-		item.due = iso ?? undefined;
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/**
-	 * Set or clear a context.
-	 *
-	 * Attributes never move a task between buckets. A context is orthogonal to
-	 * the filing decision — a delegated or scheduled task can perfectly well
-	 * have one — and re-filing on a chip click makes the task vanish out of the
-	 * list you are looking at. Buckets change through clarify, the menu, or a
-	 * drag, all of which are explicit.
-	 */
-	async setContext(task: JoinedTask, context: string | null): Promise<void> {
-		const item = this.persist(task);
-		item.context = context ?? undefined;
-		await this.saveData_();
-		this.refreshViews();
-	}
-
-	/** Record a manual ordering for a list the user has just rearranged. */
-	async reorder(tasks: JoinedTask[]): Promise<void> {
-		tasks.forEach((task, index) => {
-			this.persist(task).order = index;
+			await this.reloadWrittenFile(current.path);
 		});
-		await this.saveData_();
-		this.refreshViews();
 	}
 
-	/** Set who a task is waiting on. Like a context, this does not re-file it. */
-	async setWaitingFor(task: JoinedTask, who: string): Promise<void> {
-		const item = this.persist(task);
-		item.waitingFor = who;
-		await this.saveData_();
-		this.refreshViews();
+	async complete(task: ScannedTask): Promise<void> {
+		await this.enqueue(async () => {
+			const current = this.current(task);
+			if (current.checked) return;
+			if (!await setCheckboxDone(this.app, current)) throw new Error("The task changed or moved ambiguously. Refresh and try again.");
+			await this.reloadWrittenFile(current.path);
+		});
 	}
 
-	/**
-	 * Quick capture: append a new tagged line to the capture note.
-	 *
-	 * This is the only note the plugin ever adds content to, it only ever
-	 * appends, and it never touches a line that is already there. The note is
-	 * created on first use.
-	 */
-	async captureTask(
-		text: string,
-		projectUid?: string | null,
-		bucket: Bucket = "inbox",
-		due?: string
-	): Promise<boolean> {
-		const body = text.trim();
-		if (!body) return false;
+	async createTask(text: string, path: string, schedule: Schedule): Promise<boolean> {
+		let created = false;
+		await this.enqueue(async () => {
+			if (!text.trim() || /[\r\n]/.test(text)) throw new Error("Enter one task on a single line.");
+			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
+			path = normalizePath(path);
+			if (!path.endsWith(".md")) throw new Error("Choose a Markdown note.");
+			const raw = "- [ ] " + text.trim();
+			const line = schedule.due ? writeSchedule(raw, schedule, this.settings.dateFormat) : raw;
+			const file = this.app.vault.getAbstractFileByPath(path);
+			if (file instanceof TFile) await this.app.vault.process(file, (content) => appendTask(content, line));
+			else if (!file && path === normalizePath(this.settings.standaloneNote)) {
+				const folder = path.split("/").slice(0, -1).join("/");
+				if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+				await this.app.vault.create(path, appendTask("", line));
+			} else throw new Error("The selected note no longer exists.");
+			created = true;
+			await this.reloadWrittenFile(path);
+		});
+		return created;
+	}
 
-		const path = normalizePath(this.settings.captureNote);
-		const includeTag = this.settings.taskSource !== "checkboxes";
-		const line = `- [ ] ${body}${includeTag ? " " + this.settings.tag : ""}`;
-
-		let file = this.app.vault.getAbstractFileByPath(path);
-		try {
-			if (!file) {
-				const dir = path.split("/").slice(0, -1).join("/");
-				if (dir && !this.app.vault.getAbstractFileByPath(dir)) {
-					await this.app.vault.createFolder(dir);
+	/** Save the editor in one source operation; moving preserves the whole subtree. */
+	async editTask(task: ScannedTask, text: string, path: string, schedule: Schedule, subtasks: string[] = []): Promise<boolean> {
+		let saved = false;
+		await this.enqueue(async () => {
+			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
+			const current = this.current(task);
+			const source = this.app.vault.getAbstractFileByPath(current.path);
+			if (!(source instanceof TFile)) throw new Error("The source note no longer exists.");
+			path = normalizePath(path);
+			if (path === current.path) {
+				await this.app.vault.process(source, (content) => replaceTaskBlock(content, current,
+					editedBlock(content, current, text, schedule, this.settings.dateFormat, subtasks)));
+			} else {
+				if (!path.endsWith(".md")) throw new Error("Choose a Markdown project note.");
+				const original = await this.app.vault.read(source);
+				const expected = taskBlock(original, current).lines;
+				const edited = editedBlock(original, current, text, schedule, this.settings.dateFormat, subtasks);
+				let destination = this.app.vault.getAbstractFileByPath(path);
+				let before = "";
+				let written = "";
+				if (destination instanceof TFile) {
+					await this.app.vault.process(destination, (content) => {
+						before = content;
+						written = appendTaskBlock(content, edited);
+						return written;
+					});
+				} else if (!destination && path === normalizePath(this.settings.standaloneNote)) {
+					const folder = path.split("/").slice(0, -1).join("/");
+					if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+					written = appendTaskBlock("", edited);
+					destination = await this.app.vault.create(path, written);
+				} else throw new Error("The selected project note no longer exists.");
+				if (!(destination instanceof TFile)) throw new Error("The destination is not a Markdown note.");
+				try {
+					await this.app.vault.process(source, (content) => replaceTaskBlock(content, current, [], expected));
+				} catch (error) {
+					// Two notes cannot be edited atomically. Roll back only our exact
+					// destination write; never overwrite somebody's intervening edit.
+					let originalPresent = false;
+					try {
+						originalPresent = taskBlock(await this.app.vault.read(source), current).lines.join("\n") === expected.join("\n");
+					} catch { /* An unreadable source cannot justify removing the destination copy. */ }
+					if (!originalPresent) throw new Error("The move could not be confirmed. The destination copy has been kept; review both notes before retrying.");
+					let restored = false;
+					try {
+						let matched = false;
+						await this.app.vault.process(destination, (content) => {
+							if (content !== written) return content;
+							matched = true;
+							return before;
+						});
+						restored = matched;
+					} catch { /* Preserve both copies if rollback is unsafe or unavailable. */ }
+					if (!restored) throw new Error("The move could not finish. Both notes retain a copy of the task; review them before retrying.");
+					throw error;
 				}
-				file = await this.app.vault.create(path, line + "\n");
-			} else if (file instanceof TFile) {
-				await this.app.vault.process(file, (data) => {
-					const gap = data.length === 0 || data.endsWith("\n") ? "" : "\n";
-					return data + gap + line + "\n";
-				});
 			}
-		} catch (err) {
-			console.error("TaskLoops: capture failed", err);
-			new Notice("TaskLoops: couldn't write to " + path);
-			return false;
-		}
-
-		if (!(file instanceof TFile)) return false;
-
-		const task = await this.awaitTask(file, line);
-		if (!task) {
-			// The line is on disk; only the immediate project link is lost.
-			await this.rescan();
-			return true;
-		}
-
-		const item: TaskLoopsItem = {
-			id: task.id,
-			uid: newUid(),
-			bucket,
-			path: task.path,
-			text: task.text,
-			line: task.line,
-			occ: (this.tasks.get(file.path) ?? []).indexOf(task),
-		};
-		if (projectUid !== undefined) item.projectUid = projectUid;
-		if (due) item.due = due;
-		if (bucket !== "inbox") item.sortedAt = Date.now();
-		this.items[task.id] = item;
-
-		await this.saveData_();
-		this.refreshViews();
-		return true;
+			if (this.items[current.id]?.due) { delete this.items[current.id].due; await this.saveSettings(); }
+			saved = true;
+			await this.reloadWrittenFile(current.path);
+			if (path !== current.path) await this.reloadWrittenFile(path);
+		});
+		return saved;
 	}
 
-	/** Create a project outcome in one step, using the same safe capture note. */
-	async createProject(text: string): Promise<boolean> {
-		return this.captureTask(text, null, "project");
+	private async reloadWrittenFile(path: string): Promise<void> {
+		// Metadata may lag behind an inserted checkbox. The metadata changed
+		// listener supplies the final authoritative scan when the cache catches up.
+		const file = this.app.vault.getAbstractFileByPath(path);
+		if (!(file instanceof TFile)) return;
+		await this.refreshFile(file);
 	}
 
-	/**
-	 * Wait for the metadata cache to catch up with a line we just wrote, so the
-	 * new task can be linked immediately rather than on the next scan.
-	 */
-	private async awaitTask(
-		file: TFile,
-		raw: string
-	): Promise<ScannedTask | null> {
-		for (let attempt = 0; attempt < 20; attempt++) {
-			const found = await scanFile(
-				this.app,
-				file,
-				this.settings.tag,
-				this.settings.taskSource
-			);
-			const hits = found.filter((t) => t.raw === raw);
-			if (hits.length) {
-				this.tasks.set(file.path, found);
-				return hits[hits.length - 1];
-			}
-			await new Promise((r) => window.setTimeout(r, 50));
-		}
-		return null;
+	private report(error: unknown, message: string): void {
+		console.error("TaskLoops:", error);
+		new Notice("TaskLoops: " + message + (error instanceof Error ? " " + error.message : ""));
 	}
 
-	/** The only existing-line write: change the checkbox state character. */
-	private async writeDoneState(task: ScannedTask): Promise<void> {
-		if (!task.checkbox) return;
-		this.writing.add(task.path);
-		try {
-			const ok = await setCheckboxDone(this.app, task);
-			if (!ok) {
-				new Notice("TaskLoops: couldn't find that line — it may have been edited.");
-			}
-		} catch (err) {
-			console.error("TaskLoops: failed to update checkbox", err);
-			new Notice("TaskLoops: failed to update the note. See console.");
-		} finally {
-			this.writing.delete(task.path);
+	refreshViews(): void {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)) {
+			if (leaf.view instanceof TaskLoopsView) leaf.view.render();
 		}
-
-		const file = this.app.vault.getAbstractFileByPath(task.path);
-		if (file instanceof TFile) await this.refreshFile(file);
 	}
 
 	async reveal(task: ScannedTask): Promise<void> {
 		const file = this.app.vault.getAbstractFileByPath(task.path);
-		if (!(file instanceof TFile)) {
-			new Notice("TaskLoops: source note is gone.");
-			return;
-		}
-		const leaf = this.app.workspace.getLeaf(false);
-		await leaf.openFile(file, {
-			eState: { line: task.line },
-			active: true,
-		});
+		if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file, { eState: { line: task.line }, active: true });
 	}
 
-	sourceLabel(task: ScannedTask): string {
-		const parts = task.path.replace(/\.md$/, "").split("/");
-		const name = parts.pop() ?? task.path;
-		if (this.settings.showFolder && parts.length) {
-			return parts[parts.length - 1] + "/" + name;
-		}
-		return name;
-	}
-
-	// ------------------------------------------------------------------- view
-
-	refreshViews(): void {
-		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)) {
-			const view = leaf.view;
-			if (view instanceof TaskLoopsView) view.render();
-		}
-	}
-
-	/**
-	 * Reveal the panel, in the sidebar by default.
-	 *
-	 * The board wants width that a sidebar does not have, so `mainArea` opens a
-	 * second copy as a normal tab. Both are the same view, sharing one store.
-	 */
 	async activateView(mainArea = false): Promise<void> {
-		const { workspace } = this.app;
-
-		if (mainArea) {
-			const leaf = workspace.getLeaf("tab");
-			await leaf.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
-			await workspace.revealLeaf(leaf);
-			return;
-		}
-
-		const existing = workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS);
-		let leaf: WorkspaceLeaf | null;
-		if (existing.length > 0) {
-			leaf = existing[0];
-		} else {
-			leaf = workspace.getRightLeaf(false);
-			await leaf?.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
-		}
-		if (leaf) await workspace.revealLeaf(leaf);
-	}
-
-	openSettings(): void {
-		const { setting } = this.app as App & { setting?: SettingsOpener };
-		setting?.open();
-		setting?.openTabById(this.manifest.id);
+		const workspace = this.app.workspace;
+		const leaf = mainArea ? workspace.getLeaf("tab") : workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)[0] ?? workspace.getRightLeaf(false);
+		if (!leaf) return;
+		await leaf.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
+		await workspace.revealLeaf(leaf);
 	}
 }

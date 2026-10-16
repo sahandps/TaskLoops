@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+- Replace GTD buckets, clarification and the board with a calendar planner and
+  a sidebar grouped alphabetically by source note.
+- Plan in Day, Week, Month and Year. Timed events show duration, overlap lanes
+  and overnight continuations; Year marks dates containing tasks with dots.
+- Drag tasks to five-minute start times with a live time marker. Resize timed
+  events with a lower-edge handle or keyboard controls.
+- Click a task to edit wording, schedule, project note and new subtasks together.
+  Project selection uses Obsidian's native fuzzy note search.
+- Store explicit `Due date:`, `Time:` and `Duration:` suffixes in Markdown, with
+  four supported date formats and recognition of bare ISO date suffixes.
+- Add new project tasks under `Tasks:` in the selected note. Standalone tasks
+  default to `Standalone Tasks.md`; subtasks are indented checkboxes.
+- Move a task and its subtree between project notes with checks for stale edits
+  and safe rollback on failure. Preserve note properties and unrelated content.
+- Keep legacy plugin data and saved dates available without automatic note edits.
+- Add tests for scheduling, resizing, task editing, subtasks, project moves and
+  rollback safety. Update the README and plugin metadata for the calendar planner,
+  including screenshots captured from the browser preview with sample notes.
+
 ## 0.4.0
 
 - Discover ordinary Markdown checkboxes across the vault automatically. Settings
