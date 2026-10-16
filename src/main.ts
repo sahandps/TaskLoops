@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile, normalizePath } from "obsidian";
+import { Notice, Platform, Plugin, TFile, normalizePath } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsData, TaskLoopsSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { scanFile, scanVault, setCheckboxDone, setTaskSchedule } from "./scanner";
@@ -8,10 +8,12 @@ import { TaskLoopsSettingTab } from "./settings";
 import { existingSubtaskCandidates } from "./existing-tasks";
 import { applyNoteChanges, NoteChange } from "./note-transaction";
 import { TaskModal } from "./modals";
+import { inlineTaskExtension, readingTaskButtons } from "./inline-tasks";
 import { inScanFolder } from "./note-grid";
 import { appendTaskBlock, editedBlock, replaceTaskBlock, taskBlock, nestTaskBlock, validateWording } from "./task-edits";
 
 export default class TaskLoopsPlugin extends Plugin {
+	readonly inlineControls = new Set<HTMLElement>();
 	settings: TaskLoopsSettings = { ...DEFAULT_SETTINGS };
 	private tasks = new Map<string, ScannedTask[]>();
 	private items: Record<string, LegacyItem> = {};
@@ -48,7 +50,12 @@ export default class TaskLoopsPlugin extends Plugin {
 		this.addCommand({ id: "rescan-vault", name: "Refresh tasks", callback: () => void this.rescan() });
 		this.addCommand({ id: "capture-task", name: "Add a task", callback: () => this.newTask() });
 		this.addSettingTab(new TaskLoopsSettingTab(this.app, this));
-		this.app.workspace.onLayoutReady(() => void this.rescan());
+		this.registerEditorExtension(inlineTaskExtension(this));
+		this.registerMarkdownPostProcessor((root, context) => readingTaskButtons(this, root, context));
+		this.app.workspace.onLayoutReady(() => {
+			void this.rescan();
+			if (Platform.isMobile && this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS).some(leaf => leaf.getRoot() !== this.app.workspace.rootSplit)) void this.activateView();
+		});
 		this.registerEvent(this.app.metadataCache.on("changed", (file) => {
 			window.clearTimeout(this.timers.get(file.path));
 			this.timers.set(file.path, window.setTimeout(() => {
@@ -61,6 +68,8 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	onunload(): void {
+		for (const control of this.inlineControls) control.remove();
+		this.inlineControls.clear();
 		for (const timer of this.timers.values()) window.clearTimeout(timer);
 		this.timers.clear();
 	}
@@ -89,7 +98,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		} catch (error) { this.report(error, "Could not refresh tasks."); }
 	}
 
-	private async refreshFile(file: TFile): Promise<void> {
+	async refreshFile(file: TFile): Promise<void> {
 		if (file.extension !== "md") return;
 		if (!inScanFolder(file.path, this.settings.scanFolder)) { this.tasks.delete(file.path); this.refreshViews(); return; }
 		const version = ++this.scanVersion;
@@ -337,9 +346,13 @@ export default class TaskLoopsPlugin extends Plugin {
 
 	async activateView(mainArea = false): Promise<void> {
 		const workspace = this.app.workspace;
-		const leaf = mainArea ? workspace.getLeaf("tab") : workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)[0] ?? workspace.getRightLeaf(false);
+		const existing = workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS);
+		const leaf = Platform.isMobile
+			? existing.find(item => item.getRoot() === workspace.rootSplit) ?? workspace.getLeaf("tab")
+			: mainArea ? workspace.getLeaf("tab") : existing[0] ?? workspace.getRightLeaf(false);
 		if (!leaf) return;
 		await leaf.setViewState({ type: VIEW_TYPE_TASKLOOPS, active: true });
+		if (Platform.isMobile) for (const old of existing) if (old !== leaf && old.getRoot() !== workspace.rootSplit) old.detach();
 		await workspace.revealLeaf(leaf);
 	}
 }

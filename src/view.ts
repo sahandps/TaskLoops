@@ -1,4 +1,4 @@
-import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
+import { ItemView, Platform, setIcon, WorkspaceLeaf } from "obsidian";
 import type TaskLoopsPlugin from "./main";
 import type { CalendarScale, ScannedTask } from "./types";
 import { formatDate, formatDuration, formatTime } from "./schedule";
@@ -15,7 +15,7 @@ export class TaskLoopsView extends ItemView {
 	anchor = todayISO();
 	private query = "";
 	private showDone = false;
-	private onlyUndated = false;
+	private onlyUndated = true;
 	private dragging: ScannedTask | null = null;
 	private resizing = false;
 	private cancelResize: (() => void) | null = null;
@@ -29,7 +29,7 @@ export class TaskLoopsView extends ItemView {
 
 	constructor(leaf: WorkspaceLeaf, public plugin: TaskLoopsPlugin) {
 		super(leaf);
-		this.scale = plugin.settings.lastScale;
+		this.scale = Platform.isMobile && plugin.settings.lastScale === "week" ? "day" : plugin.settings.lastScale;
 		this.mode = plugin.settings.defaultView ?? "planner";
 		this.showDone = plugin.settings.showCompleted ?? false;
 	}
@@ -101,7 +101,7 @@ export class TaskLoopsView extends ItemView {
 		const undatedLabel = filters.createEl("label");
 		const undated = undatedLabel.createEl("input", { type: "checkbox" });
 		undated.checked = this.onlyUndated;
-		undatedLabel.createSpan({ text: "Undated only" });
+		undatedLabel.createSpan({ text: "Unscheduled only" });
 		undated.onchange = () => { this.onlyUndated = undated.checked; this.render(); };
 		const unschedule = side.createDiv({ cls: "tl-unschedule", text: "Drop here to remove a schedule" });
 		this.dropTarget(unschedule, (task) => void this.plugin.schedule(task, {}));
@@ -123,7 +123,7 @@ export class TaskLoopsView extends ItemView {
 			}
 			this.card(list, task);
 		}
-		if (!listed.length) list.createEl("p", { cls: "tl-empty", text: q || this.onlyUndated ? "No matching tasks." : "No tasks yet. Add a task or write a checkbox in any note." });
+		if (!listed.length) list.createEl("p", { cls: "tl-empty", text: this.onlyUndated && !q ? "No unscheduled tasks. Scheduled tasks are on the calendar." : q ? "No matching tasks." : "No tasks yet. Add a task or write a checkbox in any note." });
 		const divider = layout.createDiv({ cls: "tl-panel-divider", attr: { role: "separator", tabindex: "0", "aria-label": "Resize task list and calendar", title: "Drag to resize panels · arrow keys adjust · double-click to reset" } });
 		const main = layout.createEl("main", { cls: "tl-calendar", attr: { "aria-label": "Task calendar" } });
 		renderCalendar(main, this, matching);

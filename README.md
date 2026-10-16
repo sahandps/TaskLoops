@@ -16,7 +16,7 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-The calendar planner and Notes grid are available in **0.4.4**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+The calendar planner and Notes grid are available in **0.4.5**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -91,8 +91,9 @@ metadata cache so frontmatter and fenced code examples do not become tasks.
 The sidebar groups them by note name, alphabetically, and preserves source-line
 order within each note. Full paths distinguish notes with the same name.
 
-Search by task text or note path. **Undated only** narrows the sidebar while
-keeping scheduled tasks on the calendar. **Show completed** includes completed
+Search by task text or note path. **Unscheduled only** is enabled by default: adding a due date removes a task
+from the sidebar while keeping it on the calendar. Clear the filter to include
+scheduled tasks in the sidebar again. **Show completed** includes completed
 tasks in both places. Completed tasks are hidden by default.
 
 Click a note heading or a calendar card's note name to open the source. Click a
@@ -147,6 +148,25 @@ Markdown file paths. A folder scope limits content reads, not permission to list
 paths. It does not sandbox the plugin. **Malware scan not available** is a status
 from the external review service; implementing settings search does not provide
 or certify a malware scan.
+
+## Schedule from a note
+
+A small calendar-plus button appears after checkbox tasks in the note editor
+(including Live Preview) and Reading view. Click or tap it to open the existing
+task editor for dates, time, duration, projects and subtasks. The button is a
+visual control: it is never written into your Markdown or note properties.
+The editor saves pending note edits before opening the task, and verifies the
+source row again before offering edits. Code examples and frontmatter are
+excluded. In Reading view, custom renderers or embeds without a reliable task
+mapping may omit the button rather than point it at a different task.
+
+![Task scheduling buttons in a sample note and editor](docs/images/inline-task-button.jpg)
+
+On mobile, TaskLoops opens in a main workspace tab instead of the right sidebar.
+An existing mobile sidebar instance is moved to the main area when restored or
+opened. A week-based planner initially opens in Day view on mobile; Week remains
+available from the calendar scale controls. Desktop opening keeps its existing
+sidebar/main-tab options.
 
 ## Dates, times and durations
 
@@ -379,6 +399,8 @@ src/
 ├── scanner.ts    metadata-backed task discovery and exact-line writes
 ├── schedule.ts   scheduling suffixes, date formats, Tasks: insertion
 ├── view.ts       planner, Notes grid, shared task cards, drag and drop
+├── inline-tasks.ts  note-editor decorations and Reading-view task controls
+├── inline-task-data.ts  source rows and guarded inline task targeting
 ├── note-grid.ts  note grouping, filters and task-scan folder scope
 ├── calendar.ts   day/week timelines, month and year views
 ├── modals.ts     creation/editor popups, note picker and scheduling fields

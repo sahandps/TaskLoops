@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.5 — 2026-10-16
+
+- Default the Planner sidebar to unscheduled tasks. Scheduling a task removes
+  it from that list; disabling Unscheduled only includes scheduled tasks again.
+- Open TaskLoops in a main workspace tab on mobile, reuse existing main tabs,
+  and replace restored sidebar instances after successfully opening the main
+  view. A saved Week preference initially uses Day on mobile.
+- Add calendar-plus buttons beside checkbox tasks in the note editor, including
+  Live Preview, and Reading view. Open the task editor without inserting UI
+  markers or properties into Markdown. Respect task-scan folder scope.
+- Save pending editor changes before opening an inline task, verify source
+  rows, and avoid guessing between moved duplicates. Exclude frontmatter and
+  code examples, and clean up controls when views or the plugin unload.
+- Update the README, inline-task screenshot, description and release metadata.
+
+Validation: 496 automated tests, TypeScript, ESLint and production build pass.
+Browser checks verify note buttons, correct task selection and removal from the
+sidebar after scheduling. Mobile tab routing is tested with workspace doubles;
+native Obsidian mobile touch behavior still needs a device smoke test.
+
 ## 0.4.4 — 2026-10-16
 
 - Resize the task list and calendar using a remembered divider: horizontal

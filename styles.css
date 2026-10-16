@@ -232,3 +232,12 @@
 @media (pointer: coarse) {
 	.tl-note-links button, .tl-destination .tl-open-project { min-height: 44px; }
 }
+
+/* Inline controls are decorations, never stored in the note text. */
+button.tl-inline-schedule { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; width: 24px; height: 24px; min-height: 24px; padding: 3px; margin: 0 0 0 6px; border: 0; border-radius: 5px; box-shadow: none; background: transparent; color: var(--text-muted); cursor: pointer; }
+button.tl-inline-schedule:hover, button.tl-inline-schedule:focus-visible { color: var(--interactive-accent); background: var(--background-modifier-hover); }
+button.tl-inline-schedule svg { width: 15px; height: 15px; }
+@media (pointer: coarse) {
+	button.tl-inline-schedule { width: 36px; height: 36px; min-height: 36px; }
+}
+@media print { button.tl-inline-schedule { display: none; } }

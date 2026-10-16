@@ -10,3 +10,5 @@ export * from "../src/note-grid.ts";
 export { TaskLoopsSettingTab } from "../src/settings.ts";
 export { weekOf, monthGrid, weekLabel } from "../src/dates.ts";
 export { panelSize } from "../src/panel-resize.ts";
+export { noteTaskRows, locateNoteTask } from "../src/inline-task-data.ts";
+export { Platform as TestPlatform } from "obsidian";

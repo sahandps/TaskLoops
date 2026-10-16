@@ -22,3 +22,7 @@ export function normalizePath(p) {
 export function debounce(fn) {
 	return fn;
 }
+export const Platform = { isMobile: false };
+export const editorInfoField = {};
+export class MarkdownView {}
+export class MarkdownRenderChild {}
