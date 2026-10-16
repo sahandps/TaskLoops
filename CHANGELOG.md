@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.1 — 2026-10-16
 
 - Choose existing tasks as subtasks from a searchable note and task picker.
   Selections remain drafts until Save; guard multi-note moves and recover source

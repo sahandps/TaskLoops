@@ -13,9 +13,9 @@ lets you schedule, resize and edit them without managing note properties.
 - Pick projects with **Obsidian's native fuzzy note search**.
 - Keep standalone tasks in one configurable note and project tasks under `Tasks:`.
 
-The calendar planner documented here is the current development version on
-`main`. For packaged versions, see [Releases](https://github.com/sahandps/TaskLoops/releases);
-to try the latest changes, [build from source](#installing).
+The calendar planner is available in **0.4.1**. Install or update TaskLoops from
+Obsidian's Community plugins, or download the plugin files from
+[Releases](https://github.com/sahandps/TaskLoops/releases).
 
 ## Screenshots
 
