@@ -167,8 +167,12 @@ export default class TaskLoopsPlugin extends Plugin {
 		return this.taskService.complete(task);
 	}
 
-	createTask(text: string, path: string, schedule: Schedule): Promise<boolean> {
-		return this.taskService.createTask(text, path, schedule);
+	deferTask(task: ScannedTask, reason: string): Promise<boolean> {
+		return this.taskService.deferTask(task, reason);
+	}
+
+	createTask(text: string, path: string, schedule: Schedule, reason?: string): Promise<boolean> {
+		return this.taskService.createTask(text, path, schedule, reason);
 	}
 
 	editTask(

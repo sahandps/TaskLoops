@@ -398,3 +398,47 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
  .tl-task-modal .tl-duration-fields { grid-template-columns: 1fr 1fr; }
  .tl-task-modal .tl-duration-fields label:first-child { grid-column: 1 / -1; }
 }
+
+/* A direct route to unfinished work outside the visible calendar dates. */
+.tl-view .tl-filters { align-items: center; }
+.tl-view .tl-review-filters { display: flex; flex-wrap: wrap; gap: 4px; }
+.tl-view button.tl-review-filter { display: inline-flex; align-items: center; gap: 6px; height: auto; min-height: 28px; padding: 4px 8px; border: 1px solid var(--background-modifier-border); border-radius: 5px; box-shadow: none; font-size: 11px; font-weight: 400; background: transparent; color: var(--text-muted); }
+.tl-view button.tl-review-filter[aria-pressed="true"] { background: var(--background-modifier-hover); color: var(--text-normal); border-color: var(--interactive-accent); }
+.tl-view button.tl-review-filter.has-overdue { color: var(--text-error, var(--text-accent)); }
+.tl-view .tl-filter-count { font-size: 10px; font-variant-numeric: tabular-nums; }
+.tl-view .tl-review-summary { margin: 6px 0 12px; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.tl-view .tl-task.is-overdue { border-left: 2px solid var(--text-error, var(--interactive-accent)); }
+.tl-view .tl-overdue-label { display: block; margin: 3px 0; color: var(--text-error, var(--text-accent)); font-size: 11px; font-weight: 500; }
+
+/* Bound event content to its bar; narrow weeks scroll instead of crushing text. */
+.tl-view .tl-library-planner.tl-week-view .ec { min-width: 680px; }
+.tl-view .tl-library-planner.tl-month-view .ec { min-width: 560px; }
+.tl-view .tl-library-planner .ec-event { overflow: hidden; min-width: 0; }
+.tl-view .tl-library-planner .ec-event-body { min-width: 0; max-width: 100%; max-height: 100%; overflow: hidden; }
+.tl-view .tl-library-planner .tl-calendar-event-content { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+.tl-view .tl-library-planner .tl-calendar-event-content .ec-event-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+.tl-view .tl-library-planner .tl-calendar-event-content.is-timed .ec-event-title { white-space: nowrap; text-overflow: ellipsis; }
+.tl-view .tl-library-planner .tl-calendar-event-content .ec-event-time { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; line-height: 1.4; }
+.tl-view .tl-mini-week-number { font-size: 9px; color: var(--text-muted); }
+.tl-view .tl-deferral-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.tl-view .tl-deferral-heading h3 { font-size: 14px; margin: 0; }
+.tl-view .tl-deferral-heading button { font-size: 11px; }
+.tl-view .tl-deferral-reason { margin-top: 10px; padding: 8px 10px; background: var(--background-secondary); border-left: 2px solid var(--background-modifier-border); border-radius: 3px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.tl-view .tl-deferral-reason-label { color: var(--text-muted); font-size: 10px; margin-bottom: 3px; }
+.tl-view .tl-scheduling-alternatives { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tl-view .tl-scheduling-alternatives span { flex-basis: 100%; color: var(--text-muted); font-size: 11px; }
+.tl-view .tl-scheduling-alternatives button { height: auto; padding: 4px 7px; font-size: 11px; }
+.tl-view button.tl-defer-task { display: block; height: auto; padding: 4px 0; margin-top: 6px; border: 0; box-shadow: none; background: transparent; color: var(--text-muted); font-size: 11px; }
+.tl-task-modal .tl-deferral-mode { display: flex; gap: 8px; margin-bottom: 14px; }
+.tl-task-modal .tl-deferral-mode button { font-size: 12px; }
+.tl-task-modal .tl-deferral-mode button[aria-pressed="true"] { border: 1px solid var(--interactive-accent); }
+.tl-task-modal textarea.tl-deferral-reason-input { box-sizing: border-box; width: 100%; resize: vertical; min-height: 90px; padding: 10px; font: inherit; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 5px; }
+@container (max-width: 680px) {
+ .tl-view .tl-sidebar:has(.tl-deferral-heading) { flex-basis: max(var(--tl-panel-size, 220px), min(55vh, 480px)); }
+}
+.tl-view .tl-library-planner .tl-calendar-event-content { display: flex; flex-direction: column; align-items: stretch; container: tl-event-label / inline-size; }
+.tl-view .tl-library-planner .tl-calendar-event-content .ec-event-title { position: static; min-block-size: 0; flex-shrink: 0; }
+.tl-view .tl-library-planner .tl-calendar-event-content .ec-event-time { position: static; }
+@container tl-event-label (max-width: 100px) {
+ .tl-view .tl-library-planner .tl-calendar-event-content.is-timed .ec-event-time { display: none; }
+}

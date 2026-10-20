@@ -1,3 +1,4 @@
+import { readDeferral } from "../../core/task-deferral";
 import { App, TFile } from "obsidian";
 import { DateFormat, ScannedTask, Schedule, TaskSource } from "../../core/types";
 import { parseSchedule, writeSchedule } from "../../core/schedule";
@@ -74,6 +75,16 @@ export async function scanFile(
 		});
 	}
 
+	for (const task of out) {
+		if (!task.checkbox) continue;
+		const block = [task.raw];
+		for (let index = task.line + 1; index < split.length; index++) {
+			if (split[index].trim() && taskIndent(split[index]) <= task.indent) break;
+			block.push(split[index]);
+		}
+		const deferral = readDeferral(block);
+		if (deferral) task.deferral = deferral;
+	}
 	assignParents(out, split);
 	return out;
 }

@@ -1,3 +1,5 @@
+import { resolveDeferral } from "./task-deferral";
+import { todayISO } from "./dates";
 import type { DateFormat, ScannedTask, Schedule } from "./types";
 import { appendTask, parseSchedule, writeSchedule } from "./schedule";
 import { indentOf } from "./task-parsing";
@@ -61,6 +63,7 @@ export function editedBlock(
 	const parsed = parseSchedule(raw);
 	const sameSchedule =
 		parsed.schedule.due === schedule.due &&
+		parsed.schedule.deadline === schedule.deadline &&
 		parsed.schedule.time === schedule.time &&
 		parsed.schedule.duration === schedule.duration;
 	if (text !== taskWording(raw) || !sameSchedule)
@@ -68,7 +71,7 @@ export function editedBlock(
 	const container = raw.match(TASK_PREFIX)?.[1] ?? "";
 	const cr = raw.endsWith("\r") ? "\r" : "";
 	for (const subtask of subtasks) block.push(container + "    - [ ] " + subtask.trim() + cr);
-	return block;
+	return resolveDeferral(block, schedule.due, todayISO());
 }
 
 export function replaceTaskBlock(

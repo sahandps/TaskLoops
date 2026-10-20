@@ -1,3 +1,10 @@
+import {
+	deferBlock,
+	resolveDeferral,
+	readDeferral,
+	validateDeferralReason,
+} from "../src/core/task-deferral.ts";
+import { todayISO } from "../src/core/dates.ts";
 import { TaskModal } from "../src/gui/modals/task-create.ts";
 import { DEFAULT_SETTINGS } from "../src/core/types.ts";
 import { writeSchedule } from "../src/core/schedule.ts";
@@ -8,6 +15,12 @@ export function createPreviewActions(app, store, onChange) {
 	const persist = () => {
 		store.save();
 		onChange();
+	};
+	const updateHistory = (task, due) => {
+		const block = resolveDeferral([task.raw, ...(task.continuations ?? [])], due, todayISO());
+		task.raw = block[0];
+		task.continuations = block.slice(1);
+		task.deferral = readDeferral(block);
 	};
 	const actions = {
 		settings: { ...DEFAULT_SETTINGS },
@@ -26,6 +39,7 @@ export function createPreviewActions(app, store, onChange) {
 				...schedule,
 				raw: writeSchedule(store.tasks[index].raw, schedule, "YYYY-MM-DD"),
 			};
+			updateHistory(store.tasks[index], schedule.due);
 			persist();
 		},
 		complete: async (task) => {
@@ -38,8 +52,37 @@ export function createPreviewActions(app, store, onChange) {
 		reveal: async (task) => actions.openNote(task.path),
 		openNote: async (path) => showNotePreview(path, store.tasks),
 		newTask: (schedule = {}, path) => new TaskModal(app, actions, schedule, path).open(),
-		createTask: async (text, path, schedule) => {
-			store.tasks.push(makeTask(text, path, schedule));
+		deferTask: async (task, reason) => {
+			validateDeferralReason(reason);
+			const current = store.tasks.find((t) => t.id === task.id);
+			if (!current || current.checked) return false;
+			const block = deferBlock(
+				[writeSchedule(current.raw, {}, "YYYY-MM-DD"), ...(current.continuations ?? [])],
+				reason,
+			);
+			Object.assign(current, {
+				due: undefined,
+				deadline: undefined,
+				time: undefined,
+				duration: undefined,
+				raw: block[0],
+				continuations: block.slice(1),
+				deferral: readDeferral(block),
+			});
+			persist();
+			return true;
+		},
+		createTask: async (text, path, schedule, reason) => {
+			const task = makeTask(text, path, schedule);
+			if (reason !== undefined) {
+				const block = deferBlock([task.raw], reason);
+				Object.assign(task, {
+					raw: block[0],
+					continuations: block.slice(1),
+					deferral: readDeferral(block),
+				});
+			}
+			store.tasks.push(task);
 			persist();
 			return true;
 		},
@@ -60,6 +103,7 @@ export function createPreviewActions(app, store, onChange) {
 					"YYYY-MM-DD",
 				),
 			};
+			updateHistory(store.tasks[index], schedule.due);
 			drafts.forEach((text) =>
 				store.tasks.push({ ...makeTask(text, path), parentId: task.id, indent: 2 }),
 			);

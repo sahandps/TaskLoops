@@ -12,7 +12,8 @@ export interface TaskActions {
 	complete(task: ScannedTask): Promise<boolean>;
 	reveal(task: ScannedTask): Promise<void>;
 	openNote(path: string, line?: number): Promise<boolean>;
-	createTask(text: string, path: string, schedule: Schedule): Promise<boolean>;
+	deferTask(task: ScannedTask, reason: string): Promise<boolean>;
+	createTask(text: string, path: string, schedule: Schedule, reason?: string): Promise<boolean>;
 	editTask(
 		task: ScannedTask,
 		text: string,

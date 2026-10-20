@@ -6,7 +6,13 @@ export function showNotePreview(path, tasks) {
 	dialog.createEl("pre", {
 		text: tasks
 			.filter((t) => t.path === path)
-			.map((t) => writeSchedule(`- [${t.checked ? "x" : " "}] ${t.text}`, t, "YYYY-MM-DD"))
+			.map((t) =>
+				[
+					writeSchedule(`- [${t.checked ? "x" : " "}] ${t.text}`, t, "YYYY-MM-DD") +
+						(t.continuations?.length ? "  " : ""),
+					...(t.continuations ?? []),
+				].join("\n"),
+			)
 			.join("\n"),
 	});
 	dialog.createEl("button", { text: "Close" }).onclick = () => {

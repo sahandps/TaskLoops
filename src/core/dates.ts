@@ -171,3 +171,17 @@ export function weekLabel(iso: string, weekStart = 1): string {
 		});
 	return fmt(days[0]) + " – " + fmt(days[6]);
 }
+
+/** ISO 8601 week/year: Monday starts the week and week 1 contains January 4. */
+export function isoWeek(iso: string): { week: number; year: number } {
+	const day = new Date(iso + "T00:00:00Z");
+	day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
+	const year = day.getUTCFullYear();
+	const start = new Date(Date.UTC(year, 0, 1));
+	return { week: Math.ceil(((day.getTime() - start.getTime()) / 86400000 + 1) / 7), year };
+}
+
+export function weekNumberLabel(iso: string): string {
+	const { week, year } = isoWeek(iso);
+	return `Week ${week}` + (year !== Number(iso.slice(0, 4)) ? ` (${year})` : "");
+}

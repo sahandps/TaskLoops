@@ -18,6 +18,8 @@ import {
 	todayISO,
 	weekdayNames,
 	weekLabel,
+	isoWeek,
+	weekNumberLabel,
 } from "../../core/dates";
 
 /** Resolve a vertical pointer position to a five-minute local start time. */
@@ -96,7 +98,14 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 				: view.scale === "month" || view.scale === "gantt"
 					? monthLabel(monthKey(view.anchor))
 					: view.anchor.slice(0, 4);
-	root.createEl("h3", { cls: "tl-calendar-heading", text: label });
+	root.createEl("h3", {
+		cls: "tl-calendar-heading",
+		text:
+			label +
+			(view.scale === "day" || view.scale === "week" || view.scale === "timeline"
+				? ` · ${weekNumberLabel(view.anchor)}`
+				: ""),
+	});
 	const content = root.createDiv("tl-calendar-content");
 	if (view.scale !== "year") {
 		view.disposeCalendar = renderLibraryPlanner(content, tasks, {
@@ -183,6 +192,12 @@ function renderMonth(
 			view.setScale("day");
 		};
 		if (mini) {
+			if (new Date(day + "T12:00:00").getDay() === view.plugin.settings.weekStart)
+				head.createSpan({
+					cls: "tl-mini-week-number",
+					text: "W" + isoWeek(day).week,
+					attr: { title: "ISO week " + isoWeek(day).week },
+				});
 			if (daily.length) {
 				const dots = head.createSpan({
 					cls: "tl-day-dots",

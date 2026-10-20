@@ -1,3 +1,7 @@
+import { isDeferred } from "../../core/task-deferral";
+import { shiftISO } from "../../core/dates";
+import { overdueDays } from "../../core/task-review";
+import { todayISO } from "../../core/dates";
 import { renderCompletionCheckbox } from "./completion-checkbox";
 import type { ScannedTask } from "../../core/types";
 import type { TaskActions } from "../../application/task-actions";
@@ -10,10 +14,13 @@ export function renderTaskCard(
 	actions: TaskActions,
 	edit: (task: ScannedTask) => void,
 	makeDraggable: (card: HTMLElement, task: ScannedTask) => void,
+	defer: (task: ScannedTask) => void,
 ): HTMLElement {
+	const late = overdueDays(task, todayISO());
 	const card = parent.createDiv(
 		"tl-task" +
 			(task.checked ? " is-done" : "") +
+			(late ? " is-overdue" : "") +
 			(compact ? " is-compact" : "") +
 			(task.parentId ? " is-subtask" : ""),
 	);
@@ -35,6 +42,11 @@ export function renderTaskCard(
 		attr: { "aria-label": "Schedule " + task.text },
 	});
 	schedule.onclick = open;
+	if (late)
+		content.createSpan({
+			cls: "tl-overdue-label",
+			text: `${late} ${late === 1 ? "day" : "days"} overdue`,
+		});
 	const details = [
 		task.due ? formatDate(task.due, actions.settings.dateFormat) : "No date",
 		task.deadline ? "Deadline: " + formatDate(task.deadline, actions.settings.dateFormat) : undefined,
@@ -58,6 +70,29 @@ export function renderTaskCard(
 				"aria-label": "Open " + task.path + " in a new tab",
 			},
 		}).onclick = () => void actions.reveal(task);
+	if (isDeferred(task)) {
+		const reason = content.createDiv("tl-deferral-reason");
+		reason.createDiv({ cls: "tl-deferral-reason-label", text: "Can’t schedule now" });
+		reason.createDiv({ text: task.deferral!.reason });
+		const choices = content.createDiv("tl-scheduling-alternatives");
+		choices.createSpan({ text: "Try a date", cls: "tl-field-hint" });
+		for (const [label, offset] of [
+			["Today", 0],
+			["Tomorrow", 1],
+			["Next week", 7],
+		] as const)
+			choices.createEl("button", {
+				text: label,
+				attr: { "aria-label": `Schedule ${task.text} ${label.toLowerCase()}` },
+			}).onclick = () => void actions.schedule(task, { due: shiftISO(todayISO(), offset) });
+		choices.createEl("button", { text: "Choose date…" }).onclick = open;
+	}
+	if (!task.checked)
+		content.createEl("button", {
+			cls: "tl-defer-task",
+			text: isDeferred(task) ? "Edit reason" : "Can’t schedule now",
+			attr: { "aria-label": `Record why ${task.text} can’t be scheduled` },
+		}).onclick = () => defer(task);
 	if (!task.checked) makeDraggable(card, task);
 	return card;
 }

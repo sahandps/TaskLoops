@@ -1,3 +1,4 @@
+import { isoWeek } from "../../core/dates";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { createCalendarCreationHandlers } from "./creation-handlers";
 import {
@@ -18,7 +19,7 @@ export function renderEventCalendar(
 	tasks: ScannedTask[],
 	options: PlannerOptions,
 ): () => void {
-	const host = root.createDiv("tl-library-planner");
+	const host = root.createDiv("tl-library-planner tl-" + options.scale + "-view");
 	const scheduled = tasks.filter((task) => task.due);
 	const lookup = new Map(tasks.map((task) => [task.id, task]));
 	const update = (info: Calendar.EventDropInfo | Calendar.EventResizeInfo) => {
@@ -46,6 +47,9 @@ export function renderEventCalendar(
 						? "timeGridDay"
 						: "timeGridWeek",
 		date: options.anchor,
+		weekNumbers: true,
+		weekNumberContent: (info) => "W" + isoWeek(localDay(info.date)).week,
+		dayHeaderFormat: options.scale === "day" ? { weekday: "long" } : { weekday: "short", day: "numeric" },
 		headerToolbar: { start: "", center: "", end: "" },
 		firstDay: options.settings.weekStart as 0 | 1 | 6,
 		height: "100%",
@@ -83,13 +87,17 @@ export function renderEventCalendar(
 		eventContent: (info) => {
 			const task = lookup.get(String(info.event.id));
 			if (!task) return { domNodes: [] };
-			const content = host.createDiv("tl-calendar-event-content");
+			const content = host.createDiv(
+				"tl-calendar-event-content " + (info.event.allDay ? "is-all-day" : "is-timed"),
+			);
+			content.title = task.text + (info.timeText && !info.event.allDay ? " · " + info.timeText : "");
 			// EventCalendar attaches the returned content to the event body.
 			content.remove();
 			renderCompletionCheckbox(content, task, options.complete);
-			if (!info.event.allDay && info.timeText)
-				content.createEl("time", { cls: "ec-event-time", text: info.timeText });
 			content.createEl("h4", { cls: "ec-event-title", text: task.text });
+			const minutes = (info.event.end.getTime() - info.event.start.getTime()) / 60000;
+			if (!info.event.allDay && info.timeText && minutes > 30)
+				content.createEl("time", { cls: "ec-event-time", text: info.timeText });
 			return { domNodes: [content] };
 		},
 		eventClick: (info) => {

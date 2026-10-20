@@ -21,3 +21,12 @@ export { selectionSchedule } from "../src/core/planner-schedule.ts";
 export { createCalendarCreationHandlers } from "../src/gui/calendar/creation-handlers.ts";
 
 export { renderCompletionCheckbox } from "../src/gui/components/completion-checkbox.ts";
+
+export * from "../src/core/task-review.ts";
+
+export * from "../src/core/task-deferral.ts";
+export { isoWeek } from "../src/core/dates.ts";
+
+export { todayISO } from "../src/core/dates.ts";
+
+export { weekNumberLabel } from "../src/core/dates.ts";

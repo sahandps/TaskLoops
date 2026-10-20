@@ -1,6 +1,7 @@
+import { overdueDays } from "./task-review";
 import type { ScannedTask } from "./types";
 
-export type NoteFilter = "all" | "open" | "today" | "undated";
+export type NoteFilter = "all" | "open" | "today" | "undated" | "overdue";
 export interface NoteGroup {
 	path: string;
 	tasks: ScannedTask[];
@@ -37,10 +38,22 @@ export function noteGroups(
 					entries.some(
 						(t) =>
 							!t.checked &&
-							(filter === "open" || (filter === "today" ? t.due === today : !t.due)),
+							(filter === "open" ||
+								(filter === "overdue"
+									? overdueDays(t, today) > 0
+									: filter === "today"
+										? t.due === today
+										: !t.due)),
 					)),
 		)
-		.map(([path, entries]) => ({ path, tasks: entries, open: entries.filter((t) => !t.checked).length }))
+		.map(([path, entries]) => ({
+			path,
+			tasks:
+				filter === "overdue"
+					? [...entries].sort((a, b) => overdueDays(b, today) - overdueDays(a, today))
+					: entries,
+			open: entries.filter((t) => !t.checked).length,
+		}))
 		.sort(
 			(a, b) =>
 				(a.path.split("/").pop() ?? a.path).localeCompare(b.path.split("/").pop() ?? b.path) ||

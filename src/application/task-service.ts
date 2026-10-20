@@ -1,7 +1,9 @@
+import { deferBlock, resolveDeferral, validateDeferralReason } from "../core/task-deferral";
+import { todayISO } from "../core/dates";
 import { App, TFile, normalizePath } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
-import { appendTask, validSchedule, writeSchedule } from "../core/schedule";
-import { setCheckboxDone, setTaskSchedule } from "../infrastructure/obsidian/task-repository";
+import { validSchedule, writeSchedule } from "../core/schedule";
+import { setCheckboxDone } from "../infrastructure/obsidian/task-repository";
 import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/note-transaction";
 import { existingSubtaskCandidates } from "../core/existing-tasks";
 import {
@@ -57,13 +59,13 @@ export class TaskService {
 		await this.enqueue(async () => {
 			if (!validSchedule(schedule)) throw new Error("Choose a date before setting time or duration.");
 			const current = this.current(task);
-			const expected = writeSchedule(current.raw, schedule, this.settings.dateFormat);
-			if (
-				expected !== current.raw &&
-				!(await setTaskSchedule(this.app, current, schedule, this.settings.dateFormat))
-			) {
-				throw new Error("The task changed or moved ambiguously. Refresh and try again.");
-			}
+			const file = this.app.vault.getAbstractFileByPath(current.path);
+			if (!(file instanceof TFile)) throw new Error("The source note no longer exists.");
+			await this.app.vault.process(file, (content) => {
+				const block = taskBlock(content, current).lines;
+				block[0] = writeSchedule(block[0], schedule, this.settings.dateFormat);
+				return replaceTaskBlock(content, current, resolveDeferral(block, schedule.due, todayISO()));
+			});
 			// Clear a legacy fallback only after the Markdown operation succeeds.
 			if (this.items[current.id]?.due) {
 				delete this.items[current.id].due;
@@ -89,7 +91,30 @@ export class TaskService {
 		return completed;
 	}
 
-	async createTask(text: string, path: string, schedule: Schedule): Promise<boolean> {
+	async deferTask(task: ScannedTask, reason: string): Promise<boolean> {
+		let saved = false;
+		await this.enqueue(async () => {
+			validateDeferralReason(reason);
+			const current = this.current(task);
+			if (current.checked) throw new Error("Completed tasks cannot be deferred.");
+			const file = this.app.vault.getAbstractFileByPath(current.path);
+			if (!(file instanceof TFile)) throw new Error("The source note no longer exists.");
+			await this.app.vault.process(file, (content) => {
+				const block = taskBlock(content, current).lines;
+				block[0] = writeSchedule(block[0], {}, this.settings.dateFormat);
+				return replaceTaskBlock(content, current, deferBlock(block, reason));
+			});
+			if (this.items[current.id]?.due) {
+				delete this.items[current.id].due;
+				await this.host.saveSettings();
+			}
+			await this.host.reloadWrittenFile(current.path);
+			saved = true;
+		});
+		return saved;
+	}
+
+	async createTask(text: string, path: string, schedule: Schedule, reason?: string): Promise<boolean> {
 		if (schedule.time && schedule.duration === undefined)
 			schedule = { ...schedule, duration: this.settings.defaultDuration ?? 30 };
 		let created = false;
@@ -98,16 +123,21 @@ export class TaskService {
 			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
 			path = normalizePath(path);
 			if (!path.endsWith(".md")) throw new Error("Choose a Markdown note.");
+			if (reason !== undefined) {
+				validateDeferralReason(reason);
+				if (schedule.due) throw new Error("A deferred task must be unscheduled.");
+			}
 			const raw = "- [ ] " + text.trim();
-			const line = schedule.due ? writeSchedule(raw, schedule, this.settings.dateFormat) : raw;
+			const base = schedule.due ? writeSchedule(raw, schedule, this.settings.dateFormat) : raw;
+			const line = reason !== undefined ? deferBlock([base], reason).join("\n") : base;
 			const file = this.app.vault.getAbstractFileByPath(path);
 			if (file instanceof TFile)
-				await this.app.vault.process(file, (content) => appendTask(content, line));
+				await this.app.vault.process(file, (content) => appendTaskBlock(content, line.split("\n")));
 			else if (!file && path === normalizePath(this.settings.standaloneNote)) {
 				const folder = path.split("/").slice(0, -1).join("/");
 				if (folder && !this.app.vault.getAbstractFileByPath(folder))
 					await this.app.vault.createFolder(folder);
-				await this.app.vault.create(path, appendTask("", line));
+				await this.app.vault.create(path, appendTaskBlock("", line.split("\n")));
 			} else throw new Error("The selected note no longer exists.");
 			created = true;
 			await this.host.reloadWrittenFile(path);

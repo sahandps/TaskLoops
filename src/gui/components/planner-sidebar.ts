@@ -1,3 +1,5 @@
+import { reviewTasks } from "../../core/task-review";
+import { todayISO } from "../../core/dates";
 import { setIcon } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -9,10 +11,17 @@ export function renderPlannerSidebar(
 	state: TaskViewState,
 	renderCard: (parent: HTMLElement, task: ScannedTask) => HTMLElement,
 	onChange: () => void,
+	onDefer: () => void,
 	dropTarget: (el: HTMLElement, onDrop: (task: ScannedTask, event: DragEvent) => void) => void,
 ): { matching: ScannedTask[]; list: HTMLElement; search: HTMLInputElement } {
 	const side = layout.createEl("aside", { cls: "tl-sidebar", attr: { "aria-label": "Tasks by note" } });
-	const tasks = actions.allTasks().filter((task) => state.showDone || !task.checked);
+	const { matching, listed, overdueCount, deferredCount } = reviewTasks(
+		actions.allTasks(),
+		state.query,
+		state.showDone,
+		state.taskFilter,
+		todayISO(),
+	);
 	const search = side.createEl("input", {
 		cls: "tl-search",
 		type: "search",
@@ -25,6 +34,40 @@ export function renderPlannerSidebar(
 		onChange();
 	};
 	const filters = side.createDiv("tl-filters");
+	const review = filters.createDiv({
+		cls: "tl-review-filters",
+		attr: { "aria-label": "Task list filters" },
+	});
+	for (const [value, text] of [
+		["all", "All"],
+		["undated", "Unscheduled"],
+		["overdue", "Overdue"],
+		["deferred", "Can’t schedule"],
+	] as const) {
+		const button = review.createEl("button", {
+			cls: "tl-review-filter" + (value === "overdue" && overdueCount ? " has-overdue" : ""),
+			text,
+			attr: {
+				"aria-pressed": String(state.taskFilter === value),
+				"aria-label":
+					value === "overdue"
+						? `Overdue tasks (${overdueCount})`
+						: value === "deferred"
+							? `Can’t schedule now (${deferredCount})`
+							: text + " tasks",
+			},
+		});
+		if (value === "overdue" || value === "deferred")
+			button.createSpan({
+				cls: "tl-filter-count",
+				text: String(value === "overdue" ? overdueCount : deferredCount),
+				attr: { "aria-hidden": "true" },
+			});
+		button.onclick = () => {
+			state.taskFilter = value;
+			onChange();
+		};
+	}
 	const doneLabel = filters.createEl("label");
 	const done = doneLabel.createEl("input", { type: "checkbox" });
 	done.checked = state.showDone;
@@ -33,20 +76,27 @@ export function renderPlannerSidebar(
 		state.showDone = done.checked;
 		onChange();
 	};
-	const undatedLabel = filters.createEl("label");
-	const undated = undatedLabel.createEl("input", { type: "checkbox" });
-	undated.checked = state.onlyUndated;
-	undatedLabel.createSpan({ text: "Unscheduled only" });
-	undated.onchange = () => {
-		state.onlyUndated = undated.checked;
-		onChange();
-	};
 	const unschedule = side.createDiv({ cls: "tl-unschedule", text: "Drop here to remove a schedule" });
 	dropTarget(unschedule, (task) => void actions.schedule(task, {}));
 	const list = side.createDiv("tl-task-list");
-	const q = state.query.trim().toLocaleLowerCase();
-	const matching = tasks.filter((task) => (task.text + " " + task.path).toLocaleLowerCase().includes(q));
-	const listed = matching.filter((task) => !state.onlyUndated || !task.due);
+	const q = state.query.trim();
+	if (state.taskFilter === "deferred") {
+		const heading = list.createDiv("tl-deferral-heading");
+		heading.createEl("h3", { text: "Can’t schedule now" });
+		heading.createEl("button", {
+			text: "+ Add task",
+			attr: { "aria-label": "Add a task that can’t be scheduled" },
+		}).onclick = onDefer;
+		list.createDiv({
+			cls: "tl-review-summary",
+			text: "Keep the reason here. Choose a date when you’re ready.",
+		});
+	}
+	if (state.taskFilter === "overdue" && listed.length)
+		list.createDiv({
+			cls: "tl-review-summary",
+			text: "Oldest first · Deadline takes priority over due date",
+		});
 	let path: string | undefined;
 	for (const task of listed) {
 		if (task.path !== path) {
@@ -73,11 +123,17 @@ export function renderPlannerSidebar(
 		list.createEl("p", {
 			cls: "tl-empty",
 			text:
-				state.onlyUndated && !q
-					? "No unscheduled tasks. Scheduled tasks are on the calendar."
-					: q
-						? "No matching tasks."
-						: "No tasks yet. Add a task or write a checkbox in any note.",
+				state.taskFilter === "deferred"
+					? "No waiting tasks match. Add a new or existing task and record the reason."
+					: state.taskFilter === "overdue"
+						? q
+							? "No overdue tasks match your search."
+							: "No overdue tasks."
+						: state.taskFilter === "undated" && !q
+							? "No unscheduled tasks. Scheduled tasks are on the calendar."
+							: q
+								? "No matching tasks."
+								: "No tasks yet. Add a task or write a checkbox in any note.",
 		});
 	return { matching, list, search };
 }

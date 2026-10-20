@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.5.5 — 2026-10-20
+
+- Add Can’t schedule now with new/existing task selection and a required reason.
+  Save the reason as an indented Markdown continuation, remove the current
+  schedule, and keep the task in its source note.
+- Offer Today, Tomorrow, Next week and custom dates beneath waiting tasks.
+  Scheduling from any planner/editor path resolves the active reason in the
+  same note write and records the action date and selected schedule date.
+  Preserve earlier reasons when a task is deferred again.
+- Fix Calendar text overflowing its event bar. Contain labels and checkboxes,
+  ellipsize all-day titles, prioritise and ellipsize timed titles and scroll narrow weeks.
+- Add ISO week numbers to planner headings, Month/Timeline and Year calendars.
+  Cover ISO week-year boundaries, leap days and daylight saving transitions.
+- Refresh manifest/package/README descriptions around the current calendar and
+  note-based planner. Remove obsolete methodology wording from current docs.
+
+- Add an Overdue filter with a search-aware task count beside All and
+  Unscheduled. Switching filters cannot combine overdue and undated conditions.
+- Show missed tasks independently of the visible calendar range, oldest final
+  date first. Preserve the calendar's search results when changing list filters.
+- Use the inclusive deadline when set, otherwise the due date. Today, future
+  dates, completed tasks and undated tasks are not overdue.
+- Mark overdue cards with a theme-aware border and days-overdue text.
+  Completion and rescheduling refresh the list and count through normal writes.
+- Add an Overdue filter to Notes and put overdue tasks first in matching notes,
+  keeping them visible before the note's preview limit.
+
+Validation: 697 automated checks, TypeScript, ESLint, formatting and production
+build pass. Browser checks cover finding a task outside the calendar's current
+week, deadline-based age, search counts, completion removal, empty states and
+Notes filtering, new/existing deferral popups, schedule alternatives and the
+resulting Markdown history. Date tests include inclusive deadlines, ISO weeks,
+leap days and DST. Deferral tests cover stale writes, CRLF, quotes, numbered
+lists, preserved children and atomic scheduling/history updates.
+
 ## 0.5.4 — 2026-10-20
 
 - Redesign task creation and editing with a shared minimal dialog layout:

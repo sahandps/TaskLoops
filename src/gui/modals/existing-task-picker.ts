@@ -15,7 +15,7 @@ export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
 		this.setPlaceholder("Search tasks in " + this.plugin.noteName(tasks[0]?.path ?? "this note") + "…");
 		this.setInstructions([
 			{ command: "↑ ↓", purpose: "navigate tasks" },
-			{ command: "↵", purpose: "select subtask" },
+			{ command: "↵", purpose: "select task" },
 			{ command: "esc", purpose: "cancel" },
 		]);
 	}
@@ -23,7 +23,7 @@ export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
 		return this.tasks;
 	}
 	getItemText(task: ScannedTask): string {
-		return task.text;
+		return task.text + " " + task.path;
 	}
 	renderSuggestion(match: { item: ScannedTask }, el: HTMLElement): void {
 		const task = match.item;
@@ -38,7 +38,10 @@ export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
 		]
 			.filter(Boolean)
 			.join(" · ");
-		el.createDiv({ cls: "tl-picker-meta", text: schedule + " · Line " + (task.line + 1) });
+		el.createDiv({
+			cls: "tl-picker-meta",
+			text: task.path + " · " + schedule + " · Line " + (task.line + 1),
+		});
 	}
 	onChooseItem(task: ScannedTask): void {
 		this.onPick(task);

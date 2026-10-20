@@ -1,3 +1,4 @@
+import { TaskDeferralModal } from "../modals/task-deferral";
 import { TaskDragController } from "../interactions/task-drag-controller";
 import type { TaskViewState } from "./view-state";
 import { renderNotesView } from "./notes-view";
@@ -18,7 +19,7 @@ export class TaskLoopsView extends ItemView {
 	private state: TaskViewState = {
 		query: "",
 		showDone: false,
-		onlyUndated: true,
+		taskFilter: "undated",
 		mode: "planner",
 		noteFilter: "open",
 		folder: null,
@@ -151,6 +152,7 @@ export class TaskLoopsView extends ItemView {
 			this.state,
 			(parent, task) => this.card(parent, task),
 			() => this.render(),
+			() => new TaskDeferralModal(this.app, this.plugin).open(),
 			(element, onDrop) => this.dropTarget(element, onDrop),
 		);
 		const divider = layout.createDiv({
@@ -195,6 +197,7 @@ export class TaskLoopsView extends ItemView {
 			this.plugin,
 			(task) => new TaskEditorModal(this.app, this.plugin, task).open(),
 			(card, task) => this.dragController.makeDraggable(card, task),
+			(task) => new TaskDeferralModal(this.app, this.plugin, task).open(),
 		);
 	}
 

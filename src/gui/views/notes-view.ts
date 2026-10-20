@@ -43,6 +43,7 @@ export function renderNotesView(
 		["all", "All task notes"],
 		["open", "With open tasks"],
 		["today", "Due today"],
+		["overdue", "Overdue"],
 		["undated", "Undated tasks"],
 	] as const) {
 		filters.createEl("button", {

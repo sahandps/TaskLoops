@@ -28,7 +28,14 @@ export interface Schedule {
 	duration?: number;
 }
 
+export interface TaskDeferral {
+	reason: string;
+	scheduledOn?: string;
+	scheduledFor?: string;
+}
+
 export interface ScannedTask extends Schedule {
+	deferral?: TaskDeferral;
 	id: string;
 	path: string;
 	line: number;

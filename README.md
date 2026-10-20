@@ -18,9 +18,29 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.4 — clearer, quieter task dialogs.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.5 — overdue review, waiting reasons and clearer calendars.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.5
+
+- **Can’t schedule now:** add a new task or choose an existing one and record
+  the reason. It stays beneath the checkbox in its source note. Choose Today,
+  Tomorrow, Next week or a custom date when ready; scheduling retains the reason
+  and records when you scheduled it and the date you chose.
+- **Readable calendar events:** text stays inside its bar, all-day labels use
+  an ellipsis, timed labels prioritise the title, and narrow weeks scroll.
+  The full wording remains in the tooltip and task editor.
+- **Week numbers:** ISO weeks appear in Day/Week/Timeline headings, Month rows
+  and the Year overview, including the correct week year at New Year.
+
+Select **Overdue** beside All and Unscheduled to find unfinished tasks whose
+final day has passed, even when they are outside the calendar’s visible dates.
+The count follows your search, and the oldest tasks appear first with a
+**days overdue** label. A deadline takes priority over the due date; its final
+day is included, so tasks due today are not overdue. Completed and undated tasks
+are excluded. Notes also has an Overdue filter that puts missed tasks first.
+Complete a task or change its schedule to remove it from the overdue list.
 
 ## What’s new in 0.5.4
 
@@ -109,8 +129,8 @@ durations and overlaps. Drag to schedule and use the bottom handle to resize.
 ### Edit a task and its subtasks
 
 Open a task to change its text or schedule, pick a project note, and add subtasks.
-**Jump to task in note** opens the source at the task's line in a new tab.
-**Open project note** opens the currently selected destination in a new tab.
+**View in note** opens the source at the task's line in a new tab.
+**Open note** opens the currently selected destination in a new tab.
 Navigation does not save or discard the dialog's unsaved edits. New destinations
 must be saved before they can be opened. The Add task dialog also has the
 project-note link.
@@ -119,7 +139,7 @@ project-note link.
 
 ### Search your project notes
 
-Use **Choose project note…** to search existing notes. The selected note path is
+Use **Change note…** to search existing notes. The selected note path is
 shown separately; **Add task** writes into that note. When it has no Tasks
 section, TaskLoops appends the following at the end of the existing content:
 
@@ -174,7 +194,7 @@ metadata cache so frontmatter and fenced code examples do not become tasks.
 The sidebar groups them by note name, alphabetically, and preserves source-line
 order within each note. Full paths distinguish notes with the same name.
 
-Search by task text or note path. **Unscheduled only** is enabled by default: adding a due date removes a task
+Search by task text or note path. **Unscheduled** is selected by default: adding a due date removes a task
 from the sidebar while keeping it on the calendar. Clear the filter to include
 scheduled tasks in the sidebar again. **Show completed** includes completed
 tasks in both places. Completed tasks are hidden by default.
@@ -250,6 +270,32 @@ An existing mobile sidebar instance is moved to the main area when restored or
 opened. A week-based planner initially opens in Day view on mobile; Week remains
 available from the calendar scale controls. Desktop opening keeps its existing
 sidebar/main-tab options.
+
+## Can’t schedule now
+
+Select **Can’t schedule → + Add task** and choose New task or Existing task.
+Enter a short reason and select **Save reason**. Existing tasks stay in their
+source note; any current schedule is removed. Cancel makes no changes.
+The reason is an indented continuation beneath the checkbox, like Shift+Enter:
+
+```markdown
+- [ ] Book the supplier visit
+    Can't schedule now: Waiting for confirmed availability
+```
+
+The task card offers **Today**, **Tomorrow**, **Next week** and **Choose date…**.
+These are date choices, not claims that your calendar is free. Scheduling through
+these buttons, the editor, drag/drop or Gantt resolves the reason in the same
+note write and retains the history:
+
+```markdown
+- [ ] Book the supplier visit - Due date: 2026-10-23
+    Can't schedule now: Waiting for confirmed availability — Scheduled on 2026-10-20 for 2026-10-23
+```
+
+The task then leaves Can’t schedule now. Deferring it again preserves previous
+resolved reasons. Completing it also removes it from that section. Ordinary
+unscheduled tasks and waiting tasks have separate filters; All includes both.
 
 ## Dates, times and durations
 
@@ -327,7 +373,7 @@ mobile, open the task editor and select **Save changes**.
 Click a task title, its card, schedule details or **⋯** to open **Edit task**.
 The popup lets you change its wording, choose its project note, edit its
 schedule, and add subtasks. Changes are applied only when you select
-**Save changes**; **Cancel** discards the draft. **Remove schedule** clears the
+**Save changes**; **Cancel** discards the draft. **Clear schedule** clears the
 form's scheduling fields and is applied when you save.
 
 Existing direct subtasks are clickable rows in the popup: select one to open
@@ -411,9 +457,9 @@ it rolls back its destination write when safe. If another edit prevents a safe
 rollback, both copies remain and a notice tells you to review them; no external
 edit is overwritten.
 
-## Upgrading from the GTD planner
+## Upgrading from earlier versions
 
-The GTD lists, board, contexts, priorities and clarification wizard have been
+Earlier task lists, boards, contexts, priorities and clarification flows have been
 removed. Tasks are now grouped by their source notes; old project links do not
 move tasks between notes.
 
