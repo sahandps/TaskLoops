@@ -1,3 +1,4 @@
+import { captureTimeGridViewport } from "../interactions/calendar-viewport";
 import { renderTodayView } from "./today-view";
 import { attachTodayClock } from "../interactions/today-clock";
 import { applyPlannerTheme } from "../components/planner-theme";
@@ -121,6 +122,7 @@ export class TaskLoopsView extends ItemView {
 			":" +
 			this.plugin.settings.startHour;
 		const preserveCalendar = this.calendarKey === nextCalendarKey;
+		const timeViewport = preserveCalendar ? captureTimeGridViewport(root) : undefined;
 		const calendarScroll = preserveCalendar
 			? root.querySelector(".tl-calendar-content")?.scrollTop
 			: undefined;
@@ -196,7 +198,7 @@ export class TaskLoopsView extends ItemView {
 			},
 		});
 		const main = layout.createEl("main", { cls: "tl-calendar", attr: { "aria-label": "Task calendar" } });
-		renderCalendar(main, this, matching);
+		renderCalendar(main, this, matching, timeViewport);
 		this.disposeDivider = addPanelDivider(layout, divider, {
 			width: this.plugin.settings.panelWidth ?? 260,
 			height: this.plugin.settings.panelHeight ?? 220,

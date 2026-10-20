@@ -57,3 +57,5 @@ export {renderViewHeader} from "../src/gui/components/view-header.ts";
 export {shiftISO} from "../src/core/dates.ts";
 
 export {timedDropMinutes,crossGridSchedule} from "../src/core/planner-schedule.ts";
+
+export * from "../src/gui/interactions/calendar-viewport.ts";

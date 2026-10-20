@@ -1,3 +1,4 @@
+import type { TimeGridViewport } from "../interactions/calendar-viewport";
 import type { ScannedTask } from "../../core/types";
 import type { TaskLoopsView } from "../views/taskloops-view";
 import { renderLibraryPlanner } from "./planner";
@@ -59,7 +60,12 @@ function tasksOn(tasks: ScannedTask[], day: string): ScannedTask[] {
 		);
 }
 
-export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: ScannedTask[]): void {
+export function renderCalendar(
+	root: HTMLElement,
+	view: TaskLoopsView,
+	tasks: ScannedTask[],
+	timeViewport?: TimeGridViewport,
+): void {
 	const toolbar = root.createDiv("tl-calendar-toolbar");
 	const scales = toolbar.createDiv("tl-scales");
 	for (const [scale, label] of [
@@ -113,6 +119,7 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 			scale: view.scale,
 			anchor: view.anchor,
 			settings: view.plugin.settings,
+			timeViewport,
 			saveZoom: (size) => {
 				view.plugin.settings.timeSlotHeight = size;
 				void view.plugin.saveSettings();

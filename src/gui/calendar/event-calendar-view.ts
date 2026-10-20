@@ -1,3 +1,4 @@
+import { viewportScrollTime, restoreTimeGridViewport } from "../interactions/calendar-viewport";
 import { attachCalendarZoom } from "../interactions/calendar-zoom";
 import { isoWeek } from "../../core/dates";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
@@ -66,7 +67,9 @@ export function renderEventCalendar(
 		firstDay: options.settings.weekStart as 0 | 1 | 6,
 		height: "100%",
 		nowIndicator: true,
-		scrollTime: String(options.settings.startHour).padStart(2, "0") + ":00:00",
+		scrollTime: options.timeViewport
+			? viewportScrollTime(options.timeViewport)
+			: String(options.settings.startHour).padStart(2, "0") + ":00:00",
 		slotDuration: "00:30:00",
 		slotHeight:
 			options.scale === "day" || options.scale === "week"
@@ -128,6 +131,11 @@ export function renderEventCalendar(
 		eventResize: update,
 		...creationHandlers,
 	});
+	const disposeViewport = restoreTimeGridViewport(
+		host,
+		options.timeViewport,
+		options.settings.timeSlotHeight ?? 24,
+	);
 	const disposeZoom =
 		options.scale === "day" || options.scale === "week"
 			? attachCalendarZoom(
@@ -143,6 +151,7 @@ export function renderEventCalendar(
 		return { due: localDay(info.date), ...(!info.allDay ? { time: localTime(info.date) } : {}) };
 	});
 	return () => {
+		disposeViewport();
 		disposeZoom();
 		void destroyCalendar(calendar);
 	};

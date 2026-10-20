@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.15 — 2026-10-20
+
+- Fix calendar jumps after moving/resizing zoomed events. Capture EventCalendar's
+  actual TimeGrid scroller before rendering instead of only the outer container.
+- Seed the replacement calendar's scrollTime from the captured viewport so its
+  initial layout opens at the same hour. Restore exact fractional and horizontal
+  offsets before paint, after vendor layout, and cancel restoration on disposal.
+- Scale saved offsets with slot height to retain the visible time when zoom
+  settings change. Date/scale/opening-hour changes still use the configured start.
+- Keep viewport snapshots in the render lifecycle without persisted records or
+  note/property writes. Preserve the existing outer scroll behavior for other views.
+
+Validation: 959 checks across 34 suites, TypeScript, ESLint, formatting and build
+pass. Added cases cover the actual pinned vendor opening layout, inner scroll
+capture, zoom scaling, fractional/zero offsets, first mount and cancellation.
+Browser checks at slot height 55 retain scrollTop 1145 exactly after both moving
+and resizing an event, retain 2030.5 through refresh, and reset to the configured
+opening hour when navigating to a different week.
+
+
 ## 0.5.14 — 2026-10-20
 
 - Enable Day/Week dragging between all-day and timed rows. Adapt the pinned

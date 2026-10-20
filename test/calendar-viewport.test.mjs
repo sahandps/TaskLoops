@@ -1,0 +1,35 @@
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {createSuite} from './harness.mjs';
+export default async function run(mod) {
+ const {eq,results}=createSuite('zoomed calendar viewport across task saves');
+ const frames=new Map();let seq=0;
+ const win={requestAnimationFrame:fn=>{frames.set(++seq,fn);return seq;},cancelAnimationFrame:id=>frames.delete(id)};
+ const scroller={scrollTop:1234.5,scrollLeft:240,style:{getPropertyValue:()=> '56px'}};
+ const root={ownerDocument:{defaultView:win},querySelector:s=>s==='.ec-time-grid > .ec-main'?scroller:null};
+ const flush=()=>{for(const [id,fn] of [...frames]){frames.delete(id);fn();}};
+ const saved=mod.captureTimeGridViewport(root);
+ eq(saved,{top:1234.5,left:240,slotHeight:56},'capture uses the internal time grid and retains fractional offsets');
+ eq(mod.captureTimeGridViewport({querySelector:()=>null}),undefined,'new calendars and other view types have no stale time viewport');
+ scroller.style.getPropertyValue=()=>'';eq(mod.captureTimeGridViewport(root),undefined,'missing slot geometry does not invent an opening position');scroller.style.getPropertyValue=()=> '56px';
+ const duration=mod.viewportScrollTime(saved);
+ eq(Math.abs((duration.seconds/1800-0.5)*56-saved.top)<1e-8,true,'initial opening scroll exactly inverts the vendor formula');
+ eq(Math.abs((duration.seconds/1800-0.5)*72-saved.top*72/56)<1e-8,true,'a changed zoom preserves the visible hour instead of the old pixel offset');
+ scroller.scrollTop=0;scroller.scrollLeft=0;
+ const dispose=mod.restoreTimeGridViewport(root,saved,56);
+ eq(scroller.scrollTop,0,'restoration waits for vendor layout');flush();
+ eq([scroller.scrollTop,scroller.scrollLeft],[1234.5,240],'event move/save returns to the same zoomed time and weekday');
+ scroller.scrollTop=0;mod.restoreTimeGridViewport(root,saved,72);flush();
+ eq(scroller.scrollTop,saved.top*72/56,'settings-triggered redraw keeps the time at a new zoom');
+ const current=scroller.scrollTop;const cancel=mod.restoreTimeGridViewport(root,{...saved,top:50},56);cancel();flush();
+ eq(scroller.scrollTop,current,'disposed redraw cannot overwrite a newer viewport');
+ const count=frames.size;mod.restoreTimeGridViewport(root,undefined,24);eq(frames.size,count,'new date/scale uses its configured opening hour without restoration');
+ mod.restoreTimeGridViewport(root,{top:0,left:0,slotHeight:56},56);flush();eq([scroller.scrollTop,scroller.scrollLeft],[0,0],'midnight and first weekday are valid saved positions');
+ const raw=await readFile('node_modules/@event-calendar/core/dist/index.js','utf8');const ast=ts.createSourceFile('calendar.js',raw,ts.ScriptTarget.Latest,true);let initialScroll;
+ const walk=n=>{if(ts.isFunctionDeclaration(n)&&n.name?.text==='scrollToTime'&&n.getText(ast).includes('scrollTop')&&n.getText(ast).includes('slotHeight'))initialScroll=n.getText(ast);ts.forEachChild(n,walk);};walk(ast);
+ const vendor={mainEl:{scrollTop:0},scrollTime:duration,slotTimeLimits:{min:{seconds:0}},slotDuration:{seconds:1800},slotHeight:56,toSeconds:v=>v.seconds,$:{get:v=>v}};
+ vm.runInNewContext(initialScroll+'\nscrollToTime();',vendor);eq(Math.abs(vendor.mainEl.scrollTop-saved.top)<1e-8,true,'actual pinned vendor opening layout starts at the saved time before paint');
+ dispose();
+ return results;
+}

@@ -19,9 +19,19 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.14 — drag between all-day and timed calendar rows.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.15 — keep your place when editing zoomed calendar events.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.15
+
+- Moving or resizing a task in a zoomed Day/Week calendar keeps the same visible
+  time instead of jumping back to the configured opening hour.
+- Retain the time grid’s internal scroll position through edits, completion,
+  filters and refresh. Use that position for the first layout so the old opening
+  hour does not flash before restoration. Preserve the visible hour if zoom changes.
+- Navigating to a different date or calendar scale still uses your opening-hour
+  setting. Viewport snapshots are temporary and never written to notes or settings.
 
 ## What’s new in 0.5.14
 

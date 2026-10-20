@@ -1,3 +1,4 @@
+import type { TimeGridViewport } from "../interactions/calendar-viewport";
 import type { CalendarScale, ScannedTask, Schedule, TaskLoopsSettings } from "../../core/types";
 
 export interface PlannerOptions {
@@ -9,5 +10,6 @@ export interface PlannerOptions {
 	edit: (task: ScannedTask) => void;
 	create: (schedule: Schedule, path?: string) => void;
 	saveZoom?: (size: number) => void;
+	timeViewport?: TimeGridViewport;
 	dropTarget?: (element: HTMLElement, scheduleAt: (event: DragEvent) => Schedule | null) => void;
 }
