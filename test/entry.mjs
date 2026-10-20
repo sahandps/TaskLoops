@@ -55,3 +55,5 @@ export {attachTodayClock} from "../src/gui/interactions/today-clock.ts";
 export {renderViewHeader} from "../src/gui/components/view-header.ts";
 
 export {shiftISO} from "../src/core/dates.ts";
+
+export {timedDropMinutes,crossGridSchedule} from "../src/core/planner-schedule.ts";

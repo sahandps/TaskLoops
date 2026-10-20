@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.14 — 2026-10-20
+
+- Enable Day/Week dragging between all-day and timed rows. Adapt the pinned
+  EventCalendar interaction path to cross the original grid's viewport, preview
+  the new event type, scroll and commit/revert the all-day flag with its dates.
+- Convert a time-slot drop into a single-day timed block, replacing the old
+  deadline range. Retain sub-day effort or use Default task duration for spans
+  of a day or more. Returning to all-day clears time and the old date span.
+- Keep five-minute snap, ordinary same-grid moves, selection/edge-resize limits,
+  completed-task locking, source-note ownership and failed-save rollback.
+- Guard every vendor adaptation against the pinned upstream shape so dependency
+  changes fail the build for review. Production, preview and tests share it.
+
+Validation: 947 checks across 33 suites, TypeScript, ESLint, formatting and build
+pass. New tests execute the adapted vendor interaction functions for preview
+conversion, date/effort handling, grid bounds, selection/resize isolation, commit
+and revert. Browser checks cover both directions in Day, and a multi-day bar
+dropped into Wednesday 10:15 in Week, persisting a 30-minute timed task with the
+same source note and cleared range.
+
+
 ## 0.5.13 — 2026-10-20
 
 - Add Today to the main view switch and Default view setting. Use the current

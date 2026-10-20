@@ -1,0 +1,46 @@
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {crossGridCalendar} from '../scripts/calendar-build.mjs';
+import {createSuite} from './harness.mjs';
+export default async function run(mod) {
+ const {eq,results}=createSuite('native all-day and timed cross-grid dragging');
+ const task={due:'2026-10-20',duration:45,deadline:'2026-10-24'};
+ const start=new Date('2026-10-21T10:15:00');
+ eq(mod.crossGridSchedule(start,false,task,30),{due:'2026-10-21',time:'10:15',duration:45},'timed conversion replaces the old deadline span and keeps useful effort');
+ eq(mod.crossGridSchedule(start,true,{...task,time:'10:15'}),{due:'2026-10-21',duration:45},'all-day conversion clears time and old span');
+ eq(mod.timedDropMinutes({duration:4320},60),60,'day-sized spans use the configured timed duration');
+ eq(mod.timedDropMinutes({},30),30,'undated effort defaults to a useful timed duration');
+ eq(mod.timedDropMinutes({duration:1439},30),1439,'explicit sub-day effort is preserved');
+ eq(mod.crossGridSchedule(start,true,{duration:4320}),{due:'2026-10-21'},'a converted all-day event occupies the selected day');
+ const raw=await readFile('node_modules/@event-calendar/core/dist/index.js','utf8');
+ const adapted=crossGridCalendar(raw),ast=ts.createSourceFile('calendar.js',adapted,ts.ScriptTarget.Latest,true);
+ const functions=new Map();const visit=n=>{if(ts.isFunctionDeclaration(n)&&n.name&&['move','copyIEventData','updateIEvent','findDayEl','calcViewport'].includes(n.name.text)){if(n.name.text!=='move'||n.getText(ast).includes('newAllDay'))functions.set(n.name.text,n.getText(ast));}ts.forEachChild(n,visit);};visit(ast);
+ const runMove=(allDay,newAllDay,{minutes=45,action=1,payloadAllDay=allDay}={})=>{
+  const event={allDay,start:new Date('2026-10-20T00:00:00Z'),end:new Date('2026-10-21T00:00:00Z'),resourceIds:[],extendedProps:{taskloopsTimedMinutes:minutes}};
+  const c={event,iEvent:{...event},allDay:payloadAllDay,action,ACTION_DRAG:1,interacting:true,refused:false,mainState:{},iEvents:new Map(),iClass:'dragging',dragScroll:false,extraDuration:undefined,resizeConstraint:undefined,dragConstraint:undefined,resource:undefined,newResource:undefined,date:event.start,payload:{allDay:newAllDay,date:new Date(newAllDay?'2026-10-21T00:00:00Z':'2026-10-21T10:15:00Z')},$:{get:x=>x},unselect:()=>{},resizing:()=>action===2,resizingStart:()=>false,selecting:()=>action===3,findDayEl:()=>({}),findPayload:()=>c.payload,cloneDate:d=>new Date(+d),createDuration:v=>typeof v==='number'?{seconds:v}:v,addDuration:(d,v)=>new Date(+d+((v.seconds??0)+(v.minutes??0)*60)*1000),addDay:d=>{d.setUTCDate(d.getUTCDate()+1);return d;},setMidnight:d=>{d.setUTCHours(0,0,0,0);return d;}};
+  vm.runInNewContext([functions.get('copyIEventData'),functions.get('updateIEvent'),functions.get('move'),'move();'].join('\n'),c);return c;
+ };
+ const timed=runMove(true,false);
+ eq(timed.iEvent.allDay,false,'actual vendor preview switches to the timed grid');
+ eq(timed.iEvent.start.toISOString(),'2026-10-21T10:15:00.000Z','preview uses the hovered slot and day');
+ eq((timed.iEvent.end-timed.iEvent.start)/60000,45,'native preview matches the persisted duration');
+ eq(timed.event.allDay,true,'preview does not mutate the original event before release');
+ const allDay=runMove(false,true);eq(allDay.iEvent.allDay,true,'reverse drag previews in all-day');
+ eq(allDay.iEvent.start.toISOString(),'2026-10-21T00:00:00.000Z','all-day preview begins at the selected local calendar day');
+ eq(allDay.iEvent.end.toISOString(),'2026-10-22T00:00:00.000Z','all-day preview has an exclusive next-day end');
+ for(const opts of [{minutes:undefined,action:2},{action:3},{minutes:NaN}])eq(runMove(true,false,opts).iEvent.allDay,true,'resize, selection and unmarked events cannot cross grids');
+ eq(runMove(true,false,{minutes:NaN,payloadAllDay:false}).iEvent.allDay,true,'unmarked timeline payloads cannot change the original event type');
+ const same=runMove(true,true);eq(same.iEvent.allDay,true,'same-grid dragging retains its normal event type');
+ const inside={},outside={},fallback={},main={contains:e=>e===inside};
+ const point={action:1,ACTION_DRAG:1,event:{extendedProps:{taskloopsTimedMinutes:45}},toX:50,toY:500,mainEl:main,$:{get:x=>x},viewport:{left:0,right:100,top:0,bottom:100},limit:(v,lo,hi)=>Math.max(lo,Math.min(hi,v)),getElementWithPayload:(x,y)=>y===500?inside:fallback};
+ vm.runInNewContext(functions.get('findDayEl')+'\nresult=findDayEl();',point);eq(point.result===inside,true,'hover can reach the other grid beyond the original viewport');
+ point.getElementWithPayload=(x,y)=>y===500?outside:fallback;vm.runInNewContext('result=findDayEl();',point);eq(point.result===fallback,true,'direct hit testing cannot enter another calendar');
+ const viewport={action:1,ACTION_DRAG:1,event:{extendedProps:{taskloopsTimedMinutes:45}},mainEl:{offsetWidth:500,offsetHeight:600,clientWidth:500,clientHeight:600,scrollLeft:0,scrollTop:0},gridEl:{},allDaySlot:true,$:{get:x=>x},rect:e=>e===viewport.mainEl?{top:10,bottom:610,left:0,right:500,width:500,height:600}:{top:10,bottom:100,left:0,right:500,width:500,height:90},isRtl:()=>false,min:Math.min,max:Math.max,document:{documentElement:{clientHeight:1000,clientWidth:1000}}};
+ vm.runInNewContext(functions.get('calcViewport')+'\ncalcViewport();',viewport);eq([viewport.viewport.top,viewport.viewport.bottom],[10,608],'drag scrolling spans both calendar areas');
+ viewport.action=3;vm.runInNewContext('calcViewport();',viewport);eq(viewport.viewport.bottom,98,'selection retains its original all-day viewport');
+ let rejected=false;try{crossGridCalendar(raw.replace('if (newAllDay === allDay) {','if (upstreamChanged) {'));}catch{rejected=true;}eq(rejected,true,'upstream changes fail the build instead of silently breaking dragging');
+ const copied={};const context={target:copied,source:{allDay:false,start,end:start,resourceIds:[]}};vm.runInNewContext(functions.get('copyIEventData')+'\ncopyIEventData(target,source);',context);eq(copied.allDay,false,'commit and revert copy event type alongside dates');
+ context.source={allDay:true,start:new Date('2026-10-20T00:00:00Z'),end:new Date('2026-10-21T00:00:00Z'),resourceIds:[]};vm.runInNewContext('copyIEventData(target,source);',context);eq(copied.allDay,true,'reverting a failed drop restores the original event type');
+ return results;
+}

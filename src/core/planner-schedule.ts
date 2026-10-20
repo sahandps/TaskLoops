@@ -100,3 +100,18 @@ export function selectionSchedule(start: Date, end: Date, allDay: boolean): Sche
 		duration: Math.max(5, Math.round((end.getTime() - start.getTime()) / 60000)),
 	};
 }
+
+/** All-day spans need a useful time block rather than a 24-hour timed event. */
+export function timedDropMinutes(task: Schedule, fallback = 30): number {
+	return task.duration && task.duration > 0 && task.duration < 1440 ? task.duration : fallback;
+}
+
+/** Crossing the all-day boundary explicitly replaces the old date span. */
+export function crossGridSchedule(start: Date, allDay: boolean, task: Schedule, fallback = 30): Schedule {
+	return allDay
+		? {
+				due: localDay(start),
+				...(task.duration && task.duration < 1440 ? { duration: task.duration } : {}),
+			}
+		: { due: localDay(start), time: localTime(start), duration: timedDropMinutes(task, fallback) };
+}

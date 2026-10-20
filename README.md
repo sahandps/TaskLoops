@@ -19,9 +19,20 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.13 — a calm, mobile-friendly Today agenda.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.14 — drag between all-day and timed calendar rows.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.14
+
+- In Day and Week, drag an **all-day task into a time slot**, or drag a timed task
+  back into the **all-day row**. The drag preview follows the target area and
+  timed drops use the existing five-minute snap.
+- A time-slot drop creates a single-day time block and **replaces the old deadline
+  range**. Effort under 24 hours is retained; longer day-sized spans use your
+  **Default task duration**. Returning to all-day removes the time.
+- Normal moves and edge resizing keep their date-span behavior. Completed tasks
+  stay locked, and dragging does not move a task to another source note.
 
 ## What’s new in 0.5.13
 

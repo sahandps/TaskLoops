@@ -11,7 +11,15 @@ import {
 	Interaction,
 	type Calendar,
 } from "@event-calendar/core";
-import { localDay, localTime, taskInterval, eventSchedule, isAllDayTask } from "../../core/planner-schedule";
+import {
+	localDay,
+	localTime,
+	taskInterval,
+	eventSchedule,
+	isAllDayTask,
+	timedDropMinutes,
+	crossGridSchedule,
+} from "../../core/planner-schedule";
 import type { ScannedTask } from "../../core/types";
 import type { PlannerOptions } from "./contracts";
 
@@ -31,7 +39,10 @@ export function renderEventCalendar(
 		}
 		// Resource rows represent source notes, not a move between notes.
 		if ("newResource" in info && info.newResource) info.event.resourceIds = [task.path];
-		const schedule = eventSchedule(info.event.start, info.event.end, info.event.allDay, task);
+		const crossed = info.event.allDay !== info.oldEvent.allDay;
+		const schedule = crossed
+			? crossGridSchedule(info.event.start, info.event.allDay, task, options.settings.defaultDuration)
+			: eventSchedule(info.event.start, info.event.end, info.event.allDay, task);
 		if (info.event.allDay && "endDelta" in info) {
 			schedule.deadline = localDay(new Date(info.event.end.getTime() - 1));
 		}
@@ -76,6 +87,10 @@ export function renderEventCalendar(
 				allDay: isAllDayTask(task),
 				resourceIds: [task.path],
 				editable: !task.checked,
+				extendedProps:
+					options.scale === "day" || options.scale === "week"
+						? { taskloopsTimedMinutes: timedDropMinutes(task, options.settings.defaultDuration) }
+						: {},
 				classNames: task.checked ? ["tl-event-completed"] : [],
 			};
 		}),

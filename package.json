@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.5.13",
+  "version": "0.5.14",
   "description": "Plan Markdown tasks with calendars, timelines and Gantt charts. Track deadlines, find overdue tasks, and record why a task can't be scheduled yet.",
   "main": "main.js",
   "scripts": {
