@@ -14,7 +14,10 @@ export function renderPlannerSidebar(
 	onDefer: () => void,
 	dropTarget: (el: HTMLElement, onDrop: (task: ScannedTask, event: DragEvent) => void) => void,
 ): { matching: ScannedTask[]; list: HTMLElement; search: HTMLInputElement } {
-	const side = layout.createEl("aside", { cls: "tl-sidebar", attr: { "aria-label": "Tasks by note" } });
+	const side = layout.createEl("aside", {
+		cls: "tl-sidebar" + (state.taskFilter === "deferred" ? " tl-showing-deferred" : ""),
+		attr: { "aria-label": "Tasks by note" },
+	});
 	const { matching, listed, overdueCount, deferredCount } = reviewTasks(
 		actions.allTasks(),
 		state.query,

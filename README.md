@@ -18,9 +18,24 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.5 — overdue review, waiting reasons and clearer calendars.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.6 — defer from task dialogs and cleaner plugin packaging.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.6
+
+- Open **Can’t schedule now** directly from Add/Edit task. Save your wording,
+  destination and subtasks with the reason, or cancel back to your draft.
+- Replace flagged CSS with scoped selectors and compatible gap styling.
+- Disable the calendar library’s unused remote-feed transport in shipped builds.
+- Release downloads contain only `main.js`, `manifest.json` and `styles.css`.
+  Matching source remains available through GitHub’s automatic Source code archives.
+
+TaskLoops enumerates Markdown note paths to discover checkboxes across the vault.
+The scan-folder setting limits which notes are read. Vault enumeration is an
+expected capability disclosure. “Malware scan unavailable” and “Network requests
+scan unavailable” report the community scanner’s availability, not a successful
+scan; a new release must be scanned by that service before its report updates.
 
 ## What’s new in 0.5.5
 
@@ -602,7 +617,7 @@ are permitted under GPLv3. Distributing covered binaries requires supplying the
 corresponding source under GPLv3's terms. Private modifications do not need to
 be published. Copyright and license notices must be retained. See [NOTICE](NOTICE).
 
-The matching source archive is attached to each release; the repository also
+GitHub provides matching Source code archives for each release tag; the repository also
 contains the build instructions and dependency lockfile. Your own notes and
 tasks remain yours.
 

@@ -153,12 +153,20 @@ export class TaskService {
 		schedule: Schedule,
 		subtasks: string[] = [],
 		existing: ScannedTask[] = [],
+		reason?: string,
 	): Promise<boolean> {
-		if (existing.length) return this.editWithExisting(task, text, path, schedule, subtasks, existing);
+		if (existing.length)
+			return this.editWithExisting(task, text, path, schedule, subtasks, existing, reason);
 		let saved = false;
 		await this.enqueue(async () => {
+			if (reason !== undefined) {
+				validateDeferralReason(reason);
+				schedule = {};
+			}
 			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
 			const current = this.current(task);
+			if (reason !== undefined && current.checked)
+				throw new Error("Completed tasks cannot be deferred.");
 			const source = this.app.vault.getAbstractFileByPath(current.path);
 			if (!(source instanceof TFile)) throw new Error("The source note no longer exists.");
 			path = normalizePath(path);
@@ -167,7 +175,15 @@ export class TaskService {
 					replaceTaskBlock(
 						content,
 						current,
-						editedBlock(content, current, text, schedule, this.settings.dateFormat, subtasks),
+						editedBlock(
+							content,
+							current,
+							text,
+							schedule,
+							this.settings.dateFormat,
+							subtasks,
+							reason,
+						),
 					),
 				);
 			} else {
@@ -181,6 +197,7 @@ export class TaskService {
 					schedule,
 					this.settings.dateFormat,
 					subtasks,
+					reason,
 				);
 				let destination = this.app.vault.getAbstractFileByPath(path);
 				let before = "";
@@ -257,13 +274,20 @@ export class TaskService {
 		schedule: Schedule,
 		subtasks: string[],
 		existing: ScannedTask[],
+		reason?: string,
 	): Promise<boolean> {
 		let saved = false;
 		await this.enqueue(async () => {
+			if (reason !== undefined) {
+				validateDeferralReason(reason);
+				schedule = {};
+			}
 			if (!validSchedule(schedule)) throw new Error("Enter a valid schedule.");
 			validateWording(text);
 			subtasks.forEach(validateWording);
 			const parent = this.current(task);
+			if (reason !== undefined && parent.checked)
+				throw new Error("Completed tasks cannot be deferred.");
 			const children = existing.map((child) => this.current(child));
 			const selected: ScannedTask[] = [];
 			for (const child of children) {
@@ -302,6 +326,7 @@ export class TaskService {
 				schedule,
 				this.settings.dateFormat,
 				subtasks,
+				reason,
 			);
 			const ranges = [{ path: parent.path, start: parentBlock.start, end: parentBlock.end }];
 			for (const child of children) {

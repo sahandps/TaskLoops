@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.6 — 2026-10-20
+
+- Add Can’t schedule now to default Add/Edit task dialogs. Preserve draft wording,
+  destination, existing and pending subtasks when saving a reason; cancelling
+  returns to the unchanged draft. Reject deferral of completed tasks.
+- Remove `!important`, `:has()` and the flagged `column-gap` declaration from
+  generated and authored styles. Use scoped specificity, explicit view classes
+  and `gap`; preserve sticky Gantt date labels without inline overrides.
+- Disable EventCalendar’s unused remote-feed transport during production, preview
+  and test bundling. Upstream transport changes now require build-time review.
+- Attach only main.js, manifest.json and styles.css to releases. Retain GPL and
+  vendor notices in the repository/bundle and corresponding source through
+  GitHub’s automatic tag archives.
+- Document expected vault enumeration and external scanner availability messages.
+
+Validation: 719 checks across 24 suites, TypeScript, ESLint, formatting and
+production build pass. Browser checks cover both dialog shortcuts, cancel/back
+draft preservation, saving reasons with edited wording and pending subtasks, and
+Gantt sticky date headers. CSS checks reject the reported patterns; bundle checks
+verify disabled remote feeds and no outbound request API calls. The community
+scanner must run again before its public report reflects this release.
+
+
 ## 0.5.5 — 2026-10-20
 
 - Add Can’t schedule now with new/existing task selection and a required reason.

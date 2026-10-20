@@ -1,3 +1,4 @@
+import { localCalendarPlugin } from "./scripts/calendar-build.mjs";
 import { buildStyles } from "./scripts/styles.mjs";
 import esbuild from "esbuild";
 import process from "process";
@@ -12,6 +13,7 @@ buildStyles();
 const context = await esbuild.context({
 	entryPoints: ["src/main.ts"],
 	bundle: true,
+	plugins: [localCalendarPlugin()],
 	external: [
 		"obsidian",
 		"electron",

@@ -1,4 +1,4 @@
-.tl-view { container-type: inline-size; display: flex; flex-direction: column; padding: 12px !important; gap: 12px; height: 100%; overflow: hidden; }
+.tl-view.tl-view { container-type: inline-size; display: flex; flex-direction: column; padding: 12px; gap: 12px; height: 100%; overflow: hidden; }
 .tl-view button { cursor: pointer; }
 .tl-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .tl-header h2 { margin: 0; margin-right: auto; font-size: 18px; }
@@ -244,7 +244,7 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-selected-project { max-width: 100%; overflow-wrap: anywhere; color: var(--text-muted); font-size: 12px; }
 
 /* Shared EventCalendar and Frappe Gantt surfaces. */
-.tl-calendar-content:has(.tl-library-planner) { display: flex; flex-direction: column; overflow: auto; }
+.tl-calendar-content.tl-has-library-planner { display: flex; flex-direction: column; overflow: auto; }
 .tl-view .tl-library-planner {
  flex: 1;
  min-height: 400px;
@@ -434,7 +434,7 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-task-modal .tl-deferral-mode button[aria-pressed="true"] { border: 1px solid var(--interactive-accent); }
 .tl-task-modal textarea.tl-deferral-reason-input { box-sizing: border-box; width: 100%; resize: vertical; min-height: 90px; padding: 10px; font: inherit; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 5px; }
 @container (max-width: 680px) {
- .tl-view .tl-sidebar:has(.tl-deferral-heading) { flex-basis: max(var(--tl-panel-size, 220px), min(55vh, 480px)); }
+ .tl-view .tl-sidebar.tl-showing-deferred { flex-basis: max(var(--tl-panel-size, 220px), min(55vh, 480px)); }
 }
 .tl-view .tl-library-planner .tl-calendar-event-content { display: flex; flex-direction: column; align-items: stretch; container: tl-event-label / inline-size; }
 .tl-view .tl-library-planner .tl-calendar-event-content .ec-event-title { position: static; min-block-size: 0; flex-shrink: 0; }
@@ -442,3 +442,6 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 @container tl-event-label (max-width: 100px) {
  .tl-view .tl-library-planner .tl-calendar-event-content.is-timed .ec-event-time { display: none; }
 }
+
+.tl-task-modal .tl-dialog-actions button.tl-defer-from-dialog { margin-inline-end: auto; border: 0; background: transparent; color: var(--text-muted); padding-inline: 0; }
+.tl-view .tl-library-planner .gantt-container .upper-text { left: var(--tl-gantt-label-left, 0px); }

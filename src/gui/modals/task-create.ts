@@ -1,3 +1,4 @@
+import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
 import { App, Modal } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
@@ -29,6 +30,19 @@ export class TaskModal extends Modal {
 			this.path = path;
 		});
 		const fields = scheduleFields(taskSection(body, "Schedule"), this.initial);
+		actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" }).onclick =
+			() => {
+				if (!text.value.trim()) {
+					text.focus();
+					return;
+				}
+				new TaskDeferralModal(this.app, this.plugin, undefined, {
+					text: text.value,
+					path: this.path,
+					save: (reason) => this.plugin.createTask(text.value, this.path, {}, reason),
+					onSaved: () => this.close(),
+				}).open();
+			};
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Add task", cls: "mod-cta" });
 		const commit = async () => {

@@ -22,6 +22,7 @@ declare module "frappe-gantt" {
 	export default class Gantt {
 		tasks: GanttTask[];
 		setup_tasks(tasks: GanttTask[]): void;
+		create_el(options: { left?: number; classes?: string; [key: string]: unknown }): HTMLElement;
 		constructor(element: HTMLElement, tasks: GanttTask[], options?: Options);
 	}
 }

@@ -71,9 +71,9 @@ input:focus-visible {
 .preview-banner strong {
 	color: var(--text-normal);
 }
-#app {
+#app.tl-view {
 	height: calc(100dvh - 56px);
-	padding: 22px !important;
+	padding: 22px;
 }
 .tl-header {
 	padding-bottom: 12px;
@@ -186,6 +186,6 @@ dialog pre {
 	flex: 1;
 	min-width: 160px;
 }
-#app {
+#app.tl-view {
 	height: calc(100dvh - 100px);
 }

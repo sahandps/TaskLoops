@@ -43,6 +43,21 @@ export default async function run(mod) {
 		const get = (text) => plugin.allTasks().find((task) => task.text === text);
 		return { notes, plugin, errors, get, before: (fn) => { beforeProcess = fn; }, after: (fn) => { afterProcess = fn; } };
 	}
+	const deferred = fixture(); await deferred.plugin.rescan();
+	eq(await deferred.plugin.editTask(deferred.get("Parent"), "Draft wording", "Destination.md", {due:"2026-10-23"}, ["Pending draft"], [deferred.get("Existing action")], "Waiting for approval"), true, "editor deferral saves wording, move, draft and selected subtasks together");
+	const waiting = deferred.get("Draft wording");
+	eq(waiting.path, "Destination.md", "deferral respects the editor destination");
+	eq(waiting.due, undefined, "deferral clears the editor schedule");
+	eq(waiting.deferral, {reason:"Waiting for approval"}, "editor deferral persists reason");
+	for (const title of ["Already nested", "Pending draft", "Existing action"]) eq(deferred.get(title).parentId, waiting.id, "deferral preserves subtask: "+title);
+	eq(deferred.get("Existing action").due, "2026-10-17", "selected child keeps its own schedule");
+	const savedNotes = [...deferred.notes];
+	eq(await deferred.plugin.editTask(waiting, "Rejected", "Destination.md", {}, [], [], "bad\nreason"), false, "invalid editor reason rejects before writes");
+	eq([...deferred.notes], savedNotes, "invalid reason leaves notes untouched");
+	await deferred.plugin.complete(waiting);
+	const completedNotes = [...deferred.notes];
+	eq(await deferred.plugin.editTask(waiting, "Rejected", "Destination.md", {}, [], [], "Waiting"), false, "editor cannot defer completed task");
+	eq([...deferred.notes], completedNotes, "completed rejection preserves notes");
 	let f1 = fixture();
 	await f1.plugin.rescan();
 	const selected = [f1.get("Existing action"), f1.get("Same note task")];

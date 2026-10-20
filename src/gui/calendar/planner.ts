@@ -9,7 +9,13 @@ export function renderLibraryPlanner(
 	tasks: ScannedTask[],
 	options: PlannerOptions,
 ): () => void {
-	return options.scale === "gantt"
-		? renderGantt(root, tasks, options)
-		: renderEventCalendar(root, tasks, options);
+	root.addClass("tl-has-library-planner");
+	const dispose =
+		options.scale === "gantt"
+			? renderGantt(root, tasks, options)
+			: renderEventCalendar(root, tasks, options);
+	return () => {
+		dispose();
+		root.removeClass("tl-has-library-planner");
+	};
 }

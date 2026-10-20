@@ -86,7 +86,8 @@ export function createPreviewActions(app, store, onChange) {
 			persist();
 			return true;
 		},
-		editTask: async (task, text, path, schedule, drafts, selected) => {
+		editTask: async (task, text, path, schedule, drafts, selected, reason) => {
+			if (reason !== undefined) schedule = {};
 			const index = store.tasks.findIndex((t) => t.id === task.id);
 			store.tasks[index] = {
 				...store.tasks[index],
@@ -104,6 +105,15 @@ export function createPreviewActions(app, store, onChange) {
 				),
 			};
 			updateHistory(store.tasks[index], schedule.due);
+			if (reason !== undefined) {
+				const current = store.tasks[index];
+				const block = deferBlock([current.raw, ...(current.continuations ?? [])], reason);
+				Object.assign(current, {
+					raw: block[0],
+					continuations: block.slice(1),
+					deferral: readDeferral(block),
+				});
+			}
 			drafts.forEach((text) =>
 				store.tasks.push({ ...makeTask(text, path), parentId: task.id, indent: 2 }),
 			);

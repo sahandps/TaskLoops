@@ -1,4 +1,4 @@
-import { resolveDeferral } from "./task-deferral";
+import { resolveDeferral, deferBlock } from "./task-deferral";
 import { todayISO } from "./dates";
 import type { DateFormat, ScannedTask, Schedule } from "./types";
 import { appendTask, parseSchedule, writeSchedule } from "./schedule";
@@ -53,9 +53,11 @@ export function editedBlock(
 	schedule: Schedule,
 	format: DateFormat,
 	subtasks: string[],
+	reason?: string,
 ): string[] {
 	validateWording(text);
 	subtasks.forEach(validateWording);
+	if (reason !== undefined) schedule = {};
 	const block = taskBlock(content, task).lines;
 	const raw = block[0];
 	const prefix = raw.match(TASK_PREFIX)?.[0];
@@ -71,7 +73,9 @@ export function editedBlock(
 	const container = raw.match(TASK_PREFIX)?.[1] ?? "";
 	const cr = raw.endsWith("\r") ? "\r" : "";
 	for (const subtask of subtasks) block.push(container + "    - [ ] " + subtask.trim() + cr);
-	return resolveDeferral(block, schedule.due, todayISO());
+	return reason !== undefined
+		? deferBlock(block, reason)
+		: resolveDeferral(block, schedule.due, todayISO());
 }
 
 export function replaceTaskBlock(

@@ -182,8 +182,9 @@ export default class TaskLoopsPlugin extends Plugin {
 		schedule: Schedule,
 		subtasks: string[] = [],
 		existing: ScannedTask[] = [],
+		reason?: string,
 	): Promise<boolean> {
-		return this.taskService.editTask(task, text, path, schedule, subtasks, existing);
+		return this.taskService.editTask(task, text, path, schedule, subtasks, existing, reason);
 	}
 
 	private async reloadWrittenFile(path: string): Promise<void> {

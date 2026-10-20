@@ -1,3 +1,4 @@
+import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { renderSubtaskEditor } from "../components/subtask-editor";
@@ -70,6 +71,31 @@ export class TaskEditorModal extends Modal {
 			this.task,
 			(child, onUpdated) => new TaskEditorModal(this.app, this.plugin, child, onUpdated).open(),
 		);
+		const defer = actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
+		defer.disabled = this.task.checked;
+		defer.onclick = () => {
+			if (!text.value.trim()) {
+				text.focus();
+				return;
+			}
+			new TaskDeferralModal(this.app, this.plugin, this.task, {
+				text: text.value,
+				path: this.path,
+				save: (reason) => {
+					subtasks.flushDraft();
+					return this.plugin.editTask(
+						this.task,
+						text.value,
+						this.path,
+						{},
+						subtasks.drafts,
+						subtasks.selected,
+						reason,
+					);
+				},
+				onSaved: () => this.close(),
+			}).open();
+		};
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
 		save.onclick = () => {

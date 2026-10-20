@@ -1,3 +1,4 @@
+import { localCalendarPlugin } from "../scripts/calendar-build.mjs";
 /**
  * Bundles planner code against a stubbed `obsidian` module, then runs every
  * *.test.mjs beside this file. Covers discovery, scheduling, calendar
@@ -14,6 +15,7 @@ const bundle = join(here, ".bundle.mjs");
 await esbuild.build({
 	entryPoints: [join(here, "entry.mjs")],
 	bundle: true,
+	plugins: [localCalendarPlugin()],
 	format: "esm",
 	outfile: bundle,
 	alias: { obsidian: join(here, "obsidian-stub.mjs") },

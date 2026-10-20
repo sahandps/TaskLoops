@@ -40,5 +40,15 @@ export default async function run() {
  const media=sample.nodes[0];
  eq(media.nodes[0].selectors.length,2,'functional commas preserve selector boundaries');
  eq(sample.nodes[1].nodes.map(rule=>rule.selector),['from','to'],'keyframes remain valid');
+ for (const path of ['styles.css','src/gui/styles.css','preview/theme.css']) {
+  const css=postcss.parse(await readFile(path,'utf8'));
+  const problems=[];
+  css.walkDecls(d=>{if(d.important || d.prop==='column-gap') problems.push(d.toString());});
+  css.walkRules(r=>{if(r.selector.includes(':has(')) problems.push(r.selector);});
+  eq(problems,[],'shipped and authored CSS avoids flagged features: '+path);
+ }
+ const priorities=postcss.parse(scopeVendorStyles('.ec {cursor: grabbing !important; column-gap: 6px; row-gap: 2px}'));
+ eq(priorities.first.selector,'.tl-view.tl-view .tl-library-planner.tl-library-planner .ec','priority uses scoped specificity');
+ eq(priorities.first.nodes.map(d=>[d.prop,d.value,Boolean(d.important)]),[['cursor','grabbing',false],['gap','2px 6px',false]],'gap semantics retained and important removed');
  return results;
 }

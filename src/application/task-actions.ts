@@ -21,5 +21,6 @@ export interface TaskActions {
 		schedule: Schedule,
 		subtasks?: string[],
 		existing?: ScannedTask[],
+		reason?: string,
 	): Promise<boolean>;
 }
