@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.4 — 2026-10-20
+
+- Redesign task creation and editing with a shared minimal dialog layout:
+  restrained typography, more space, thin dividers and clear section headings.
+- Separate Task, Note, Schedule and Subtasks. Show the selected note prominently
+  with its path below; make navigation and note changes quiet secondary actions.
+- Group due date and deadline together, with time and effort in a separate row.
+  Shorten helper text and keep native date, time and numeric controls accessible.
+- Keep the header and save/cancel actions visible while the form body scrolls.
+  Adapt fields to narrow screens and inherit Obsidian's active theme colors.
+- Preserve immediate completion, schedule validation, note selection, draft
+  cancellation and subtask editing.
+
+Validation: 613 automated checks, TypeScript, ESLint, formatting and production
+build pass. Browser checks cover light/dark styling, fixed actions during
+scrolling, creation with a deadline and duration, reopening saved values,
+subtask drafts and cancellation. Native Obsidian theme verification remains
+a smoke test.
+
 ## 0.5.3 — 2026-10-20
 
 - Restore task completion checkboxes on Day, Week, Month and resource Timeline

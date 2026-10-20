@@ -12,6 +12,7 @@ export class Modal {
 	constructor(app) {
 		this.app = app;
 		this.dialog = document.createElement("dialog");
+		this.modalEl = this.dialog;
 		this.contentEl = this.dialog.createDiv("modal-content");
 	}
 	open() {

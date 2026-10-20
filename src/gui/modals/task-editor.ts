@@ -1,3 +1,4 @@
+import { taskDialog, taskSection } from "./task-dialog";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { renderSubtaskEditor } from "../components/subtask-editor";
 import { App, Modal } from "obsidian";
@@ -19,9 +20,16 @@ export class TaskEditorModal extends Modal {
 		this.path = task.path;
 	}
 	onOpen(): void {
-		const root = this.contentEl;
-		root.createEl("h2", { text: "Edit task" });
-		const status = root.createDiv("tl-task-status");
+		const { body, actions } = taskDialog(this, "Edit task");
+		const details = taskSection(body, "Task");
+		const text = details.createEl("input", {
+			type: "text",
+			cls: "tl-task-input",
+			attr: { "aria-label": "Task", autofocus: "" },
+		});
+		text.value = taskWording(this.task.raw);
+		const meta = details.createDiv("tl-task-detail-actions");
+		const status = meta.createDiv("tl-task-status");
 		const statusLabel = status.createEl("label");
 		const statusText = statusLabel.createSpan({
 			text: this.task.checked ? "Completed" : "Mark complete",
@@ -35,30 +43,33 @@ export class TaskEditorModal extends Modal {
 			},
 		);
 		statusLabel.prepend(check);
-		status.createDiv({
-			cls: "tl-hint",
-			text: "Completion saves immediately. Other edits use Save changes.",
-		});
-		const label = root.createEl("label", { text: "Task" });
-		const text = label.createEl("input", { type: "text", cls: "tl-task-input" });
-		text.value = taskWording(this.task.raw);
-		const links = root.createDiv("tl-note-links");
-		links.createEl("button", {
-			text: "Jump to task in note ↗",
-			attr: {
-				title: "Open the source note at this task in a new tab. Unsaved edits stay in this dialog.",
-			},
+		status.title = "Completion saves immediately. Other edits use Save changes.";
+		meta.createEl("button", {
+			text: "View in note ↗",
+			cls: "tl-quiet-button",
+			attr: { title: "Open the task in its note. Your draft stays open." },
 		}).onclick = () => void this.plugin.reveal(this.task);
-		projectDestination(root, this.app, this.plugin, this.path, (path) => {
+		details.createEl("small", {
+			cls: "tl-field-hint",
+			text: "Completion saves immediately. Other edits save below.",
+		});
+		const note = taskSection(body, "Note");
+		projectDestination(note, this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
-		const fields = scheduleFields(root, this.task);
-		root.createEl("button", { text: "Remove schedule", cls: "tl-clear-schedule" }).onclick = () =>
-			fields.clear();
-		const subtasks = renderSubtaskEditor(root, this.app, this.plugin, this.task, (child, onUpdated) =>
-			new TaskEditorModal(this.app, this.plugin, child, onUpdated).open(),
+		const schedule = taskSection(body, "Schedule");
+		const fields = scheduleFields(schedule, this.task);
+		schedule.createEl("button", {
+			text: "Clear schedule",
+			cls: "tl-clear-schedule tl-quiet-button",
+		}).onclick = () => fields.clear();
+		const subtasks = renderSubtaskEditor(
+			taskSection(body, "Subtasks"),
+			this.app,
+			this.plugin,
+			this.task,
+			(child, onUpdated) => new TaskEditorModal(this.app, this.plugin, child, onUpdated).open(),
 		);
-		const actions = root.createDiv("tl-dialog-actions");
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
 		save.onclick = () => {

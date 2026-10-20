@@ -1,3 +1,4 @@
+import { taskDialog, taskSection } from "./task-dialog";
 import { App, Modal } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { Schedule } from "../../core/types";
@@ -16,19 +17,18 @@ export class TaskModal extends Modal {
 		this.path = path ?? plugin.settings.standaloneNote;
 	}
 	onOpen(): void {
-		const root = this.contentEl;
-		root.createEl("h2", { text: "Add a task" });
-		const label = root.createEl("label", { text: "Task" });
+		const { body, actions } = taskDialog(this, "Add a task");
+		const label = taskSection(body, "Task");
 		const text = label.createEl("input", {
 			type: "text",
 			cls: "tl-task-input",
 			placeholder: "What needs doing?",
+			attr: { "aria-label": "Task", autofocus: "" },
 		});
-		projectDestination(root, this.app, this.plugin, this.path, (path) => {
+		projectDestination(taskSection(body, "Note"), this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
-		const fields = scheduleFields(root, this.initial);
-		const actions = root.createDiv("tl-dialog-actions");
+		const fields = scheduleFields(taskSection(body, "Schedule"), this.initial);
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Add task", cls: "mod-cta" });
 		const commit = async () => {

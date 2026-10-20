@@ -13,7 +13,6 @@ export function renderSubtaskEditor(
 	task: ScannedTask,
 	openEditor: (task: ScannedTask, onUpdated: () => void) => void,
 ): { flushDraft: () => void; drafts: string[]; selected: ScannedTask[] } {
-	root.createEl("h3", { text: "Subtasks" });
 	const children = root.createDiv("tl-existing-subtasks");
 	const drawChildren = () => {
 		children.empty();
@@ -71,12 +70,12 @@ export function renderSubtaskEditor(
 	const selected: ScannedTask[] = [];
 	const selectedList = root.createDiv("tl-selected-subtasks");
 	const existingButton = root.createEl("button", {
-		cls: "tl-choose-existing",
-		text: "Choose existing task…",
+		cls: "tl-choose-existing tl-quiet-button",
+		text: "Choose an existing task…",
 	});
 	const hint = root.createEl("small", {
 		cls: "tl-subtask-hint",
-		text: "Find a task in your notes. It and its subtasks will move here when you save.",
+		text: "Selected tasks move here when you save.",
 	});
 	const drawSelected = () => {
 		selectedList.empty();
@@ -97,7 +96,7 @@ export function renderSubtaskEditor(
 		hint.setText(
 			existingButton.disabled
 				? "No other open tasks available. Create a subtask above, or add a checkbox in another note."
-				: "Find a task in your notes. It and its subtasks will move here when you save.",
+				: "Selected tasks move here when you save.",
 		);
 	};
 	existingButton.onclick = () => {

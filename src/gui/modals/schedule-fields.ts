@@ -7,33 +7,45 @@ export function scheduleFields(
 	initial: Schedule,
 ): { read: () => Schedule | null; clear: () => void } {
 	const fields = parent.createDiv("tl-schedule-fields");
-	const field = (label: string, type: string, value: string) => {
-		const wrap = fields.createEl("label");
+	const dates = fields.createDiv("tl-date-fields");
+	const effort = fields.createDiv("tl-duration-fields");
+	const field = (
+		parent: HTMLElement,
+		label: string,
+		type: string,
+		value: string,
+		accessibleLabel = label,
+	) => {
+		const wrap = parent.createEl("label");
 		wrap.createSpan({ text: label });
-		const input = wrap.createEl("input", { type });
+		const input = wrap.createEl("input", { type, attr: { "aria-label": accessibleLabel } });
 		input.value = value;
 		return input;
 	};
-	const due = field("Due date", "date", initial.due ?? "");
-	const deadline = field("Deadline", "date", initial.deadline ?? "");
+	const due = field(dates, "Due date", "date", initial.due ?? "");
+	const deadline = field(dates, "Deadline", "date", initial.deadline ?? "");
 	deadline.min = due.value;
 	due.oninput = () => {
 		deadline.min = due.value;
 	};
-	fields.createEl("small", {
-		text: "The deadline includes the selected day. Multi-day tasks stretch across the top of the calendar.",
+	dates.createEl("small", {
+		text: "Deadline includes the last day. Multi-day tasks appear above the calendar.",
 		cls: "tl-deadline-hint",
 	});
-	const time = field("Time", "time", initial.time ?? "");
+	const time = field(effort, "Time", "time", initial.time ?? "");
 	const hours = field(
-		"Duration · hours",
+		effort,
+		"Hours",
 		"number",
 		initial.duration ? String(Math.floor(initial.duration / 60)) : "",
+		"Duration · hours",
 	);
 	const minutes = field(
-		"Duration · minutes",
+		effort,
+		"Minutes",
 		"number",
 		initial.duration ? String(initial.duration % 60) : "",
+		"Duration · minutes",
 	);
 	hours.min = minutes.min = "0";
 	hours.step = minutes.step = "1";

@@ -10,19 +10,23 @@ export function projectDestination(
 	onPick: (path: string) => void,
 ): void {
 	const destination = root.createDiv("tl-destination");
-	destination.createSpan({ text: "Project / note" });
-	const pick = destination.createEl("button", {
-		text: "Choose project note…",
+	const selected = destination.createDiv("tl-selected-project");
+	const name = selected.createDiv("tl-selected-project-name");
+	const location = selected.createDiv("tl-selected-project-path");
+	const controls = destination.createDiv("tl-note-actions");
+	const pick = controls.createEl("button", {
+		text: "Change note…",
+		cls: "tl-quiet-button",
 		attr: { "aria-label": "Pick project note", title: "Search existing notes in your vault" },
 	});
-	const selected = destination.createDiv("tl-selected-project");
-	const projectLink = destination.createEl("button", {
-		cls: "tl-open-project",
-		text: "Open project note ↗",
+	const projectLink = controls.createEl("button", {
+		cls: "tl-open-project tl-quiet-button",
+		text: "Open note ↗",
 	});
-	const hint = destination.createEl("small");
+	const hint = destination.createEl("small", { cls: "tl-field-hint" });
 	const update = (path: string) => {
-		selected.setText("Selected note: " + path);
+		name.setText(plugin.noteName(path));
+		location.setText(path);
 		const exists = app.vault.getAbstractFileByPath(path) instanceof TFile;
 		projectLink.disabled = !exists;
 		projectLink.title = exists
@@ -31,10 +35,10 @@ export function projectDestination(
 		projectLink.onclick = () => void plugin.openNote(path);
 		hint.setText(
 			exists
-				? "Save to add or move the task into this note's Tasks section. If there is no Tasks section, # Tasks is appended at the bottom."
+				? "Saves directly to this note."
 				: path === plugin.settings.standaloneNote
-					? "No project selected. Saving creates the standalone note with # Tasks. Choose project note to use an existing note instead."
-					: "This note is unavailable. Choose another project note before saving.",
+					? "This note will be created when you save."
+					: "Note unavailable. Choose another note before saving.",
 		);
 	};
 	pick.onclick = () =>

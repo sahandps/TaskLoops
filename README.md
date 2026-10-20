@@ -18,9 +18,18 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.3 — complete tasks from Calendar and the editor.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.4 — clearer, quieter task dialogs.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.4
+
+Task creation and editing now share a minimal layout inspired by Japanese
+simplicity: calm typography, generous spacing and thin section dividers.
+**Task**, **Note**, **Schedule** and **Subtasks** have clear boundaries. Date
+ranges and effort fields are grouped separately, note actions stay secondary,
+and the header and save actions remain visible while the form scrolls.
+The layout follows the active Obsidian theme and adapts to narrow screens.
 
 ## What’s new in 0.5.3
 
