@@ -1,3 +1,4 @@
+import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { createCalendarCreationHandlers } from "./creation-handlers";
 import {
 	createCalendar,
@@ -78,6 +79,18 @@ export function renderEventCalendar(
 			hour: "2-digit",
 			minute: "2-digit",
 			hour12: options.settings.timeFormat === "12h",
+		},
+		eventContent: (info) => {
+			const task = lookup.get(String(info.event.id));
+			if (!task) return { domNodes: [] };
+			const content = host.createDiv("tl-calendar-event-content");
+			// EventCalendar attaches the returned content to the event body.
+			content.remove();
+			renderCompletionCheckbox(content, task, options.complete);
+			if (!info.event.allDay && info.timeText)
+				content.createEl("time", { cls: "ec-event-time", text: info.timeText });
+			content.createEl("h4", { cls: "ec-event-title", text: task.text });
+			return { domNodes: [content] };
 		},
 		eventClick: (info) => {
 			const task = lookup.get(String(info.event.id));

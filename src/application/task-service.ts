@@ -73,14 +73,20 @@ export class TaskService {
 		});
 	}
 
-	async complete(task: ScannedTask): Promise<void> {
+	async complete(task: ScannedTask): Promise<boolean> {
+		let completed = false;
 		await this.enqueue(async () => {
 			const current = this.current(task);
-			if (current.checked) return;
+			if (current.checked) {
+				completed = true;
+				return;
+			}
 			if (!(await setCheckboxDone(this.app, current)))
 				throw new Error("The task changed or moved ambiguously. Refresh and try again.");
 			await this.host.reloadWrittenFile(current.path);
+			completed = true;
 		});
+		return completed;
 	}
 
 	async createTask(text: string, path: string, schedule: Schedule): Promise<boolean> {

@@ -29,8 +29,11 @@ export function createPreviewActions(app, store, onChange) {
 			persist();
 		},
 		complete: async (task) => {
-			store.tasks.find((t) => t.id === task.id).checked = true;
+			const current = store.tasks.find((t) => t.id === task.id);
+			current.checked = true;
+			current.raw = current.raw.replace(/^(\s*- \[)[^\]](\])/, "$1x$2");
 			persist();
+			return true;
 		},
 		reveal: async (task) => actions.openNote(task.path),
 		openNote: async (path) => showNotePreview(path, store.tasks),
@@ -51,7 +54,11 @@ export function createPreviewActions(app, store, onChange) {
 				duration: undefined,
 				deadline: undefined,
 				...schedule,
-				raw: writeSchedule("- [ ] " + text, schedule, "YYYY-MM-DD"),
+				raw: writeSchedule(
+					(store.tasks[index].checked ? "- [x] " : "- [ ] ") + text,
+					schedule,
+					"YYYY-MM-DD",
+				),
 			};
 			drafts.forEach((text) =>
 				store.tasks.push({ ...makeTask(text, path), parentId: task.id, indent: 2 }),

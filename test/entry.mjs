@@ -19,3 +19,5 @@ export { isAllDayTask, hasDeadlineSpan, moveTaskToDay, dayDistance, localDay } f
 
 export { selectionSchedule } from "../src/core/planner-schedule.ts";
 export { createCalendarCreationHandlers } from "../src/gui/calendar/creation-handlers.ts";
+
+export { renderCompletionCheckbox } from "../src/gui/components/completion-checkbox.ts";

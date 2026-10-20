@@ -338,3 +338,9 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
  color: var(--text-muted);
  font-size: 12px;
 }
+
+.tl-view .tl-library-planner .tl-calendar-event-content { padding-left: 22px; position: relative; min-height: 20px; }
+.tl-view .tl-library-planner .tl-calendar-event-content .tl-completion-checkbox { position: absolute; left: 3px; top: 3px; width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: var(--interactive-accent); }
+.tl-task-status { margin: 0 0 16px; }
+.tl-task-status .tl-completion-checkbox { vertical-align: middle; margin-right: 8px; }
+.tl-task-status .tl-hint { margin-top: 6px; font-size: 12px; color: var(--text-muted); }

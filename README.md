@@ -18,9 +18,17 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.2 — drag-to-create tasks.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.3 — complete tasks from Calendar and the editor.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.3
+
+Complete tasks using the checkbox on Calendar events in Day, Week, Month and
+resource Timeline. The task editor also has a **Mark complete** checkbox,
+including when opened from Gantt. Completion writes the Markdown checkbox
+immediately; the editor keeps other draft edits open for **Save changes**.
+Enable **Show completed** to keep finished tasks visible.
 
 ## What’s new in 0.5.2
 

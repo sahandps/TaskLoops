@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Plan Markdown tasks with calendars, resource timelines and Gantt charts. Set deadlines, resize date spans, and manage tasks and subtasks by note.",
   "main": "main.js",
   "scripts": {

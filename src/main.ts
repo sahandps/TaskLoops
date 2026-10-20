@@ -163,7 +163,7 @@ export default class TaskLoopsPlugin extends Plugin {
 		return this.taskService.schedule(task, schedule);
 	}
 
-	complete(task: ScannedTask): Promise<void> {
+	complete(task: ScannedTask): Promise<boolean> {
 		return this.taskService.complete(task);
 	}
 

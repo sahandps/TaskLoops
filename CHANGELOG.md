@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.3 — 2026-10-20
+
+- Restore task completion checkboxes on Day, Week, Month and resource Timeline
+  events. Clicking the checkbox does not drag the task or open its editor.
+- Add a Mark complete checkbox to the task editor, including tasks opened from
+  Gantt. Completion saves immediately while other draft edits stay open.
+- Keep completed tasks checked and visible when Show completed is enabled.
+  Saving further text or schedule edits preserves the completed Markdown checkbox.
+- Return the actual completion result from the write service. Failed or stale
+  writes restore the control for retry instead of showing false success. Share
+  this behavior with sidebar and Notes task cards.
+
+Validation: 613 automated checks, TypeScript, ESLint, formatting and production
+build pass. Browser checks cover Calendar completion, completed visibility,
+popup completion retaining draft text, saving edits without clearing completion,
+and persistence after reload. Native Obsidian verification remains a smoke test.
+
 ## 0.5.2 — 2026-10-20
 
 - Fix dragging an empty Calendar range only highlighting it without opening Add

@@ -9,7 +9,7 @@ export interface TaskActions {
 	rescan(): Promise<void>;
 	newTask(schedule?: Schedule, path?: string): void;
 	schedule(task: ScannedTask, schedule: Schedule): Promise<void>;
-	complete(task: ScannedTask): Promise<void>;
+	complete(task: ScannedTask): Promise<boolean>;
 	reveal(task: ScannedTask): Promise<void>;
 	openNote(path: string, line?: number): Promise<boolean>;
 	createTask(text: string, path: string, schedule: Schedule): Promise<boolean>;

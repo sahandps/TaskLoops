@@ -1,3 +1,4 @@
+import { renderCompletionCheckbox } from "./completion-checkbox";
 import type { ScannedTask } from "../../core/types";
 import type { TaskActions } from "../../application/task-actions";
 import { formatDate, formatDuration, formatTime } from "../../core/schedule";
@@ -18,16 +19,7 @@ export function renderTaskCard(
 	);
 	const content = card.createDiv("tl-task-content");
 	const row = content.createDiv("tl-task-row");
-	const check = row.createEl("input", {
-		type: "checkbox",
-		attr: { "aria-label": "Complete " + task.text },
-	});
-	check.checked = task.checked;
-	check.disabled = task.checked;
-	check.onchange = () => {
-		check.disabled = true;
-		void actions.complete(task);
-	};
+	renderCompletionCheckbox(row, task, (task) => actions.complete(task));
 	const open = () => edit(task);
 	row.createEl("button", {
 		cls: "tl-task-title",

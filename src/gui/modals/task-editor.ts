@@ -1,3 +1,4 @@
+import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { renderSubtaskEditor } from "../components/subtask-editor";
 import { App, Modal } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
@@ -20,6 +21,24 @@ export class TaskEditorModal extends Modal {
 	onOpen(): void {
 		const root = this.contentEl;
 		root.createEl("h2", { text: "Edit task" });
+		const status = root.createDiv("tl-task-status");
+		const statusLabel = status.createEl("label");
+		const statusText = statusLabel.createSpan({
+			text: this.task.checked ? "Completed" : "Mark complete",
+		});
+		const check = renderCompletionCheckbox(
+			statusLabel,
+			this.task,
+			(task) => this.plugin.complete(task),
+			() => {
+				statusText.textContent = "Completed";
+			},
+		);
+		statusLabel.prepend(check);
+		status.createDiv({
+			cls: "tl-hint",
+			text: "Completion saves immediately. Other edits use Save changes.",
+		});
 		const label = root.createEl("label", { text: "Task" });
 		const text = label.createEl("input", { type: "text", cls: "tl-task-input" });
 		text.value = taskWording(this.task.raw);

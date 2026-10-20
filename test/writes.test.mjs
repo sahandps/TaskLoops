@@ -40,9 +40,13 @@ export default async function run(mod) {
 	eq(await plugin.createTask("New task", "Project.md", { due: "2026-10-16", time: "14:00", duration: 65 }), true, "create directly in project note");
 	eq(content, "# Project\n\n## Tasks:\n- [ ] Existing\n- [ ] New task - Due date: 2026-10-16 Time: 14:00 Duration: 1 Hour 5 Minutes\n\n## Notes\nLeave this alone.\n", "project insertion uses Tasks heading");
 	const task = plugin.allTasks().find((task) => task.text === "New task");
-	await Promise.all([plugin.schedule(task, { due: "2026-10-17", time: "10:00", duration: 90 }), plugin.complete(task)]);
+	const completed = await Promise.all([plugin.schedule(task, { due: "2026-10-17", time: "10:00", duration: 90 }), plugin.complete(task)]);
+	eq(completed[1], true, "completion acknowledges the actual write");
 	eq(content.includes("- [x] New task - Due date: 2026-10-17 Time: 10:00 Duration: 1 Hour 30 Minutes"), true, "queued reschedule and completion both survive");
 	eq(plugin.allTasks().find((task) => task.text === "New task").checked, true, "Markdown completion is source of truth");
+	eq(await plugin.complete(task), true, "already completed task is idempotent");
+ eq(await plugin.editTask(task, "New task reviewed", "Project.md", {due:"2026-10-17", time:"10:00", duration:90}), true, "popup edits save after immediate completion");
+ eq(content.includes("- [x] New task reviewed - Due date: 2026-10-17 Time: 10:00 Duration: 1 Hour 30 Minutes"), true, "saving popup draft preserves completed checkbox");
 	const existing = plugin.allTasks().find((task) => task.text === "Existing");
 	plugin.items = { [existing.id]: { id: existing.id, path: existing.path, text: existing.text, due: "2026-10-20", bucket: "waiting" } };
 	eq(plugin.allTasks().find((task) => task.id === existing.id).due, "2026-10-20", "legacy date remains visible");
@@ -50,6 +54,13 @@ export default async function run(mod) {
 	eq(plugin.allTasks().find((task) => task.id === existing.id).due, undefined, "clearing schedule clears legacy fallback");
 	eq(data.items[existing.id].bucket, "waiting", "legacy GTD data retained as backup");
 	eq(content.includes("Due date: 2026-10-20"), false, "legacy metadata never auto-written to note");
+
+ const beforeStale = content;
+ content = content.replace("- [ ] Existing", "- [ ] Reworded externally");
+ const afterExternal = content;
+ eq(await plugin.complete(existing), false, "stale completion reports failure to control");
+ eq(content, afterExternal, "failed completion preserves external edits");
+ content = beforeStale;
 
 	const standaloneFile = Object.assign(new TestFile(), { path: "Planning/Standalone Tasks.md", extension: "md" });
 	let standaloneContent = null;
