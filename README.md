@@ -18,9 +18,20 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.11 — drag the time ruler to zoom.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.12 — unfinished tasks first, completed tasks separate.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.12
+
+- With **Show completed** enabled, Planner starts on **Unfinished**. Use the
+  separate **Completed** tab to review finished tasks without filling the active
+  list with completed-only notes. Notes uses the same two tabs.
+- Tabs show task counts, including subtasks. When a search or filter contains
+  only completed tasks, those appear automatically. An empty tab is disabled.
+- Switching lists starts at the top. Note progress still counts all tasks and
+  subtasks, and calendar visibility still follows Show completed.
+- These tabs only change the view; no task content or note properties are changed.
 
 ## What’s new in 0.5.11
 

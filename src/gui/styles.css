@@ -496,3 +496,15 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-view .tl-library-planner.tl-is-zooming .tl-time-zoom-status { display: block; }
 
 .tl-view .tl-library-planner:is(.tl-day-view, .tl-week-view) { position: relative; }
+
+.tl-view .tl-completion-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
+.tl-view .tl-completion-tabs button { border: 1px solid var(--background-modifier-border); border-radius: 6px; padding: 6px 12px; height: auto; box-shadow: none; background: transparent; color: var(--text-muted); font-size: 12px; }
+.tl-view .tl-completion-tabs button[aria-pressed="true"] { background: var(--background-secondary); color: var(--text-normal); border-color: var(--interactive-accent); }
+.tl-view .tl-completion-tabs button:disabled { opacity: 0.45; }
+
+/* Extra list controls must not squeeze all task rows out of a short stacked panel. */
+@container (max-width: 680px) {
+	.tl-view .tl-sidebar { overflow-y: auto; }
+	.tl-view .tl-sidebar > :not(.tl-task-list) { flex-shrink: 0; }
+	.tl-view .tl-sidebar .tl-task-list { flex: 1 0 140px; }
+}

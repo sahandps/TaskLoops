@@ -1,9 +1,11 @@
+import type { CompletionTab } from "../../core/task-completion-view";
 import type { PlannerTaskFilter } from "../../core/task-review";
 import type { NoteFilter } from "../../core/note-grid";
 
 export interface TaskViewState {
 	query: string;
 	showDone: boolean;
+	completionTab?: CompletionTab;
 	taskFilter: PlannerTaskFilter;
 	mode: "planner" | "notes";
 	noteFilter: NoteFilter;

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.12 — 2026-10-20
+
+- Separate unfinished and completed tasks in Planner when Show completed is on,
+  and in Notes. Start on unfinished work so completed-only notes cannot crowd
+  the active list. Retain original task order inside each tab.
+- Count parents and subtasks independently. Automatically show the available
+  list when filters contain only one completion state; disable empty tabs.
+- Retain full-note progress and totals across tabs and leave calendar event
+  visibility controlled by Show completed. Reset list scroll on tab changes.
+- Keep task rows scrollable in short stacked panels when the extra controls appear.
+- Keep tab selection in transient view state without writing task content,
+  note properties or extra persisted records.
+
+Validation: 875 checks across 31 suites, TypeScript, ESLint, formatting and build
+pass. New cases cover both renderers, mixed parent/child completion, completed-only
+search results, tab counts, unchanged calendar inputs and note totals. Browser
+checks cover tab switching, completed-only search and shared Notes behavior.
+
+
 ## 0.5.11 — 2026-10-20
 
 - Add left-button vertical dragging on the Day/Week time ruler: up zooms in,

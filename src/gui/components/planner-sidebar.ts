@@ -1,3 +1,4 @@
+import { renderTaskCompletionTabs } from "./task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
 import { renderTaskProgress } from "./task-progress";
 import { taskGroupFolds } from "./task-group-folds";
@@ -23,13 +24,12 @@ export function renderPlannerSidebar(
 	});
 	const tasks = actions.allTasks();
 	const progress = actions.settings.showProgressBars !== false ? noteProgress(tasks) : undefined;
-	const { matching, listed, overdueCount, deferredCount } = reviewTasks(
-		tasks,
-		state.query,
-		state.showDone,
-		state.taskFilter,
-		todayISO(),
-	);
+	const {
+		matching,
+		listed: reviewed,
+		overdueCount,
+		deferredCount,
+	} = reviewTasks(tasks, state.query, state.showDone, state.taskFilter, todayISO());
 	const search = side.createEl("input", {
 		cls: "tl-search",
 		type: "search",
@@ -82,10 +82,14 @@ export function renderPlannerSidebar(
 	doneLabel.createSpan({ text: "Show completed" });
 	done.onchange = () => {
 		state.showDone = done.checked;
+		state.completionTab = "open";
+		const list = side.querySelector<HTMLElement>(".tl-task-list");
+		if (list) list.scrollTop = 0;
 		onChange();
 	};
 	const unschedule = side.createDiv({ cls: "tl-unschedule", text: "Drop here to remove a schedule" });
 	dropTarget(unschedule, (task) => void actions.schedule(task, {}));
+	const listed = state.showDone ? renderTaskCompletionTabs(side, reviewed, state, onChange) : reviewed;
 	const folds = taskGroupFolds(state.collapsedNotes);
 	folds.controls(side.createDiv("tl-group-controls"));
 	const list = side.createDiv("tl-task-list");

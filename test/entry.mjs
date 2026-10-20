@@ -43,3 +43,9 @@ export {applyPlannerTheme} from "../src/gui/components/planner-theme.ts";
 
 export * from "../src/core/calendar-zoom.ts";
 export {attachCalendarZoom} from "../src/gui/interactions/calendar-zoom.ts";
+
+export * from "../src/core/task-completion-view.ts";
+export {renderTaskCompletionTabs} from "../src/gui/components/task-completion-tabs.ts";
+
+export {renderPlannerSidebar} from "../src/gui/components/planner-sidebar.ts";
+export {renderNotesView} from "../src/gui/views/notes-view.ts";

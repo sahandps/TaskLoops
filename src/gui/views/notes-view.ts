@@ -1,3 +1,4 @@
+import { renderTaskCompletionTabs } from "../components/task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
 import { renderTaskProgress } from "../components/task-progress";
 import { taskGroupFolds } from "../components/task-group-folds";
@@ -58,7 +59,22 @@ export function renderNotesView(
 			onChange();
 		};
 	}
-	const groups = noteGroups(tasks, state.query, state.folder, state.noteFilter, todayISO());
+	const matchingGroups = noteGroups(tasks, state.query, state.folder, state.noteFilter, todayISO());
+	const visible = new Set(
+		renderTaskCompletionTabs(
+			pane,
+			matchingGroups.flatMap((group) => group.tasks),
+			state,
+			onChange,
+		),
+	);
+	const groups = matchingGroups
+		.map((group) => ({
+			...group,
+			total: group.tasks.length,
+			tasks: group.tasks.filter((task) => visible.has(task)),
+		}))
+		.filter((group) => group.tasks.length);
 	const folds = taskGroupFolds(state.collapsedNotes);
 	const summary = pane.createDiv("tl-notes-summary");
 	summary.createDiv({
@@ -104,7 +120,7 @@ export function renderNotesView(
 				onChange();
 			};
 		const footer = note.createDiv("tl-note-footer");
-		footer.createSpan({ text: `${group.open} open · ${group.tasks.length} total` });
+		footer.createSpan({ text: `${group.open} open · ${group.total} total` });
 		footer.createEl("button", {
 			text: "+ Task",
 			attr: { "aria-label": "Add task to " + group.path },
