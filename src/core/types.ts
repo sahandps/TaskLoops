@@ -50,7 +50,12 @@ export interface ScannedTask extends Schedule {
 	hasSchedule?: boolean;
 }
 
+export type PlannerTheme = "inherit" | "light" | "dark";
+
 export interface TaskLoopsSettings {
+	theme: PlannerTheme;
+	showWeekNumbers: boolean;
+	showProgressBars: boolean;
 	defaultView: "planner" | "notes";
 	timeFormat: "24h" | "12h";
 	weekStart: number;
@@ -68,6 +73,9 @@ export interface TaskLoopsSettings {
 }
 
 export const DEFAULT_SETTINGS: TaskLoopsSettings = {
+	theme: "inherit",
+	showWeekNumbers: true,
+	showProgressBars: true,
 	defaultView: "planner",
 	timeFormat: "24h",
 	weekStart: 1,

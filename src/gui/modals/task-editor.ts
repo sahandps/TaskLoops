@@ -22,7 +22,7 @@ export class TaskEditorModal extends Modal {
 		this.path = task.path;
 	}
 	onOpen(): void {
-		const { body, actions } = taskDialog(this, "Edit task");
+		const { body, actions } = taskDialog(this, "Edit task", this.plugin.settings.theme);
 		const details = taskSection(body, "Task");
 		const text = details.createEl("input", {
 			type: "text",

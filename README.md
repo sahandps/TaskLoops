@@ -18,9 +18,30 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.9 — collapsible task groups in Planner and Notes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.10 — note progress bars and display settings.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.10
+
+- **Progress per note:** Planner and Notes show completed / total checkbox tasks
+  and a percentage. Every parent and subtask counts once, at every depth.
+  Completing a parent does not complete its unfinished children.
+- Progress uses the full note’s tasks, including hidden completed checkboxes.
+  Search, list filters and collapsed groups do not change its denominator.
+  The bar remains visible when a group is folded.
+- **Settings → TaskLoops:** choose Planner theme (Follow Obsidian, Light or Dark),
+  Show week numbers and Show progress bars. Local palettes affect TaskLoops and
+  its task dialogs, leaving the rest of Obsidian unchanged. Week numbers can be
+  hidden in calendar headings, Month/Timeline and the Year overview.
+- Progress is calculated from the existing task scan. There is **no progress
+  JSON, history or per-task cache** to grow or clean up. Refreshing recalculates
+  the current values, so removed or moved tasks leave no stale progress records.
+  Completed checkboxes remain in your Markdown. Only the small display preferences
+  are saved in the plugin’s existing settings record; note properties stay untouched.
+
+The local preview includes **Plugin settings**, using the same setting definitions
+as Obsidian, with sample display preferences retained in this browser.
 
 ## What’s new in 0.5.9
 

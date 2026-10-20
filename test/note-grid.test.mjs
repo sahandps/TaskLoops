@@ -25,7 +25,7 @@ export default async function run(mod) {
  plugin.saveSettings=async()=>{saves++;};plugin.refreshViews=()=>{refresh++;};
  const tab=new TaskLoopsSettingTab({},plugin);
  const defs=tab.getSettingDefinitions();
- eq(defs.map(d=>d.name),['Default view','Tasks per note card','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Default task duration','Show completed by default','Note card spacing','Standalone tasks note','Task scan folder'],'every setting has a searchable definition');
+ eq(defs.map(d=>d.name),['Default view','Tasks per note card','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Default task duration','Show completed by default','Note card spacing','Standalone tasks note','Task scan folder','Planner theme','Show week numbers','Show progress bars'],'every setting has a searchable definition');
  let change;
  const dropdown={addOption:()=>dropdown,setValue:()=>dropdown,onChange:fn=>{change=fn;return dropdown;}};
  defs[0].render({addDropdown:fn=>fn(dropdown)});

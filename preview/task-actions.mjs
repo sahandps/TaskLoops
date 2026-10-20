@@ -1,3 +1,4 @@
+import { normalizeSettings } from "../src/core/settings.ts";
 import { existingSubtaskDestination } from "../src/core/existing-tasks.ts";
 import {
 	deferBlock,
@@ -24,10 +25,20 @@ export function createPreviewActions(app, store, onChange) {
 		task.deferral = readDeferral(block);
 	};
 	const actions = {
-		settings: { ...DEFAULT_SETTINGS },
+		settings: (() => {
+			try {
+				return normalizeSettings(
+					JSON.parse(window.localStorage.getItem("taskloops-preview-settings")),
+				);
+			} catch {
+				return { ...DEFAULT_SETTINGS };
+			}
+		})(),
 		allTasks: () => [...store.tasks].sort((a, b) => a.path.localeCompare(b.path)),
 		noteName: (path) => path.split("/").pop().replace(/\.md$/, ""),
-		saveSettings: async () => {},
+		saveSettings: async () => {
+			window.localStorage.setItem("taskloops-preview-settings", JSON.stringify(actions.settings));
+		},
 		rescan: async () => onChange(),
 		schedule: async (task, schedule) => {
 			const index = store.tasks.findIndex((t) => t.id === task.id);

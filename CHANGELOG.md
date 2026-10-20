@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.10 — 2026-10-20
+
+- Add per-note progress bars to Planner and Notes. Count every parent and nested
+  checkbox once, show completed / total and percent, and include completed tasks
+  even when hidden by list filters. Keep progress visible in folded groups.
+- Derive progress from the existing flat task scan without extra vault reads,
+  JSON progress records, per-task history or property writes. Recalculation
+  naturally reflects completion, deletion and moves without cleanup artifacts.
+- Add searchable Planner theme, Show week numbers and Show progress bars settings.
+  Default to following Obsidian with week numbers and progress enabled. Apply
+  light/dark palettes locally to TaskLoops views and its task dialogs.
+- Wire week visibility into calendar headings, EventCalendar and Year mini-months.
+  Normalize old/invalid settings safely and persist only the bounded preferences.
+- Expose the production settings definitions in the local browser preview.
+
+Validation: 824 checks across 29 suites, TypeScript, ESLint, formatting and build
+pass. Added cases cover nested completion, independent parent/child states,
+rounding, deleted/moved tasks, fresh calculations, native accessible progress,
+no progress/property writes, saved display preferences and local theme scope.
+Browser checks cover hidden completed subtasks, folded groups, progress visibility
+switches, theme-isolated task dialogs and week-number switches in headings,
+Month and Year calendars.
+
+
 ## 0.5.9 — 2026-10-20
 
 - Add per-note fold buttons with task counts in the Planner sidebar and Notes

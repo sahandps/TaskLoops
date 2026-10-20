@@ -1,3 +1,5 @@
+import { noteProgress } from "../../core/task-progress";
+import { renderTaskProgress } from "../components/task-progress";
 import { taskGroupFolds } from "../components/task-group-folds";
 import { setIcon } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
@@ -14,6 +16,7 @@ export function renderNotesView(
 	onChange: () => void,
 ): void {
 	const tasks = actions.allTasks();
+	const progress = actions.settings.showProgressBars !== false ? noteProgress(tasks) : undefined;
 	const pane = root.createDiv(
 		"tl-notes-pane" + (actions.settings.noteDensity === "compact" ? " is-compact-grid" : ""),
 	);
@@ -69,6 +72,7 @@ export function renderNotesView(
 		const note = grid.createEl("article", { cls: "tl-note-card" });
 		const heading = note.createDiv("tl-note-heading");
 		note.createDiv({ cls: "tl-note-path", text: group.path });
+		if (progress) renderTaskProgress(note, group.path, progress.get(group.path));
 		const body = note.createDiv("tl-group-tasks");
 		folds.add(group.path, heading, body, group.tasks.length);
 		heading.createEl("button", {

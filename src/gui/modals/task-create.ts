@@ -19,7 +19,7 @@ export class TaskModal extends Modal {
 		this.path = path ?? plugin.settings.standaloneNote;
 	}
 	onOpen(): void {
-		const { body, actions } = taskDialog(this, "Add a task");
+		const { body, actions } = taskDialog(this, "Add a task", this.plugin.settings.theme);
 		const label = taskSection(body, "Task");
 		const text = label.createEl("input", {
 			type: "text",

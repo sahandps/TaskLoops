@@ -102,7 +102,8 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 		cls: "tl-calendar-heading",
 		text:
 			label +
-			(view.scale === "day" || view.scale === "week" || view.scale === "timeline"
+			(view.plugin.settings.showWeekNumbers !== false &&
+			(view.scale === "day" || view.scale === "week" || view.scale === "timeline")
 				? ` · ${weekNumberLabel(view.anchor)}`
 				: ""),
 	});
@@ -192,7 +193,10 @@ function renderMonth(
 			view.setScale("day");
 		};
 		if (mini) {
-			if (new Date(day + "T12:00:00").getDay() === view.plugin.settings.weekStart)
+			if (
+				view.plugin.settings.showWeekNumbers !== false &&
+				new Date(day + "T12:00:00").getDay() === view.plugin.settings.weekStart
+			)
 				head.createSpan({
 					cls: "tl-mini-week-number",
 					text: "W" + isoWeek(day).week,

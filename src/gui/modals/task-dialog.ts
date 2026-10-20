@@ -1,14 +1,18 @@
+import { applyPlannerTheme } from "../components/planner-theme";
+import type { PlannerTheme } from "../../core/types";
 import type { Modal } from "obsidian";
 
 /** Shared visual structure for task creation and editing. */
 export function taskDialog(
 	modal: Modal,
 	title: string,
+	theme?: PlannerTheme,
 ): {
 	body: HTMLElement;
 	actions: HTMLElement;
 } {
 	modal.modalEl.addClass("tl-task-modal");
+	applyPlannerTheme(modal.modalEl, theme);
 	const root = modal.contentEl;
 	root.addClass("tl-task-dialog");
 	const header = root.createDiv("tl-dialog-header");

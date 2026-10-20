@@ -47,7 +47,7 @@ export function renderEventCalendar(
 						? "timeGridDay"
 						: "timeGridWeek",
 		date: options.anchor,
-		weekNumbers: true,
+		weekNumbers: options.settings.showWeekNumbers !== false,
 		weekNumberContent: (info) => "W" + isoWeek(localDay(info.date)).week,
 		dayHeaderFormat: options.scale === "day" ? { weekday: "long" } : { weekday: "short", day: "numeric" },
 		headerToolbar: { start: "", center: "", end: "" },

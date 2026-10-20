@@ -76,3 +76,78 @@ export function normalizePath(path) {
 		.replace(/\/{2,}/g, "/")
 		.replace(/^\/+|\/+$/g, "");
 }
+
+// Render the production settings definitions in the browser preview.
+export class PluginSettingTab {
+	constructor(app, plugin) {
+		this.app = app;
+		this.plugin = plugin;
+	}
+}
+export class Setting {
+	constructor(root) {
+		this.row = root.createDiv("tl-preview-setting");
+		this.info = this.row.createDiv();
+		this.control = this.row.createDiv("tl-preview-setting-control");
+	}
+	setName(name) {
+		this.name = name;
+		this.info.createEl("strong", { text: name });
+		return this;
+	}
+	setDesc(desc) {
+		this.info.createEl("small", { text: desc });
+		return this;
+	}
+	addDropdown(callback) {
+		const input = this.control.createEl("select", { attr: { "aria-label": this.name } });
+		const component = {
+			addOption: (value, text) => {
+				input.createEl("option", { value, text });
+				return component;
+			},
+			setValue: (value) => {
+				input.value = value;
+				return component;
+			},
+			onChange: (fn) => {
+				input.onchange = () => void fn(input.value);
+				return component;
+			},
+		};
+		callback(component);
+		return this;
+	}
+	addToggle(callback) {
+		const input = this.control.createEl("input", { type: "checkbox", attr: { "aria-label": this.name } });
+		const component = {
+			setValue: (value) => {
+				input.checked = value;
+				return component;
+			},
+			onChange: (fn) => {
+				input.onchange = () => void fn(input.checked);
+				return component;
+			},
+		};
+		callback(component);
+		return this;
+	}
+	addText(callback) {
+		const input = this.control.createEl("input", { type: "text", attr: { "aria-label": this.name } });
+		const component = {
+			inputEl: input,
+			setValue: (value) => {
+				input.value = value;
+				return component;
+			},
+			getValue: () => input.value,
+			setPlaceholder: (value) => {
+				input.placeholder = value;
+				return component;
+			},
+		};
+		callback(component);
+		return this;
+	}
+}

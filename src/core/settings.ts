@@ -4,6 +4,9 @@ import { DATE_FORMATS } from "./schedule";
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
 export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoopsSettings {
 	const settings = { ...DEFAULT_SETTINGS, ...saved };
+	if (!["inherit", "light", "dark"].includes(settings.theme)) settings.theme = "inherit";
+	if (typeof settings.showWeekNumbers !== "boolean") settings.showWeekNumbers = true;
+	if (typeof settings.showProgressBars !== "boolean") settings.showProgressBars = true;
 	if (!DATE_FORMATS.includes(settings.dateFormat)) settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
 	if (!["day", "week", "month", "year", "timeline", "gantt"].includes(settings.lastScale))
 		settings.lastScale = "week";

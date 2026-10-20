@@ -189,3 +189,32 @@ dialog pre {
 #app.tl-view {
 	height: calc(100dvh - 100px);
 }
+
+.tl-preview-settings {
+	display: grid;
+	gap: 16px;
+}
+.tl-preview-setting {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.tl-preview-setting > div:first-child {
+	flex: 1;
+	min-width: 180px;
+}
+.tl-preview-setting small {
+	display: block;
+	color: var(--text-muted);
+	margin-top: 6px;
+	font-size: 12px;
+}
+.tl-preview-setting-control {
+	max-width: 100%;
+}
+.tl-preview-setting-control :is(input, select) {
+	max-width: 100%;
+}

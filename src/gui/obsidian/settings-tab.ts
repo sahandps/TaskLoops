@@ -209,6 +209,48 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 					});
 				},
 			},
+			{
+				name: "Planner theme",
+				desc: "Follow the active Obsidian theme, or use a light or dark TaskLoops palette. Applies only to TaskLoops and its task dialogs.",
+				render: (setting) => {
+					setting.addDropdown((dropdown) =>
+						dropdown
+							.addOption("inherit", "Follow Obsidian")
+							.addOption("light", "Light")
+							.addOption("dark", "Dark")
+							.setValue(this.plugin.settings.theme)
+							.onChange(async (value) => {
+								this.plugin.settings.theme =
+									value === "light" || value === "dark" ? value : "inherit";
+								await save();
+							}),
+					);
+				},
+			},
+			{
+				name: "Show week numbers",
+				desc: "Show ISO week numbers in calendar headings, Month/Timeline and the Year overview.",
+				render: (setting) => {
+					setting.addToggle((toggle) =>
+						toggle.setValue(this.plugin.settings.showWeekNumbers).onChange(async (value) => {
+							this.plugin.settings.showWeekNumbers = value;
+							await save();
+						}),
+					);
+				},
+			},
+			{
+				name: "Show progress bars",
+				desc: "Show completed / total checkbox tasks for each note in Planner and Notes, including all subtasks. Calculated from existing tasks without saving progress data.",
+				render: (setting) => {
+					setting.addToggle((toggle) =>
+						toggle.setValue(this.plugin.settings.showProgressBars).onChange(async (value) => {
+							this.plugin.settings.showProgressBars = value;
+							await save();
+						}),
+					);
+				},
+			},
 		];
 	}
 	getSettingDefinitions(): SettingDefinitionItem[] {

@@ -1,3 +1,4 @@
+import { applyPlannerTheme } from "../components/planner-theme";
 import { TaskDeferralModal } from "../modals/task-deferral";
 import { TaskDragController } from "../interactions/task-drag-controller";
 import type { TaskViewState } from "./view-state";
@@ -102,6 +103,7 @@ export class TaskLoopsView extends ItemView {
 		}
 		this.pending = false;
 		const root = this.contentEl;
+		applyPlannerTheme(root, this.plugin.settings.theme);
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
 		const nextCalendarKey =

@@ -35,3 +35,8 @@ export * from "../src/core/note-links.ts";
 export {attachGanttPan} from "../src/gui/interactions/gantt-pan.ts";
 
 export {taskGroupFolds} from "../src/gui/components/task-group-folds.ts";
+
+export * from "../src/core/task-progress.ts";
+export {renderTaskProgress} from "../src/gui/components/task-progress.ts";
+export {normalizeSettings} from "../src/core/settings.ts";
+export {applyPlannerTheme} from "../src/gui/components/planner-theme.ts";

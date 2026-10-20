@@ -1,3 +1,5 @@
+import { noteProgress } from "../../core/task-progress";
+import { renderTaskProgress } from "./task-progress";
 import { taskGroupFolds } from "./task-group-folds";
 import { reviewTasks } from "../../core/task-review";
 import { todayISO } from "../../core/dates";
@@ -19,8 +21,10 @@ export function renderPlannerSidebar(
 		cls: "tl-sidebar" + (state.taskFilter === "deferred" ? " tl-showing-deferred" : ""),
 		attr: { "aria-label": "Tasks by note" },
 	});
+	const tasks = actions.allTasks();
+	const progress = actions.settings.showProgressBars !== false ? noteProgress(tasks) : undefined;
 	const { matching, listed, overdueCount, deferredCount } = reviewTasks(
-		actions.allTasks(),
+		tasks,
 		state.query,
 		state.showDone,
 		state.taskFilter,
@@ -116,6 +120,7 @@ export function renderPlannerSidebar(
 		const section = list.createDiv("tl-task-group");
 		const heading = section.createDiv("tl-note-heading");
 		section.createDiv({ cls: "tl-note-path", text: path });
+		if (progress) renderTaskProgress(section, path, progress.get(path));
 		const body = section.createDiv("tl-group-tasks");
 		folds.add(path, heading, body, group.tasks.length);
 		heading.createEl("button", {

@@ -38,7 +38,7 @@ export class TaskDeferralModal extends Modal {
 	}
 	private draw(): void {
 		this.contentEl.empty();
-		const { body, actions } = taskDialog(this, "Can’t schedule now");
+		const { body, actions } = taskDialog(this, "Can’t schedule now", this.actions.settings.theme);
 		const section = taskSection(body, "Task");
 		if (this.draft) {
 			section.createDiv({ text: this.draft.text, cls: "tl-selected-project-name" });
