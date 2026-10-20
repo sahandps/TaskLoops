@@ -7,7 +7,9 @@ Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
 lets you schedule, resize and edit them without managing note properties.
 
-- Plan in **Day, Week, Month and Year** views.
+- Plan in **Day, Week, Month and Year** views, plus a resource **Timeline** and **Gantt**.
+- Set a **Deadline** to stretch a task from its due date through its last day.
+  Multi-day tasks appear in Calendar’s all-day row, even when they have a time.
 - Switch to **Notes**, a searchable task grid grouped by source note.
 - Drag tasks to a date or time in **five-minute intervals** and resize durations.
 - Click a task to edit its wording, schedule, project note and subtasks.
@@ -16,15 +18,39 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-The calendar planner and Notes grid are available in **0.4.6**. See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.0 — calendars, Gantt and deadlines.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
+## What’s new in 0.5.0
+
+- **Calendar:** EventCalendar powers Day, Week and Month, with drag/drop,
+  resizing, overlapping events and five-minute scheduling.
+- **Resource Timeline:** see tasks in time-based rows grouped by source note.
+- **Gantt:** plan task spans, move bars, resize their edges and edit tasks.
+- **Deadlines:** the due date is the first day; the deadline is the inclusive
+  last day. Date spans are separate from effort duration and remain ordinary Markdown.
+- **Cleaner code:** separate core functions, application services, GUI components
+  and Obsidian file access. See the [architecture guide](docs/architecture.md).
+- **Local preview:** inspect the real GUI with browser-local sample tasks using
+  `npm run preview`. Both UI libraries are MIT licensed; no paid UI license is needed.
+
+Existing tasks, settings, the Year overview and Notes grid remain supported.
+Notes are not automatically rewritten on upgrade. To update an installed copy,
+open **Settings → Community plugins → Check for updates**, then update TaskLoops.
+
 ## Screenshots
 
-These browser previews use sample notes from the current project. Obsidian
-provides its own theme, native note picker and vault access when the plugin runs
-inside the app.
+The deadline screenshot shows the 0.5.0 browser preview with sample tasks.
+Other screenshots show the earlier interface; calendar controls and task dialogs
+have changed in 0.5.0. Obsidian supplies its theme, native note picker and vault access.
+
+### Multi-day deadlines
+
+This task runs from October 20 through October 23. Its optional time and effort
+remain available in the editor while its date span sits above the hourly grid.
+
+![Deadline task stretching across Calendar’s all-day row](docs/images/deadline-span.png)
 
 ### Browse your task notes
 
@@ -90,10 +116,13 @@ for larger steps), Home/End for its limits, or double-click to reset.
 
 - **Day:** a 24-hour timeline with five-minute drag-and-drop scheduling.
 - **Week:** seven daily timelines, with simultaneous tasks shown alongside each other.
-- **Month:** tasks inside day cells. Each cell scrolls to show its full list.
+- **Month:** tasks inside day cells, with multi-day tasks spanning dates.
 - **Year:** twelve mini calendars with dots beneath dates containing tasks.
   Up to three dots are shown per date; its accessible label gives the full task
   count. Click a month heading to open that month, or a day to open its timeline.
+
+- **Timeline:** resource rows grouped by source note, with a horizontal time axis.
+- **Gantt:** task bars with date-span resizing, navigation and selectable time scales.
 
 Arrows navigate by the selected scale. **Today** returns to the current day.
 Weeks begin on Monday by default; settings also offer Sunday and Saturday. Dates and times are local wall-clock values.
@@ -130,8 +159,8 @@ preview a configurable number of tasks; **Show all** expands longer lists.
 On narrow screens the grid becomes one column and the Planner task list stacks
 above the calendar. Week and month calendars scroll horizontally to keep dates
 readable. On mobile, tap a task to schedule it through the editor. Short timed
-events show a compact title and checkbox; click or tap to see all scheduling
-details, and use their bottom handle to resize.
+events show a compact title; click or tap to see scheduling details and edit the task.
+Use the task editor when a narrow screen makes dragging difficult.
 
 ## Settings and vault access
 
@@ -242,17 +271,16 @@ Markdown always stores `HH:mm` so notes stay portable.
 Day cells in Month and Year preserve an existing start time. Every scheduling
 action is also available through the task editor for keyboard and touch use.
 
-## Resize a task's duration
+## Resize a task or date span
 
-In Day and Week, drag the handle at the bottom of a timed task to shorten or
-lengthen it. The preview shows the duration while you drag; releasing writes
-it to the task's Markdown line. Resizing snaps to five minutes, with a
-five-minute minimum. The start date and time stay the same.
+In Day and Week, resize the bottom edge of a timed event to change its duration.
+In Gantt, resize a bar's edges. For tasks with a deadline, resizing the date span
+updates the deadline while keeping effort duration separate. Moving a deadline
+span shifts both dates together. Multi-day spans stay in the all-day row above
+the hourly grid. The task editor also accepts exact time and duration values.
 
-Focus the resize handle and press **↑ / ↓** to subtract or add five minutes;
-**Shift + ↑ / ↓** adjusts by fifteen minutes. **Escape** cancels a resize.
-Completed tasks cannot be resized. Overnight tasks have a handle only on their
-final day's segment. You can still enter an exact duration in the editor.
+Completed tasks cannot be rescheduled. To edit dates using a keyboard or on
+mobile, open the task editor and select **Save changes**.
 
 ## Edit tasks and add subtasks
 
@@ -409,24 +437,30 @@ Source layout:
 
 ```text
 src/
-├── main.ts       plugin lifecycle, scanning, serialized note operations
-├── scanner.ts    metadata-backed task discovery and exact-line writes
-├── schedule.ts   scheduling suffixes, date formats, Tasks: insertion
-├── view.ts       planner, Notes grid, shared task cards, drag and drop
-├── inline-tasks.ts  note-editor decorations and Reading-view task controls
-├── inline-task-data.ts  source rows and guarded inline task targeting
-├── note-grid.ts  note grouping, filters and task-scan folder scope
-├── calendar.ts   day/week timelines, month and year views
-├── modals.ts     creation/editor popups, note picker and scheduling fields
-├── task-edits.ts exact task blocks, wording edits, subtasks and project moves
-├── resize.ts     pointer/keyboard duration resizing
-├── existing-tasks.ts  eligible existing subtask selections
-├── note-transaction.ts  guarded multi-note saves and recovery
-├── settings.ts   searchable settings with a fallback for older Obsidian
-├── types.ts      task, schedule and settings shapes
-└── dates.ts      local calendar-day arithmetic
-scripts/          build, deploy and version tooling
-test/             parsing, discovery, scheduling and vault-write tests
+├── main.ts                   Obsidian lifecycle and dependency wiring
+├── core/                     Pure task parsing, scheduling, dates and models
+├── application/              Task actions interface and serialized task service
+├── infrastructure/           Obsidian note repository and guarded transactions
+└── gui/
+    ├── calendar/             Calendar, resource timeline and Gantt adapters
+    ├── components/           Task cards, sidebar, header and subtask controls
+    ├── interactions/         Drag/drop and resizing controllers
+    ├── modals/               Task dialogs, note pickers and shared form fields
+    ├── obsidian/             Inline editor integration and settings tab
+    ├── views/                Planner coordinator, Notes view and GUI state
+    └── styles.css            Authored GUI styles
+preview/                      Browser sample data, storage, actions and app entry
+scripts/                      Build, stylesheet, preview, deploy and version tooling
+test/                         Parsing, scheduling, service and vault-write checks
+```
+
+See [Architecture](docs/architecture.md) for dependency rules and where to make
+changes. GUI components use the `TaskActions` interface, so the production plugin
+and browser preview provide separate implementations of the same actions.
+
+```bash
+npm run format        # format source and preview files
+npm run format:check  # verify formatting without changes
 ```
 
 Tests bundle the plugin against a small Obsidian substitute. They cover field
@@ -489,3 +523,52 @@ tasks remain yours.
 **Historical releases:** 0.4.1 and earlier retain their [MIT rights](licenses/MIT-previous-releases.txt).
 0.4.2 was published under the [custom license preserved here](licenses/TaskLoops-0.4.2.txt).
 The 0.4.3 release replaces that custom license with standard GPLv3.
+
+## Calendar and Gantt preview
+
+The planner uses **EventCalendar** for Day, Week, Month and resource **Timeline**
+views, and **Frappe Gantt** for **Gantt**. Both libraries are MIT licensed.
+The Year overview and Notes grid remain available. Click an event/bar to edit;
+drag events or Gantt bars to reschedule, and resize their edges to adjust duration.
+Timeline rows group tasks by source note; moving between rows does not move a task
+to a different note. Choose its destination in the task editor instead.
+
+All views share the same Markdown scheduling fields. Undated tasks remain in the
+sidebar. Gantt uses the due date as the start and the inclusive deadline as the
+end when one is set. Older tasks without deadlines continue to use duration.
+Completion is binary (0% or 100%), and Gantt does not infer dependencies from note hierarchy.
+
+To inspect the planner without launching Obsidian:
+
+```bash
+npm install
+npm run preview
+```
+
+Open **http://127.0.0.1:5173/preview/**. This runs the actual planner and task
+dialogs against sample notes, saved in browser local storage. Use **Reset sample
+tasks** to start over. It does not read or modify an Obsidian vault. Native vault
+operations still need testing inside Obsidian. The production build combines the
+two libraries' styles and `src/gui/styles.css` into the root `styles.css`.
+
+
+### Deadlines and multi-day spans
+
+Set **Due date** to the first day and **Deadline** to the last day in the task
+editor. The deadline is inclusive: October 20 through October 22 fills three
+days. A deadline cannot precede its due date.
+
+Calendar shows multi-day tasks as a stretched bar in the all-day row, even if
+they have a start time. Gantt uses the same date span. Duration is retained as
+separate effort and does not determine the span when a deadline is set. Moving
+a range moves both dates; resizing its edge updates the deadline. Tasks without
+a deadline retain their existing time/duration behavior.
+
+The fields remain ordinary Markdown, for example:
+
+```markdown
+- [ ] Prepare release - Due date: 2026-10-20 Time: 10:00 Duration: 1 Hour 30 Minutes Deadline: 2026-10-22
+```
+
+Clear only Deadline to return to time/duration scheduling, or use **Remove
+schedule** to clear all scheduling fields. Existing notes are not auto-migrated.

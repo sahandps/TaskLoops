@@ -1,0 +1,259 @@
+.tl-view { container-type: inline-size; display: flex; flex-direction: column; padding: 12px !important; gap: 12px; height: 100%; overflow: hidden; }
+.tl-view button { cursor: pointer; }
+.tl-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tl-header h2 { margin: 0; margin-right: auto; font-size: 18px; }
+.tl-planner { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); flex: 1; min-height: 0; gap: 16px; }
+.tl-sidebar { display: flex; flex-direction: column; min-height: 0; gap: 10px; border-right: 1px solid var(--background-modifier-border); padding-right: 12px; }
+.tl-search { width: 100%; }
+.tl-filters { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.tl-filters label { display: flex; gap: 4px; align-items: center; }
+.tl-task-list { overflow: auto; min-height: 0; flex: 1; }
+.tl-note-heading { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 16px; }
+.tl-note-heading .tl-note-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.tl-note-heading .tl-open-note { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); }
+.tl-open-note svg { width: 14px; height: 14px; }
+.tl-note-path { color: var(--text-faint); font-size: 10px; overflow-wrap: anywhere; margin: 4px 0 8px; }
+.tl-note-heading button, .tl-task-meta, .tl-task-source, .tl-day-heading button, .tl-schedule-button, .tl-month-title { background: transparent; box-shadow: none; border: 0; height: auto; padding: 3px 4px; text-align: left; }
+.tl-task { border: 1px solid var(--background-modifier-border); border-radius: 7px; background: var(--background-primary); padding: 8px; margin-bottom: 7px; min-width: 0; }
+.tl-task[draggable="true"] { cursor: grab; }
+.tl-task-row { display: flex; align-items: flex-start; gap: 6px; }
+.tl-task-row input { flex: 0 0 auto; margin: 4px 0 0; }
+.tl-task-title { flex: 1; font-size: 13px; overflow-wrap: anywhere; min-width: 0; }
+.tl-task-meta, .tl-task-source { color: var(--text-muted); font-size: 11px; display: block; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+.tl-task-source { color: var(--text-faint); }
+.tl-schedule-button { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.tl-task.is-done .tl-task-title { text-decoration: line-through; color: var(--text-muted); }
+.tl-task.is-done { opacity: .65; }
+.tl-unschedule { border: 1px dashed var(--background-modifier-border); border-radius: 6px; padding: 10px; color: var(--text-muted); font-size: 11px; text-align: center; }
+.tl-calendar { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.tl-calendar-toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.tl-scales, .tl-calendar-nav { display: flex; gap: 4px; }
+.tl-scales button.is-active { background: var(--interactive-accent); color: var(--text-on-accent); }
+.tl-calendar-heading { margin: 12px 0; font-size: 16px; }
+.tl-calendar-content { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
+.tl-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); min-width: 560px; }
+.tl-weekday { padding: 8px 4px; color: var(--text-muted); font-size: 11px; text-align: center; }
+.tl-month-day { border-top: 1px solid var(--background-modifier-border); border-right: 1px solid var(--background-modifier-border); min-height: 130px; min-width: 0; padding: 3px; }
+.tl-month-day:nth-child(7n) { border-right: 0; }
+.tl-day-heading { display: flex; justify-content: space-between; align-items: center; gap: 2px; min-height: 28px; }
+.tl-day-heading button { font-size: 12px; }
+.tl-month-events { max-height: 190px; overflow: auto; }
+.tl-month-day.is-outside { background: var(--background-secondary); }
+.tl-month-day.is-outside .tl-day-number { color: var(--text-faint); }
+.is-today > .tl-day-heading .tl-day-number, .tl-all-day.is-today > .tl-day-heading button:first-child { background: var(--interactive-accent); color: var(--text-on-accent); border-radius: 5px; }
+.tl-year { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 16px; padding: 12px; }
+.tl-month-grid.is-mini { min-width: 0; }
+.is-mini .tl-month-day { min-height: 32px; }
+.is-mini .tl-day-heading { justify-content: center; position: relative; }
+.is-mini .tl-day-count { font-size: 9px; border-radius: 8px; background: var(--interactive-accent); color: var(--text-on-accent); padding: 0 3px; }
+.tl-month-title { font-weight: 600; width: 100%; margin-bottom: 8px; }
+.tl-timeline { min-width: 920px; }
+.tl-timeline.is-single-day { min-width: 280px; }
+.tl-timeline-header, .tl-timeline-body { display: grid; grid-template-columns: 52px repeat(var(--tl-days), minmax(0, 1fr)); }
+.tl-timeline-header { position: sticky; top: 0; z-index: 4; background: var(--background-primary); border-bottom: 1px solid var(--background-modifier-border); max-height: 220px; overflow-y: auto; }
+.tl-time-label { color: var(--text-muted); font-size: 10px; padding: 10px 3px; }
+.tl-all-day { min-height: 75px; border-left: 1px solid var(--background-modifier-border); padding: 3px; }
+.tl-all-day .tl-day-heading { position: sticky; top: 0; background: var(--background-primary); z-index: 1; }
+.tl-day-column { height: 1536px; position: relative; border-left: 1px solid var(--background-modifier-border); }
+.tl-hour-label { height: 64px; font-size: 10px; color: var(--text-muted); padding: 3px; text-align: right; }
+.tl-view .tl-time-slot { width: 100%; height: 32px; min-height: 0; display: block; padding: 0; border-radius: 0; border: 0; border-top: 1px dashed var(--background-modifier-border); background: transparent; box-shadow: none; }
+.tl-view .tl-time-slot.is-hour { border-top-style: solid; }
+.tl-time-slot:hover { background: var(--background-modifier-hover); }
+.tl-view .tl-timed-task { position: absolute; top: var(--tl-event-top); height: var(--tl-event-height); left: var(--tl-event-left); width: calc(var(--tl-event-width) - 3px); padding: 4px; margin: 0; overflow: auto; background: var(--background-secondary); border-left: 3px solid var(--interactive-accent); z-index: 2; }
+.tl-timed-task .tl-task-title { font-size: 11px; }
+.tl-timed-task .tl-task-meta, .tl-timed-task .tl-task-source { font-size: 10px; }
+.tl-timed-task .tl-task-row { gap: 3px; }
+.tl-view .is-drop-target { background: var(--background-modifier-hover); outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
+.tl-view .is-dragging { opacity: .45; }
+.tl-empty { font-size: 13px; color: var(--text-muted); padding: 12px; }
+.tl-schedule-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+.tl-schedule-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; min-width: 0; }
+.tl-schedule-fields input, .tl-task-input { width: 100%; }
+.tl-task-input { display: block; margin-top: 8px; }
+.tl-destination { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 16px; }
+.tl-destination button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; height: auto; min-height: 30px; }
+.tl-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+@container (max-width: 680px) {
+	.tl-planner { display: flex; flex-direction: column; gap: 12px; }
+	.tl-sidebar { flex: 0 0 34%; min-height: 160px; max-height: 40%; border-right: 0; border-bottom: 1px solid var(--background-modifier-border); padding: 0 0 8px; gap: 6px; }
+	.tl-calendar { flex: 1; }
+	.tl-unschedule { padding: 5px; }
+	.tl-header button { font-size: 11px; padding: 4px 6px; }
+	.tl-header h2 { font-size: 16px; }
+	.tl-scales button, .tl-calendar-nav button { font-size: 11px; padding: 4px 7px; }
+	.tl-calendar-heading { font-size: 14px; }
+}
+@media (pointer: coarse) {
+	.tl-schedule-button, .tl-task-meta, .tl-note-heading button { min-height: 30px; }
+}
+
+.tl-month-events .tl-task { padding: 5px; }
+.tl-month-events .tl-task-title { font-size: 11px; }
+.tl-month-events .tl-schedule-button { display: none; }
+.tl-month-events .tl-task-row { gap: 3px; }
+.tl-month-events .tl-task-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tl-month-events .tl-task-meta, .tl-month-events .tl-task-source { width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; }
+
+.tl-view .tl-task-title { background: transparent; box-shadow: none; border: 0; padding: 0; height: auto; min-height: 0; text-align: left; white-space: normal; color: inherit; line-height: 1.4; }
+.tl-view .tl-task-title:hover { color: var(--interactive-accent); }
+.tl-timed-task > .tl-task-content { height: 100%; overflow: auto; padding-bottom: 10px; }
+.tl-view .tl-timed-task { overflow: hidden; }
+.tl-view .tl-resize-handle { position: absolute; bottom: 0; left: 0; width: 100%; height: 11px; min-height: 0; padding: 0; border: 0; box-shadow: none; background: var(--background-secondary); cursor: ns-resize; touch-action: none; border-radius: 0; z-index: 3; }
+.tl-resize-handle::after { content: ""; display: block; width: 24px; max-width: 60%; height: 3px; margin: auto; border-radius: 3px; background: var(--interactive-accent); opacity: .65; }
+.tl-view .tl-resize-handle:hover, .tl-view .tl-resize-handle:focus-visible { background: var(--background-modifier-hover); }
+.tl-view .is-resizing { z-index: 5; outline: 2px solid var(--interactive-accent); }
+.tl-resize-caption { position: absolute; top: 2px; right: 2px; z-index: 4; border-radius: 3px; background: var(--interactive-accent); color: var(--text-on-accent); padding: 2px 5px; font-size: 11px; pointer-events: none; }
+.is-mini .tl-day-heading { flex-direction: column; min-height: 34px; gap: 1px; }
+.tl-day-dots { display: flex; gap: 2px; justify-content: center; min-height: 5px; }
+.tl-day-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--interactive-accent); }
+.tl-subtask-entry, .tl-subtask-draft { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.tl-subtask-entry input, .tl-subtask-draft span { flex: 1; min-width: 0; }
+.tl-existing-subtask, .tl-subtask-draft { font-size: 13px; overflow-wrap: anywhere; padding-left: 8px; }
+.tl-clear-schedule { margin-top: 10px; }
+.tl-destination small { color: var(--text-muted); }
+.tl-sidebar .tl-task.is-subtask { margin-left: 14px; border-left: 2px solid var(--background-modifier-border); }
+
+.tl-drop-time { display: none; position: absolute; top: var(--tl-drop-top); left: 0; right: 0; height: 0; border-top: 2px solid var(--interactive-accent); z-index: 6; pointer-events: none; color: var(--interactive-accent); font-size: 11px; font-weight: 600; text-shadow: 0 0 3px var(--background-primary); }
+.tl-drop-time.is-visible { display: block; }
+
+.tl-existing-subtasks, .tl-selected-subtasks, .tl-subtask-drafts { max-height: 150px; overflow: auto; }
+.tl-existing-subtasks:empty, .tl-selected-subtasks:empty { display: none; }
+.tl-existing-subtasks .tl-existing-subtask { display: flex; align-items: center; gap: 8px; width: 100%; height: auto; min-height: 34px; padding: 6px 8px; margin-bottom: 4px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); box-shadow: none; text-align: left; white-space: normal; }
+.tl-subtask-state, .tl-subtask-open { color: var(--text-muted); flex-shrink: 0; }
+.tl-subtask-open { margin-left: auto; }
+.tl-existing-subtask:hover .tl-subtask-open { color: var(--interactive-accent); }
+.tl-choose-existing { width: 100%; margin-top: 12px; border-style: dashed; }
+.tl-subtask-hint { display: block; font-size: 11px; line-height: 1.5; color: var(--text-muted); margin-top: 6px; }
+.tl-selected-subtask { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-left: 2px solid var(--interactive-accent); padding: 7px 9px; margin-top: 8px; background: var(--background-secondary); font-size: 13px; }
+.tl-picker-title { font-size: 14px; line-height: 1.4; }
+.tl-picker-meta { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.suggestion-item.is-selected .tl-picker-meta, .mod-cta .tl-picker-meta { color: inherit; opacity: .8; }
+
+/* Product controls are explicitly aligned so community themes cannot turn task
+   titles into centered buttons or schedule labels into filled pills. */
+.tl-view { color: var(--text-normal); box-sizing: border-box; }
+.tl-view *, .tl-view *::before, .tl-view *::after { box-sizing: border-box; }
+.tl-view .tl-header h2, .tl-view .tl-calendar-heading { color: var(--text-normal); }
+.tl-view .tl-task-title, .tl-view .tl-task-meta, .tl-view .tl-task-source,
+.tl-view .tl-note-heading button, .tl-view .tl-schedule-button {
+	background: transparent; background-image: none; box-shadow: none; border: 0;
+	color: inherit; height: auto; text-align: left; justify-content: flex-start;
+	letter-spacing: normal; text-transform: none;
+}
+.tl-view .tl-task-title { display: block; padding: 0; white-space: normal; font-weight: 400; }
+.tl-view .tl-task-meta, .tl-view .tl-task-source { display: block; padding: 2px 0; min-height: 0; color: var(--text-muted); }
+.tl-view .tl-task-row { align-items: flex-start; min-width: 0; }
+.tl-view .tl-task-row input[type=checkbox] { width: 16px; height: 16px; min-width: 16px; margin: 1px 0 0; flex: 0 0 16px; }
+.tl-view .tl-schedule-button { flex: 0 0 24px; padding: 0 3px; min-height: 20px; text-align: center; }
+.tl-view .tl-note-name { display: block; }
+.tl-view .tl-open-note { display: inline-flex; justify-content: center; }
+.tl-view .tl-planner { grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); }
+.tl-view .tl-header h2 { font-size: 18px; font-weight: 600; }
+.tl-view .tl-view-switch { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: var(--background-secondary); }
+.tl-view .tl-view-switch button { box-shadow: none; border: 0; background: transparent; padding: 6px 12px; }
+.tl-view .tl-view-switch button[aria-pressed=true], .tl-view .tl-note-filters button[aria-pressed=true] { background: var(--interactive-accent); color: var(--text-on-accent); }
+.tl-view .tl-notes-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 3px 18px; }
+.tl-view .tl-notes-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tl-view .tl-notes-controls .tl-search { flex: 1; width: auto; min-width: 160px; }
+.tl-view .tl-notes-controls select { max-width: 100%; height: 36px; border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; background: var(--background-primary); color: var(--text-normal); }
+.tl-view .tl-notes-controls input { height: 36px; border-radius: 8px; }
+.tl-view .tl-note-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-view .tl-note-filters button { font-size: 12px; border: 0; box-shadow: none; border-radius: 16px; padding: 5px 11px; background: var(--background-secondary); }
+.tl-view .tl-notes-count { color: var(--text-muted); font-size: 12px; margin: 14px 0; }
+.tl-view .tl-notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; align-items: start; }
+.tl-view .tl-note-card { min-width: 0; border: 1px solid var(--background-modifier-border); border-radius: 14px; background: var(--background-primary); padding: 16px; }
+.tl-view .tl-note-card > .tl-note-heading { margin-top: 0; }
+.tl-view .tl-note-card .tl-note-path { font-size: 11px; margin-bottom: 14px; }
+.tl-view .tl-note-preview .tl-task { border: 0; background: transparent; padding: 7px 0; margin: 0; box-shadow: none; }
+.tl-view .tl-note-preview .tl-task.is-subtask { margin-left: 14px; }
+.tl-view .tl-note-preview .tl-task-meta { font-size: 11px; margin-left: 22px; }
+.tl-view .tl-note-preview .tl-task-title { font-size: 13px; }
+.tl-view .tl-note-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--background-modifier-border); padding-top: 12px; margin-top: 12px; }
+.tl-view .tl-note-footer span { color: var(--text-muted); font-size: 11px; }
+.tl-view .tl-note-footer button, .tl-view .tl-note-expand { box-shadow: none; border: 0; background: transparent; color: var(--text-muted); font-size: 12px; padding: 4px; height: auto; }
+.tl-view .tl-note-expand { margin-top: 8px; }
+/* Event geometry remains duration-based. Details live in the task editor when
+   an event is too small to show them; there are no nested event scrollbars. */
+.tl-view .tl-timed-task > .tl-task-content { overflow: hidden; padding: 0 0 9px; }
+.tl-view .tl-timed-task .tl-task-row { gap: 4px; }
+.tl-view .tl-timed-task .tl-task-title { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11px; }
+.tl-view .tl-timed-task .tl-task-meta, .tl-view .tl-timed-task .tl-task-source { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+.tl-view .tl-timed-task .tl-schedule-button { display: none; }
+.tl-view .tl-timed-task.is-short-event .tl-task-meta,
+.tl-view .tl-timed-task.is-short-event .tl-task-source { display: none; }
+.tl-view .tl-timed-task.is-tiny-event { padding: 1px 3px; }
+.tl-view .tl-timed-task.is-tiny-event .tl-task-title { display: block; white-space: nowrap; text-overflow: ellipsis; line-height: 16px; }
+.tl-view .tl-timed-task.is-tiny-event > .tl-task-content { padding-bottom: 5px; }
+.tl-view .tl-timed-task.is-tiny-event .tl-resize-handle { height: 6px; }
+@container (max-width: 680px) {
+	.tl-view .tl-planner { display: flex; }
+	.tl-view .tl-header { gap: 6px; }
+	.tl-view .tl-header h2 { width: 100%; }
+	.tl-view .tl-notes-grid { gap: 12px; }
+	.tl-view .tl-notes-controls select { flex: 1; }
+	.tl-view .tl-task-list { overscroll-behavior: contain; }
+}
+@container (max-width: 420px) {
+	.tl-view .tl-notes-controls .tl-search { flex-basis: 100%; }
+}
+@media (pointer: coarse) {
+	.tl-view .tl-header button, .tl-view .tl-note-filters button,
+	.tl-view .tl-note-footer button, .tl-view .tl-note-expand,
+	.tl-view .tl-note-heading button, .tl-view .tl-scales button,
+	.tl-view .tl-calendar-nav button { min-height: 44px; }
+	.tl-view .tl-note-preview .tl-task-row { min-height: 36px; align-items: center; }
+	.tl-view .tl-notes-controls input, .tl-view .tl-notes-controls select { min-height: 44px; font-size: 16px; }
+}
+@media (max-width: 480px) {
+	.tl-schedule-fields { grid-template-columns: 1fr; }
+	.tl-subtask-entry { flex-wrap: wrap; }
+}
+
+.tl-view .is-compact-grid .tl-notes-grid { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.tl-view .is-compact-grid .tl-note-card { padding: 10px; border-radius: 10px; }
+.tl-view .is-compact-grid .tl-note-preview .tl-task { padding: 4px 0; }
+.tl-view .is-compact-grid .tl-note-footer { padding-top: 8px; margin-top: 8px; }
+
+/* A dedicated splitter replaces the fixed task-list width. */
+.tl-view .tl-planner { grid-template-columns: minmax(0, var(--tl-panel-size, 260px)) 12px minmax(0, 1fr); gap: 0; }
+.tl-view .tl-sidebar { border-right: 0; padding-right: 6px; min-width: 0; }
+.tl-view .tl-panel-divider { position: relative; cursor: col-resize; touch-action: none; min-width: 12px; align-self: stretch; }
+.tl-view .tl-panel-divider::after { content: ""; position: absolute; top: 0; bottom: 0; left: 5px; width: 2px; background: var(--background-modifier-border); border-radius: 2px; }
+.tl-view .tl-panel-divider:hover::after, .tl-view .tl-panel-divider:focus-visible::after, .tl-view .is-panel-resizing .tl-panel-divider::after { background: var(--interactive-accent); }
+.tl-view .is-panel-resizing { user-select: none; }
+.tl-note-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.tl-note-links button, .tl-destination .tl-open-project { white-space: normal; height: auto; min-height: 32px; }
+@container (max-width: 680px) {
+	.tl-view .tl-sidebar { flex: 0 0 var(--tl-panel-size, 220px); max-height: none; min-height: 0; padding: 0 0 6px; border-bottom: 0; }
+	.tl-view .tl-panel-divider { cursor: row-resize; width: 100%; min-height: 12px; flex: 0 0 12px; }
+	.tl-view .tl-panel-divider::after { top: 5px; bottom: auto; left: 0; right: 0; height: 2px; width: auto; }
+	.tl-view .tl-calendar { min-height: 0; }
+}
+@media (pointer: coarse) {
+	.tl-note-links button, .tl-destination .tl-open-project { min-height: 44px; }
+}
+
+/* Inline controls are decorations, never stored in the note text. */
+button.tl-inline-schedule { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; width: 24px; height: 24px; min-height: 24px; padding: 3px; margin: 0 0 0 6px; border: 0; border-radius: 5px; box-shadow: none; background: transparent; color: var(--text-muted); cursor: pointer; }
+button.tl-inline-schedule:hover, button.tl-inline-schedule:focus-visible { color: var(--interactive-accent); background: var(--background-modifier-hover); }
+button.tl-inline-schedule svg { width: 15px; height: 15px; }
+@media (pointer: coarse) {
+	button.tl-inline-schedule { width: 36px; height: 36px; min-height: 36px; }
+}
+@media print { button.tl-inline-schedule { display: none; } }
+.tl-selected-project { max-width: 100%; overflow-wrap: anywhere; color: var(--text-muted); font-size: 12px; }
+
+/* Shared EventCalendar and Frappe Gantt surfaces. */
+.tl-calendar-content:has(.tl-library-planner) { display: flex; flex-direction: column; overflow: auto; }
+.tl-library-planner { flex: 1; min-height: 400px; min-width: 0; color: var(--text-normal); --ec-border-color: var(--background-modifier-border); --ec-bg-color: var(--background-primary); --ec-text-color: var(--text-normal); --ec-today-bg-color: var(--background-secondary); --ec-button-bg-color: var(--background-primary); --ec-event-bg-color: #547665; }
+.tl-library-planner .ec { height: 100%; min-height: 400px; }
+.tl-library-planner .ec-event { cursor: pointer; }
+.tl-library-hint { font-size: 12px; color: var(--text-muted); padding: 0 12px; }
+.tl-library-planner .gantt-container { --g-bar-color: #bdd4c7; --g-progress-color: #547665; --g-text-light: var(--text-normal); --g-row-color: var(--background-primary); --g-header-background: var(--background-primary); --g-border-color: var(--background-modifier-border); }
+.tl-scales { flex-wrap: wrap; }
+
+.tl-schedule-fields .tl-deadline-hint {
+ grid-column: 1 / -1;
+ color: var(--text-muted);
+ font-size: 12px;
+}

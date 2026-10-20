@@ -1,0 +1,137 @@
+:root {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	color: #26362d;
+	background: #f5f6f3;
+	--background-primary: #fff;
+	--background-secondary: #f1f4f0;
+	--background-modifier-border: #dce3da;
+	--background-modifier-hover: #e9efe7;
+	--text-normal: #26362d;
+	--text-muted: #718071;
+	--text-faint: #97a292;
+	--interactive-accent: #547665;
+	--text-on-accent: #fff;
+	--font-ui-small: 13px;
+	--font-ui-smaller: 12px;
+	--font-text-size: 14px;
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+}
+button,
+input,
+select {
+	font: inherit;
+}
+button {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: white;
+	color: inherit;
+	padding: 6px 10px;
+	cursor: pointer;
+}
+button:hover {
+	background: #e9efe7;
+}
+input,
+select {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 8px;
+	color: inherit;
+	background: white;
+}
+button:focus-visible,
+input:focus-visible {
+	outline: 2px solid #547665;
+	outline-offset: 2px;
+}
+.mod-cta {
+	background: #547665;
+	color: white;
+}
+.preview-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 52px;
+	padding: 10px 24px;
+	border-bottom: 1px solid #dce3da;
+	font-size: 12px;
+	color: #718071;
+}
+.preview-banner strong {
+	color: #26362d;
+}
+#app {
+	height: calc(100dvh - 56px);
+	padding: 22px !important;
+}
+.tl-header {
+	padding-bottom: 12px;
+}
+.tl-library-planner .ec {
+	font-size: 12px;
+}
+dialog {
+	border: 1px solid #dce3da;
+	border-radius: 14px;
+	padding: 24px;
+	color: #26362d;
+	width: min(620px, 94vw);
+	max-height: 88vh;
+	overflow: auto;
+	box-shadow: 0 20px 80px #1c352b33;
+}
+dialog::backdrop {
+	background: #18332955;
+}
+dialog input {
+	max-width: 100%;
+}
+dialog label {
+	display: block;
+}
+dialog .tl-task-input {
+	width: 100%;
+	margin: 8px 0 18px;
+}
+.tl-schedule-fields {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 16px 0;
+}
+.tl-schedule-fields label {
+	flex: 1;
+	min-width: 110px;
+}
+.tl-schedule-fields input {
+	width: 100%;
+}
+dialog pre {
+	white-space: pre-wrap;
+	line-height: 1.8;
+}
+.toast {
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	padding: 16px;
+	background: #26362d;
+	color: white;
+	z-index: 100;
+	border-radius: 8px;
+}
+.modal-content > div > button {
+	margin: 3px;
+}
+.tl-schedule-fields .tl-deadline-hint {
+	flex: 0 0 100%;
+	order: 1;
+}

@@ -1,0 +1,6 @@
+node_modules/
+main.js
+styles.css
+preview/app.js
+preview/app.js.map
+test/.bundle.mjs

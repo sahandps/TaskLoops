@@ -5,3 +5,6 @@ data.json
 test/.bundle.mjs
 .DS_Store
 .vault-path
+
+preview/app.js
+preview/app.js.map

@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.5.0 — 2026-10-20
+
+### Added
+
+- Use EventCalendar for interactive Day, Week and Month calendars. Retain the
+  Year overview and Notes grid.
+- Add a resource Timeline with rows grouped by source note. Changing a timeline
+  row does not move the task into another note; use the task editor for that.
+- Add Frappe Gantt with draggable task bars, edge resizing and selectable time scales.
+- Add a Deadline field to task creation and editing. A task spans from its due
+  date through its inclusive deadline. Multi-day tasks stretch across Calendar's
+  all-day row even when an optional time is present.
+- Persist deadlines in the Markdown scheduling suffix. Moving a date span shifts
+  both dates; resizing a deadline span updates its end while preserving effort.
+  Reject invalid dates and deadlines earlier than the due date.
+- Add a local browser preview with sample task storage, task editing, note
+  previews and a reset control. It does not read or modify an Obsidian vault.
+
+### Improved
+
+- Separate pure task functions and models, application services, GUI components
+  and Obsidian file operations into dedicated folders.
+- Give views a shared task-actions interface; isolate Calendar and Gantt adapters,
+  task cards, sidebar, dialogs, form fields and drag/drop controllers.
+- Extract the task mutation queue and safe edit/move workflows into a service.
+- Share stylesheet generation between plugin builds and the preview; add
+  formatting commands, architecture documentation and dependency-boundary checks.
+- Include MIT notices for EventCalendar and Frappe Gantt. Neither component needs
+  a paid license. TaskLoops remains GPL-3.0-only.
+
+### Compatibility and validation
+
+- Preserve older date/time/duration schedules and existing settings. Tasks without
+  deadlines retain their previous scheduling behavior. No automatic note migration.
+- Keep the minimum Obsidian version at 1.7.2 and retain desktop/mobile metadata.
+- 570 automated checks pass, including deadline round trips in all supported date
+  formats, inclusive spans, DST boundaries, service writes, legacy schedules and
+  architecture boundaries. TypeScript, ESLint, formatting and production build pass.
+- Browser checks cover Calendar, Timeline, Gantt, Notes filtering, task editing
+  and a timed deadline task displayed as a multi-day all-day bar. Native Obsidian
+  mobile interaction still needs a device smoke test.
+
 ## 0.4.6 — 2026-10-16
 
 - Make project selection explicit with a Choose project note button and a

@@ -12,7 +12,7 @@ import obsidianmd from "eslint-plugin-obsidianmd";
  */
 export default tseslint.config(
 	{
-		ignores: ["main.js", "node_modules/", "test/.bundle.mjs"],
+		ignores: ["main.js", "node_modules/", "test/.bundle.mjs", "preview/app.js"],
 	},
 
 	// --- the plugin ----------------------------------------------------------
