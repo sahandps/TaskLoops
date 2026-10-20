@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Plan Markdown tasks with calendars, resource timelines and Gantt charts. Set deadlines, resize date spans, and manage tasks and subtasks by note.",
   "main": "main.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-obsidianmd": "^0.4.1",
     "obsidian": "latest",
+    "postcss": "8.5.31",
     "prettier": "3.6.2",
     "tslib": "2.6.2",
     "typescript": "5.4.5",

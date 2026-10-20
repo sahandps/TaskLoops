@@ -18,9 +18,16 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.0 — calendars, Gantt and deadlines.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.1 — theme compatibility fixes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.1
+
+Calendar and Gantt now follow Obsidian's light, dark and custom theme colors,
+including labels, weekend shading, controls, selection and events. Vendor styles
+are scoped to TaskLoops so they do not affect other plugins. The browser preview
+includes a Theme picker for checking live palette changes.
 
 ## What’s new in 0.5.0
 
@@ -41,9 +48,18 @@ open **Settings → Community plugins → Check for updates**, then update TaskL
 
 ## Screenshots
 
-The deadline screenshot shows the 0.5.0 browser preview with sample tasks.
+The dark Gantt screenshot shows the 0.5.1 preview. The deadline screenshot shows
+the 0.5.0 browser preview with sample tasks.
 Other screenshots show the earlier interface; calendar controls and task dialogs
 have changed in 0.5.0. Obsidian supplies its theme, native note picker and vault access.
+
+### Theme-aware Gantt
+
+Labels, weekend shading, controls and task bars follow the active Obsidian palette.
+This browser preview uses the Dark palette; Light and a custom Plum palette are
+also available in the preview's Theme picker.
+
+![Gantt with readable labels and theme-colored weekend shading](docs/images/dark-gantt.png)
 
 ### Multi-day deadlines
 

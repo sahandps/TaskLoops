@@ -1,6 +1,6 @@
 :root {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-	color: #26362d;
+	color: var(--text-normal);
 	background: #f5f6f3;
 	--background-primary: #fff;
 	--background-secondary: #f1f4f0;
@@ -20,6 +20,9 @@
 }
 body {
 	margin: 0;
+	min-height: 100dvh;
+	background: var(--background-primary);
+	color: var(--text-normal);
 }
 button,
 input,
@@ -29,13 +32,13 @@ select {
 button {
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 6px;
-	background: white;
+	background: var(--background-primary);
 	color: inherit;
 	padding: 6px 10px;
 	cursor: pointer;
 }
 button:hover {
-	background: #e9efe7;
+	background: var(--background-modifier-hover);
 }
 input,
 select {
@@ -43,16 +46,16 @@ select {
 	border-radius: 6px;
 	padding: 8px;
 	color: inherit;
-	background: white;
+	background: var(--background-primary);
 }
 button:focus-visible,
 input:focus-visible {
-	outline: 2px solid #547665;
+	outline: 2px solid var(--interactive-accent);
 	outline-offset: 2px;
 }
 .mod-cta {
-	background: #547665;
-	color: white;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
 }
 .preview-banner {
 	display: flex;
@@ -61,12 +64,12 @@ input:focus-visible {
 	gap: 12px;
 	min-height: 52px;
 	padding: 10px 24px;
-	border-bottom: 1px solid #dce3da;
+	border-bottom: 1px solid var(--background-modifier-border);
 	font-size: 12px;
-	color: #718071;
+	color: var(--text-muted);
 }
 .preview-banner strong {
-	color: #26362d;
+	color: var(--text-normal);
 }
 #app {
 	height: calc(100dvh - 56px);
@@ -79,12 +82,13 @@ input:focus-visible {
 	font-size: 12px;
 }
 dialog {
-	border: 1px solid #dce3da;
+	border: 1px solid var(--background-modifier-border);
 	border-radius: 14px;
 	padding: 24px;
-	color: #26362d;
+	color: var(--text-normal);
 	width: min(620px, 94vw);
 	max-height: 88vh;
+	background: var(--background-primary);
 	overflow: auto;
 	box-shadow: 0 20px 80px #1c352b33;
 }
@@ -124,7 +128,7 @@ dialog pre {
 	right: 24px;
 	padding: 16px;
 	background: #26362d;
-	color: white;
+	color: var(--text-on-accent);
 	z-index: 100;
 	border-radius: 8px;
 }
@@ -134,4 +138,54 @@ dialog pre {
 .tl-schedule-fields .tl-deadline-hint {
 	flex: 0 0 100%;
 	order: 1;
+}
+
+/* Preview palettes use the same classes and variables as Obsidian. */
+.theme-light {
+	color-scheme: light;
+}
+.theme-dark {
+	color-scheme: dark;
+	--background-primary: #1e1e1e;
+	--background-secondary: #282828;
+	--background-modifier-border: #3f3f3f;
+	--background-modifier-hover: #383838;
+	--interactive-normal: #303030;
+	--text-normal: #e5e5e5;
+	--text-muted: #b3b3b3;
+	--text-faint: #929292;
+	--interactive-accent: #006de0;
+	--text-on-accent: #ffffff;
+	--text-accent: #6bb1ff;
+}
+.theme-dark.preview-plum {
+	--background-primary: #211a2b;
+	--background-secondary: #30263c;
+	--background-modifier-border: #584269;
+	--background-modifier-hover: #44324f;
+	--interactive-normal: #362940;
+	--text-normal: #f7eaff;
+	--text-muted: #d0b8dd;
+	--text-faint: #b297c2;
+	--interactive-accent: #d4afff;
+	--text-on-accent: #291637;
+	--text-accent: #e3c7ff;
+}
+.preview-theme-control {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+.preview-theme-control select {
+	max-width: 90px;
+}
+.preview-banner {
+	flex-wrap: wrap;
+}
+.preview-banner > span {
+	flex: 1;
+	min-width: 160px;
+}
+#app {
+	height: calc(100dvh - 100px);
 }

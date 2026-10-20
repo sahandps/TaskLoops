@@ -1,7 +1,7 @@
 {
 	"id": "taskloops",
 	"name": "TaskLoops",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"minAppVersion": "1.7.2",
 	"description": "Plan Markdown tasks with calendars, resource timelines and Gantt charts. Set deadlines, resize date spans, and manage tasks and subtasks by note.",
 	"author": "Sahand Poursadeghi Khiavi",

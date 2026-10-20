@@ -67,7 +67,9 @@ npm run preview
 
 The preview is served at `http://127.0.0.1:5173/preview/`.
 `scripts/styles.mjs` combines vendor styles and `src/gui/styles.css` into the
-root `styles.css` for both builds. Edit the GUI source stylesheet, then restart
+root `styles.css` for both builds. Vendor selectors and their root variables are
+scoped by `scripts/vendor-styles.mjs` to the planner; theme variables are mapped
+on the Calendar and Gantt components themselves. Edit the GUI source stylesheet, then restart
 the preview or rebuild to regenerate the output.
 
 The tests use an Obsidian substitute to exercise parsing, scheduling and safe

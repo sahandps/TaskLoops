@@ -9,8 +9,16 @@
 	</head>
 	<body>
 		<div class="preview-banner">
-			<span><strong>TaskLoops</strong> · Local preview · Sample tasks saved in this browser</span
-			><button id="reset">Reset sample tasks</button>
+			<span><strong>TaskLoops</strong> · Local preview · Sample tasks saved in this browser</span>
+			<label class="preview-theme-control"
+				>Theme
+				<select id="preview-theme" aria-label="Preview theme">
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+					<option value="plum">Plum</option>
+				</select></label
+			>
+			<button id="reset">Reset sample tasks</button>
 		</div>
 		<div id="app"></div>
 		<script type="module" src="/preview/app.js"></script>

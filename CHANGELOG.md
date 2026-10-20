@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.1 — 2026-10-20
+
+- Fix Gantt label, header, control, row, grid and weekend colors in Obsidian dark
+  themes. Map every vendor palette variable to Obsidian's active theme tokens.
+- Fix Calendar background, event, selection, popup and text colors. Apply theme
+  variables to the Calendar component itself so vendor defaults cannot hide them.
+- Remove fixed green event colors; use the theme accent and its matching text
+  color, with a separate theme-aware appearance for completed events.
+- Scope vendor CSS and its default variables to the TaskLoops planner. Generic
+  Gantt and Calendar selectors no longer apply to other plugins or the document root.
+- Add Light, Dark and custom Plum palettes to the local preview. Theme changes
+  apply immediately without rebuilding or reloading the view.
+
+Validation: 584 automated checks, TypeScript, ESLint, formatting and production
+build pass. Browser checks cover live palette changes in Calendar and Gantt,
+readable dark labels/controls, theme-colored weekends, and no global Gantt variables.
+Native Obsidian theme testing beyond the reported screenshot remains a smoke test.
+
 ## 0.5.0 — 2026-10-20
 
 ### Added

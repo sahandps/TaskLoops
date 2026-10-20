@@ -1,11 +1,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { scopeVendorStyles } from "./vendor-styles.mjs";
 
-/** Both the plugin build and browser preview use the same stylesheet sources. */
+/** Shared, scoped vendor CSS followed by TaskLoops' theme-aware overrides. */
 export function buildStyles() {
-	const sources = [
+	const vendors = [
 		"node_modules/@event-calendar/core/dist/index.css",
 		"node_modules/frappe-gantt/dist/frappe-gantt.css",
-		"src/gui/styles.css",
 	];
-	writeFileSync("styles.css", sources.map((path) => readFileSync(path, "utf8")).join("\n"));
+	const css = vendors.map((path) => scopeVendorStyles(readFileSync(path, "utf8")));
+	css.push(readFileSync("src/gui/styles.css", "utf8"));
+	writeFileSync("styles.css", css.join("\n"));
 }

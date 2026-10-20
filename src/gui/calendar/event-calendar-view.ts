@@ -64,7 +64,7 @@ export function renderEventCalendar(
 				allDay: isAllDayTask(task),
 				resourceIds: [task.path],
 				editable: !task.checked,
-				backgroundColor: task.checked ? "#82918c" : "#547665",
+				classNames: task.checked ? ["tl-event-completed"] : [],
 			};
 		}),
 		eventTimeFormat: {

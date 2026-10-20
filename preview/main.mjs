@@ -1,7 +1,10 @@
+import { installThemeControl } from "./theme-control.mjs";
 import { TaskLoopsView } from "../src/gui/views/taskloops-view.ts";
 import { TFile, Notice } from "./obsidian.mjs";
 import { PreviewTaskStore } from "./task-store.mjs";
 import { createPreviewActions } from "./task-actions.mjs";
+
+installThemeControl();
 
 const store = new PreviewTaskStore();
 const app = {

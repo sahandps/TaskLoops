@@ -245,11 +245,92 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 
 /* Shared EventCalendar and Frappe Gantt surfaces. */
 .tl-calendar-content:has(.tl-library-planner) { display: flex; flex-direction: column; overflow: auto; }
-.tl-library-planner { flex: 1; min-height: 400px; min-width: 0; color: var(--text-normal); --ec-border-color: var(--background-modifier-border); --ec-bg-color: var(--background-primary); --ec-text-color: var(--text-normal); --ec-today-bg-color: var(--background-secondary); --ec-button-bg-color: var(--background-primary); --ec-event-bg-color: #547665; }
-.tl-library-planner .ec { height: 100%; min-height: 400px; }
-.tl-library-planner .ec-event { cursor: pointer; }
+.tl-view .tl-library-planner {
+ flex: 1;
+ min-height: 400px;
+ min-width: 0;
+ color: var(--text-normal);
+}
+.theme-light .tl-view .tl-library-planner { color-scheme: light; }
+.theme-dark .tl-view .tl-library-planner { color-scheme: dark; }
+
+/* Set variables on .ec itself: vendor defaults are declared there, not on its parent. */
+.tl-view .tl-library-planner .ec {
+ height: 100%;
+ min-height: 400px;
+ color-scheme: inherit;
+ --ec-color-400: var(--text-faint);
+ --ec-color-300: var(--background-modifier-border);
+ --ec-color-200: var(--background-modifier-hover);
+ --ec-color-100: var(--background-secondary);
+ --ec-color-50: var(--background-primary);
+ --ec-bg-color: var(--background-primary);
+ --ec-text-color: var(--text-normal);
+ --ec-border-color: var(--background-modifier-border);
+ --ec-button-bg-color: var(--interactive-normal, var(--background-secondary));
+ --ec-button-border-color: var(--background-modifier-border);
+ --ec-button-text-color: var(--text-normal);
+ --ec-button-active-bg-color: var(--interactive-accent);
+ --ec-button-active-border-color: var(--interactive-accent);
+ --ec-button-active-text-color: var(--text-on-accent);
+ --ec-today-bg-color: var(--background-secondary);
+ --ec-highlight-color: var(--background-modifier-hover);
+ --ec-event-bg-color: var(--interactive-accent);
+ --ec-event-text-color: var(--text-on-accent);
+ --ec-bg-event-color: var(--background-modifier-hover);
+ --ec-now-indicator-color: var(--text-accent, var(--interactive-accent));
+ --ec-popup-bg-color: var(--background-primary);
+}
+.tl-view .tl-library-planner .ec-event { cursor: pointer; }
+.tl-view .tl-library-planner .ec-event.tl-event-completed {
+ --ec-event-bg-color: var(--background-modifier-hover);
+ --ec-event-text-color: var(--text-muted);
+ text-decoration: line-through;
+}
 .tl-library-hint { font-size: 12px; color: var(--text-muted); padding: 0 12px; }
-.tl-library-planner .gantt-container { --g-bar-color: #bdd4c7; --g-progress-color: #547665; --g-text-light: var(--text-normal); --g-row-color: var(--background-primary); --g-header-background: var(--background-primary); --g-border-color: var(--background-modifier-border); }
+
+/* Obsidian themes use body.theme-dark, and may change every palette token. */
+.tl-view .tl-library-planner .gantt-container {
+ background: var(--background-primary);
+ color: var(--text-normal);
+ color-scheme: inherit;
+ --g-arrow-color: var(--text-muted);
+ --g-bar-color: var(--background-secondary);
+ --g-bar-border: var(--background-modifier-border);
+ --g-tick-color-thick: var(--background-modifier-border);
+ --g-tick-color: var(--background-modifier-border);
+ --g-actions-background: var(--interactive-normal, var(--background-secondary));
+ --g-border-color: var(--background-modifier-border);
+ --g-text-muted: var(--text-muted);
+ --g-text-light: var(--text-on-accent);
+ --g-text-dark: var(--text-normal);
+ --g-progress-color: var(--background-modifier-hover);
+ --g-handle-color: var(--text-normal);
+ --g-weekend-label-color: var(--background-secondary);
+ --g-expected-progress: var(--background-modifier-hover);
+ --g-header-background: var(--background-primary);
+ --g-row-color: var(--background-primary);
+ --g-row-border-color: var(--background-modifier-border);
+ --g-today-highlight: var(--interactive-accent);
+ --g-popup-actions: var(--interactive-normal, var(--background-secondary));
+ --g-weekend-highlight-color: var(--background-secondary);
+}
+.tl-view .tl-library-planner .gantt .bar-label {
+ font-family: var(--font-interface, inherit);
+ fill: var(--text-normal);
+}
+.tl-view .tl-library-planner .gantt .bar-wrapper:hover .bar {
+ stroke: var(--interactive-accent);
+ stroke-width: 1;
+}
+.tl-view .tl-library-planner .gantt-container .extras .adjust {
+ color: var(--text-normal);
+}
+.tl-view .tl-library-planner .gantt-container .side-header :is(button, select) {
+ background: var(--interactive-normal, var(--background-secondary));
+ color: var(--text-normal);
+ border: 1px solid var(--background-modifier-border);
+}
 .tl-scales { flex-wrap: wrap; }
 
 .tl-schedule-fields .tl-deadline-hint {
