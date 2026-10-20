@@ -6,8 +6,9 @@ export interface TaskViewState {
 	query: string;
 	showDone: boolean;
 	completionTab?: CompletionTab;
+	todayExpanded?: Set<string>;
 	taskFilter: PlannerTaskFilter;
-	mode: "planner" | "notes";
+	mode: "planner" | "notes" | "today";
 	noteFilter: NoteFilter;
 	folder: string | null;
 	expandedNotes: Set<string>;

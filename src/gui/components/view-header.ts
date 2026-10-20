@@ -1,3 +1,4 @@
+import { todayISO } from "../../core/dates";
 import type { TaskActions } from "../../application/task-actions";
 import type { TaskViewState } from "../views/view-state";
 
@@ -11,6 +12,7 @@ export function renderViewHeader(
 	header.createEl("h2", { text: "TaskLoops" });
 	const views = header.createDiv({ cls: "tl-view-switch", attr: { "aria-label": "TaskLoops views" } });
 	for (const [value, label] of [
+		["today", "Today"],
 		["planner", "Planner"],
 		["notes", "Notes"],
 	] as const) {
@@ -23,6 +25,7 @@ export function renderViewHeader(
 			onChange();
 		};
 	}
-	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () => actions.newTask();
+	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () =>
+		actions.newTask(state.mode === "today" ? { due: todayISO() } : undefined);
 	header.createEl("button", { text: "Refresh" }).onclick = () => void actions.rescan();
 }

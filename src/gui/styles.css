@@ -508,3 +508,54 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 	.tl-view .tl-sidebar > :not(.tl-task-list) { flex-shrink: 0; }
 	.tl-view .tl-sidebar .tl-task-list { flex: 1 0 140px; }
 }
+
+/* Today: quiet spacing, a steady time rail, and a single column on small screens. */
+.tl-view .tl-today-pane { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.tl-view .tl-today-body { width: 100%; max-width: 760px; margin: 0 auto; padding: 24px 28px 48px; box-sizing: border-box; }
+.tl-view .tl-today-intro { padding: 8px 0 28px; border-bottom: 1px solid var(--background-modifier-border); }
+.tl-view .tl-today-eyebrow { color: var(--text-muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.tl-view .tl-today-intro h1 { margin: 10px 0 12px; font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -.03em; }
+.tl-view .tl-today-intro > time { font-size: 14px; color: var(--text-normal); }
+.tl-view .tl-today-week { display: inline-block; margin-left: 12px; font-size: 12px; color: var(--text-muted); }
+.tl-view .tl-today-summary { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 22px; font-size: 13px; color: var(--text-muted); }
+.tl-view .tl-today-progress { display: block; appearance: none; width: 100%; height: 3px; margin-top: 14px; border: 0; border-radius: 3px; overflow: hidden; background: var(--background-modifier-border); color: var(--interactive-accent); accent-color: var(--interactive-accent); }
+.tl-view .tl-today-progress::-webkit-progress-bar { background: var(--background-modifier-border); }
+.tl-view .tl-today-progress::-webkit-progress-value { background: var(--interactive-accent); }
+.tl-view .tl-today-progress::-moz-progress-bar { background: var(--interactive-accent); }
+.tl-view .tl-today-section { margin-top: 32px; }
+.tl-view .tl-today-section-heading { display: flex; align-items: baseline; gap: 12px; }
+.tl-view .tl-today-section-heading h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.tl-view .tl-today-section-heading > span { font-size: 12px; color: var(--text-muted); }
+.tl-view .tl-today-section-hint { font-size: 11px; color: var(--text-muted); margin: 7px 0 14px; }
+.tl-view .tl-today-task { display: flex; align-items: flex-start; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--background-modifier-border); min-width: 0; }
+.tl-view .tl-today-clock { flex: 0 0 92px; padding-top: 8px; font-variant-numeric: tabular-nums; }
+.tl-view .tl-today-clock > time { display: block; font-size: 16px; font-weight: 500; }
+.tl-view .tl-today-clock > span { display: block; font-size: 11px; line-height: 1.6; color: var(--text-muted); }
+.tl-view .tl-today-clock .tl-today-phase { display: inline-block; margin-top: 6px; padding: 1px 5px; border-radius: 3px; background: var(--background-secondary); color: var(--text-accent); }
+.tl-view .tl-today-task-content { flex: 1; min-width: 0; }
+.tl-view .tl-today-task-row { display: flex; align-items: flex-start; gap: 8px; }
+.tl-view .tl-today-check { flex: 0 0 44px; min-height: 44px; display: grid; place-items: center; cursor: pointer; }
+.tl-view .tl-today-check .tl-completion-checkbox { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+.tl-view .tl-today-task-title { height: auto; min-height: 44px; flex: 1; min-width: 0; padding: 8px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.5; font-size: 15px; font-weight: 500; background: transparent; border: 0; box-shadow: none; color: var(--text-normal); }
+.tl-view .tl-today-task-title:hover { color: var(--text-accent); }
+.tl-view .tl-today-task-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 12px; margin-left: 52px; font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
+.tl-view .tl-today-source { border: 0; box-shadow: none; background: transparent; color: var(--text-muted); padding: 6px 0; height: auto; min-height: 44px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; font-size: 12px; }
+.tl-view .tl-today-source:hover { color: var(--text-accent); }
+.tl-view .tl-today-task.is-done .tl-today-task-title { text-decoration: line-through; color: var(--text-muted); }
+.tl-view .tl-today-secondary { margin-top: 28px; border-top: 1px solid var(--background-modifier-border); }
+.tl-view .tl-today-secondary > summary { padding: 16px 4px; min-height: 44px; box-sizing: border-box; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.tl-view .tl-today-secondary > summary:hover { color: var(--text-normal); }
+.tl-view .tl-today-task-meta .tl-today-late { color: var(--text-error); }
+.tl-view .tl-today-plan { background: transparent; box-shadow: none; border: 1px solid var(--background-modifier-border); min-height: 44px; height: auto; padding: 8px 12px; margin: 8px 0 0 52px; font-size: 12px; }
+.tl-view .tl-today-empty { padding: 36px 0 12px; }
+.tl-view .tl-today-empty h2 { font-size: 20px; font-weight: 500; margin: 0 0 12px; }
+.tl-view .tl-today-empty p { color: var(--text-muted); line-height: 1.6; font-size: 13px; }
+.tl-view .tl-today-empty button { min-height: 44px; margin-top: 12px; }
+@container (max-width: 480px) {
+	.tl-view .tl-today-body { padding: 12px 8px 36px; }
+	.tl-view .tl-today-intro h1 { font-size: 32px; }
+	.tl-view .tl-today-task { gap: 12px; }
+	.tl-view .tl-today-clock { flex-basis: 76px; }
+	.tl-view .tl-today-task-meta { margin-left: 0; }
+	.tl-view .tl-header button { min-height: 44px; }
+}

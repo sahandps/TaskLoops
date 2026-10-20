@@ -7,6 +7,7 @@ Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
 lets you schedule, resize and edit them without managing note properties.
 
+- Open **Today** for a mobile daily agenda with clear time sections and direct task actions.
 - Plan in **Day, Week, Month and Year** views, plus a resource **Timeline** and **Gantt**.
 - Set a **Deadline** to stretch a task from its due date through its last day.
   Multi-day tasks appear in Calendar’s all-day row, even when they have a time.
@@ -18,9 +19,28 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.12 — unfinished tasks first, completed tasks separate.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.13 — a calm, mobile-friendly Today agenda.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.13
+
+- **Today:** a focused daily agenda with generous spacing, a quiet time rail,
+  wrapping task names and 44-pixel touch targets. Open Today beside Planner and
+  Notes, or choose **Settings → TaskLoops → Default view → Today**.
+- See **All day, Morning, Afternoon and Evening**, with start/end times and
+  Earlier / Now / Upcoming labels. Deadline spans and overnight tasks appear
+  while they overlap your local day. Today always follows the current date,
+  independently of Planner’s selected date or filters.
+- Tick tasks complete, tap a title to edit, open its original note, or add a task
+  with today’s date already filled in. **Overdue** and **Completed** stay separate
+  in collapsible sections. Overdue tasks offer **Plan for today**.
+- Daily progress counts today’s scheduled checkbox tasks and subtasks once each.
+  It follows the progress visibility setting; time display, week numbers and
+  TaskLoops themes apply here too. The view updates with the clock and on wake,
+  retaining scroll and open sections while it remains open.
+- The agenda is derived from existing tasks. It adds no daily JSON history,
+  progress cache or note properties. Only explicit task actions change Markdown.
 
 ## What’s new in 0.5.12
 

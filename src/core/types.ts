@@ -57,7 +57,7 @@ export interface TaskLoopsSettings {
 	showWeekNumbers: boolean;
 	showProgressBars: boolean;
 	timeSlotHeight: number;
-	defaultView: "planner" | "notes";
+	defaultView: "planner" | "notes" | "today";
 	timeFormat: "24h" | "12h";
 	weekStart: number;
 	startHour: number;

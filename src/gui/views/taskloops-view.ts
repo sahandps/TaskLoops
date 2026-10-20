@@ -1,3 +1,5 @@
+import { renderTodayView } from "./today-view";
+import { attachTodayClock } from "../interactions/today-clock";
 import { applyPlannerTheme } from "../components/planner-theme";
 import { TaskDeferralModal } from "../modals/task-deferral";
 import { TaskDragController } from "../interactions/task-drag-controller";
@@ -40,6 +42,7 @@ export class TaskLoopsView extends ItemView {
 	private pending = false;
 	private calendarKey = "";
 	disposeCalendar: (() => void) | null = null;
+	private disposeToday: (() => void) | null = null;
 	private disposeDivider: (() => void) | null = null;
 
 	constructor(
@@ -67,6 +70,8 @@ export class TaskLoopsView extends ItemView {
 	}
 	async onClose(): Promise<void> {
 		this.pending = false;
+		this.disposeToday?.();
+		this.disposeToday = null;
 		this.disposeCalendar?.();
 		this.disposeCalendar = null;
 		this.disposeDivider?.();
@@ -105,6 +110,7 @@ export class TaskLoopsView extends ItemView {
 		const root = this.contentEl;
 		applyPlannerTheme(root, this.plugin.settings.theme);
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
+		const todayScroll = root.querySelector(".tl-today-pane")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
 		const nextCalendarKey =
 			this.scale +
@@ -125,12 +131,34 @@ export class TaskLoopsView extends ItemView {
 		const active = root.ownerDocument.activeElement;
 		const searchFocused = active instanceof HTMLInputElement && active.classList.contains("tl-search");
 		const selection = searchFocused ? active.selectionStart : null;
+		const todayFocus = root.contains(active) ? active?.getAttribute("data-today-focus") : null;
+		this.disposeToday?.();
+		this.disposeToday = null;
 		this.disposeDivider?.();
 		this.disposeDivider = null;
 		this.disposeCalendar?.();
 		this.disposeCalendar = null;
 		root.empty();
 		renderViewHeader(root, this.plugin, this.state, () => this.render());
+		if (this.state.mode === "today") {
+			renderTodayView(
+				root,
+				this.plugin,
+				(task) => new TaskEditorModal(this.app, this.plugin, task).open(),
+				new Date(),
+				(this.state.todayExpanded ??= new Set()),
+			);
+			const pane = root.querySelector(".tl-today-pane");
+			if (pane) pane.scrollTop = todayScroll;
+			if (todayFocus) {
+				const controls = root.querySelectorAll<HTMLElement>("[data-today-focus]");
+				for (const control of controls)
+					if (control.getAttribute("data-today-focus") === todayFocus)
+						control.focus({ preventScroll: true });
+			}
+			this.disposeToday = attachTodayClock(root, () => this.render());
+			return;
+		}
 		if (this.state.mode === "notes") {
 			renderNotesView(
 				root,

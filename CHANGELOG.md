@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.5.13 — 2026-10-20
+
+- Add Today to the main view switch and Default view setting. Use the current
+  local day rather than Planner's anchor or search/review filters.
+- Group the daily agenda into All day, Morning, Afternoon and Evening. Include
+  inclusive deadline spans and overnight overlap, sort timed entries, display
+  time ranges and Earlier / Now / Upcoming labels, and keep completed work apart.
+- Add a restrained mobile layout with a time rail, wrapping titles, 44-pixel
+  completion/source controls, readable section dividers and calm empty states.
+- Connect completion, editing and source-note navigation to existing actions.
+  Prefill today when creating from this view; offer Plan for today for overdue work.
+- Derive daily progress from checkbox tasks and subtasks. Honor time format,
+  theme, progress and week-number settings without extra task caches or property writes.
+- Refresh at minute boundaries and on wake/focus; dispose timers/listeners when
+  leaving. Preserve scroll and expanded Overdue/Completed sections across renders.
+
+Validation: 922 checks across 32 suites, TypeScript, ESLint, formatting and build
+pass. Date/overlap cases also pass in America/Los_Angeles and Europe/Stockholm,
+including DST boundaries. Added cases cover inclusive final days, midnight ends,
+overnight carryover, parent/child completion, daily progress, settings, actions,
+empty states and clock cleanup. Browser checks cover mobile time layouts in
+24-hour and AM/PM formats, light/dark themes, completion/progress, editor access,
+today-prefilled creation, retained disclosures and zero horizontal overflow.
+
+
 ## 0.5.12 — 2026-10-20
 
 - Separate unfinished and completed tasks in Planner when Show completed is on,

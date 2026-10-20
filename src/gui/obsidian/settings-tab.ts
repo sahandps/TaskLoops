@@ -25,11 +25,13 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 				render: (setting) => {
 					setting.addDropdown((dropdown) =>
 						dropdown
+							.addOption("today", "Today · daily agenda")
 							.addOption("planner", "Planner")
 							.addOption("notes", "Notes · task grid")
 							.setValue(this.plugin.settings.defaultView)
 							.onChange(async (value) => {
-								this.plugin.settings.defaultView = value === "notes" ? "notes" : "planner";
+								this.plugin.settings.defaultView =
+									value === "today" ? "today" : value === "notes" ? "notes" : "planner";
 								await save();
 							}),
 					);
@@ -230,7 +232,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 			{
 				name: "Show week numbers",
-				desc: "Show ISO week numbers in calendar headings, Month/Timeline and the Year overview.",
+				desc: "Show ISO week numbers in Today and calendar headings, Month/Timeline and the Year overview.",
 				render: (setting) => {
 					setting.addToggle((toggle) =>
 						toggle.setValue(this.plugin.settings.showWeekNumbers).onChange(async (value) => {
@@ -242,7 +244,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 			{
 				name: "Show progress bars",
-				desc: "Show completed / total checkbox tasks for each note in Planner and Notes, including all subtasks. Calculated from existing tasks without saving progress data.",
+				desc: "Show checkbox progress for each note in Planner and Notes, and for tasks scheduled in Today. Includes subtasks. Calculated from existing tasks without saving progress data.",
 				render: (setting) => {
 					setting.addToggle((toggle) =>
 						toggle.setValue(this.plugin.settings.showProgressBars).onChange(async (value) => {

@@ -12,7 +12,7 @@ export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoops
 	if (!DATE_FORMATS.includes(settings.dateFormat)) settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
 	if (!["day", "week", "month", "year", "timeline", "gantt"].includes(settings.lastScale))
 		settings.lastScale = "week";
-	if (!["planner", "notes"].includes(settings.defaultView)) settings.defaultView = "planner";
+	if (!["planner", "notes", "today"].includes(settings.defaultView)) settings.defaultView = "planner";
 	if (![3, 5, 10].includes(settings.notePreviewLimit)) settings.notePreviewLimit = 5;
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";
 	if (!Number.isFinite(settings.panelWidth)) settings.panelWidth = 260;
