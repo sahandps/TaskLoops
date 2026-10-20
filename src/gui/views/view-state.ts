@@ -9,4 +9,5 @@ export interface TaskViewState {
 	noteFilter: NoteFilter;
 	folder: string | null;
 	expandedNotes: Set<string>;
+	collapsedNotes: Set<string>;
 }

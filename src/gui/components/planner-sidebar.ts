@@ -1,3 +1,4 @@
+import { taskGroupFolds } from "./task-group-folds";
 import { reviewTasks } from "../../core/task-review";
 import { todayISO } from "../../core/dates";
 import { setIcon } from "obsidian";
@@ -81,6 +82,8 @@ export function renderPlannerSidebar(
 	};
 	const unschedule = side.createDiv({ cls: "tl-unschedule", text: "Drop here to remove a schedule" });
 	dropTarget(unschedule, (task) => void actions.schedule(task, {}));
+	const folds = taskGroupFolds(state.collapsedNotes);
+	folds.controls(side.createDiv("tl-group-controls"));
 	const list = side.createDiv("tl-task-list");
 	const q = state.query.trim();
 	if (state.taskFilter === "deferred") {
@@ -100,27 +103,35 @@ export function renderPlannerSidebar(
 			cls: "tl-review-summary",
 			text: "Oldest first · Deadline takes priority over due date",
 		});
-	let path: string | undefined;
+	// Keep overdue order intact, including notes that occur in multiple age groups.
+	const segments: { path: string; tasks: ScannedTask[] }[] = [];
 	for (const task of listed) {
-		if (task.path !== path) {
-			path = task.path;
-			const heading = list.createDiv("tl-note-heading");
-			heading.createEl("button", {
-				cls: "tl-note-name",
-				text: actions.noteName(path),
-				attr: { title: "Open " + path + " in a new tab" },
-			}).onclick = () => void actions.reveal(task);
-			const jump = heading.createEl("button", {
-				cls: "tl-open-note",
-				attr: { title: "Open note in new tab", "aria-label": "Open " + path + " in a new tab" },
-			});
-			setIcon(jump, "square-arrow-out-up-right");
-			jump.onclick = () => void actions.reveal(task);
-			heading.createEl("button", { text: "+", attr: { "aria-label": "Add task to " + path } }).onclick =
-				() => actions.newTask({}, task.path);
-			list.createDiv({ cls: "tl-note-path", text: path });
-		}
-		renderCard(list, task);
+		const previous = segments[segments.length - 1];
+		if (previous?.path === task.path) previous.tasks.push(task);
+		else segments.push({ path: task.path, tasks: [task] });
+	}
+	for (const group of segments) {
+		const path = group.path;
+		const task = group.tasks[0];
+		const section = list.createDiv("tl-task-group");
+		const heading = section.createDiv("tl-note-heading");
+		section.createDiv({ cls: "tl-note-path", text: path });
+		const body = section.createDiv("tl-group-tasks");
+		folds.add(path, heading, body, group.tasks.length);
+		heading.createEl("button", {
+			cls: "tl-note-name",
+			text: actions.noteName(path),
+			attr: { title: "Open " + path + " in a new tab" },
+		}).onclick = () => void actions.reveal(task);
+		const jump = heading.createEl("button", {
+			cls: "tl-open-note",
+			attr: { title: "Open note in new tab", "aria-label": "Open " + path + " in a new tab" },
+		});
+		setIcon(jump, "square-arrow-out-up-right");
+		jump.onclick = () => void actions.reveal(task);
+		heading.createEl("button", { text: "+", attr: { "aria-label": "Add task to " + path } }).onclick =
+			() => actions.newTask({}, path);
+		for (const entry of group.tasks) renderCard(body, entry);
 	}
 	if (!listed.length)
 		list.createEl("p", {

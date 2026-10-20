@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.9 — 2026-10-20
+
+- Add per-note fold buttons with task counts in the Planner sidebar and Notes
+  cards. Hide the full task body while retaining the note heading, path and
+  source/add actions; Notes also keeps open/total counts visible.
+- Add a Collapse all / Expand all control for notes matching the current view.
+  Keep filtered-out notes’ fold choices untouched. Share fold state between
+  Planner and Notes while the view remains open, including refreshes and edits.
+- Preserve Notes preview limits and Show all / Show less when unfolding. Keep
+  global overdue order intact when a note occurs in multiple list segments.
+- Fold in place without rebuilding the calendar, changing events or writing notes.
+
+Validation: 793 checks across 27 suites, TypeScript, ESLint, formatting and build
+pass. New interaction tests cover empty groups, individual and bulk folding,
+filtered-out notes, duplicate overdue groups, view switching and refresh state.
+Browser checks cover both views, retained calendar scroll/events, note counts,
+search-scoped expansion and Notes’ existing Show all control.
+
+
 ## 0.5.8 — 2026-10-20
 
 - When a parent in the configured standalone note adopts existing subtasks,

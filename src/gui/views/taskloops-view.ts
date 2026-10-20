@@ -24,6 +24,7 @@ export class TaskLoopsView extends ItemView {
 		noteFilter: "open",
 		folder: null,
 		expandedNotes: new Set(),
+		collapsedNotes: new Set(),
 	};
 	scale: CalendarScale;
 	anchor = todayISO();

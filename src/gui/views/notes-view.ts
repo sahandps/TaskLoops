@@ -1,3 +1,4 @@
+import { taskGroupFolds } from "../components/task-group-folds";
 import { setIcon } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -55,15 +56,21 @@ export function renderNotesView(
 		};
 	}
 	const groups = noteGroups(tasks, state.query, state.folder, state.noteFilter, todayISO());
-	pane.createDiv({
+	const folds = taskGroupFolds(state.collapsedNotes);
+	const summary = pane.createDiv("tl-notes-summary");
+	summary.createDiv({
 		cls: "tl-notes-count",
 		text: `${groups.length} ${groups.length === 1 ? "note" : "notes"}`,
 		attr: { "aria-live": "polite" },
 	});
+	folds.controls(summary.createDiv("tl-group-controls"));
 	const grid = pane.createDiv("tl-notes-grid");
 	for (const group of groups) {
 		const note = grid.createEl("article", { cls: "tl-note-card" });
 		const heading = note.createDiv("tl-note-heading");
+		note.createDiv({ cls: "tl-note-path", text: group.path });
+		const body = note.createDiv("tl-group-tasks");
+		folds.add(group.path, heading, body, group.tasks.length);
 		heading.createEl("button", {
 			cls: "tl-note-name",
 			text: actions.noteName(group.path),
@@ -75,16 +82,15 @@ export function renderNotesView(
 		});
 		setIcon(jump, "square-arrow-out-up-right");
 		jump.onclick = () => void actions.reveal(group.tasks[0]);
-		note.createDiv({ cls: "tl-note-path", text: group.path });
 		const expanded = state.expandedNotes.has(group.path);
 		const limit = actions.settings.notePreviewLimit ?? 5;
-		const preview = note.createDiv("tl-note-preview");
+		const preview = body.createDiv("tl-note-preview");
 		for (const task of expanded ? group.tasks : group.tasks.slice(0, limit)) {
 			const card = renderCard(preview, task);
 			if (!task.due && !task.time && !task.duration) card.querySelector(".tl-task-meta")?.remove();
 		}
 		if (group.tasks.length > limit)
-			note.createEl("button", {
+			body.createEl("button", {
 				cls: "tl-note-expand",
 				text: expanded ? "Show less" : `Show all ${group.tasks.length} tasks`,
 				attr: { "aria-expanded": String(expanded) },

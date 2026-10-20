@@ -33,3 +33,5 @@ export { weekNumberLabel } from "../src/core/dates.ts";
 
 export * from "../src/core/note-links.ts";
 export {attachGanttPan} from "../src/gui/interactions/gantt-pan.ts";
+
+export {taskGroupFolds} from "../src/gui/components/task-group-folds.ts";

@@ -18,9 +18,22 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.8 — standalone parents follow existing subtasks into their note.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.9 — collapsible task groups in Planner and Notes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.9
+
+- Use the **arrow and task count beside a note heading** to hide or show that
+  note’s tasks in the Planner sidebar and Notes page.
+- Use **Collapse all / Expand all** to fold or unfold the notes matching the
+  current search and filters. Note headings, source links and Add task actions
+  remain available; Notes cards also keep their open/total counts visible.
+- Fold choices are shared between Planner and Notes, and survive refreshes and
+  task edits while that TaskLoops view remains open. Reopening a view starts
+  expanded. Notes’ existing Show all / Show less preview control still works.
+- Folding changes only what is shown. It does not change Markdown, note
+  properties, task schedules or the calendar’s events and scroll position.
 
 ## What’s new in 0.5.8
 

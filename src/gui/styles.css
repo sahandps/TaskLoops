@@ -466,3 +466,12 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-task-modal button.tl-link-option[aria-selected="true"] { background: var(--background-modifier-hover); outline: 1px solid var(--interactive-accent); }
 
 .tl-view .tl-gantt-names-footer { height: var(--tl-gantt-footer-height, 8px); }
+
+/* Folding affects task lists only; note headings and actions stay visible. */
+.tl-view .tl-group-tasks[hidden] { display: none; }
+.tl-view .tl-group-controls { display: flex; justify-content: flex-end; }
+.tl-view button.tl-fold-all { padding: 3px 6px; height: auto; font-size: 12px; background: transparent; border: 0; box-shadow: none; color: var(--text-muted); }
+.tl-view .tl-note-heading button.tl-group-toggle { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 4px; color: var(--text-muted); }
+.tl-view .tl-fold-chevron { width: 10px; text-align: center; }
+.tl-view .tl-group-count { font-size: 11px; font-variant-numeric: tabular-nums; }
+.tl-view .tl-notes-summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
