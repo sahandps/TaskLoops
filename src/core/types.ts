@@ -56,6 +56,7 @@ export interface TaskLoopsSettings {
 	theme: PlannerTheme;
 	showWeekNumbers: boolean;
 	showProgressBars: boolean;
+	timeSlotHeight: number;
 	defaultView: "planner" | "notes";
 	timeFormat: "24h" | "12h";
 	weekStart: number;
@@ -76,6 +77,7 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	theme: "inherit",
 	showWeekNumbers: true,
 	showProgressBars: true,
+	timeSlotHeight: 24,
 	defaultView: "planner",
 	timeFormat: "24h",
 	weekStart: 1,

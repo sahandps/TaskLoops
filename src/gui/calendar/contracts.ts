@@ -8,5 +8,6 @@ export interface PlannerOptions {
 	complete: (task: ScannedTask) => Promise<boolean>;
 	edit: (task: ScannedTask) => void;
 	create: (schedule: Schedule, path?: string) => void;
+	saveZoom?: (size: number) => void;
 	dropTarget?: (element: HTMLElement, scheduleAt: (event: DragEvent) => Schedule | null) => void;
 }

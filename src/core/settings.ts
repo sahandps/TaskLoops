@@ -1,9 +1,11 @@
+import { slotHeight } from "./calendar-zoom";
 import { DEFAULT_SETTINGS, type TaskLoopsSettings } from "./types";
 import { DATE_FORMATS } from "./schedule";
 
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
 export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoopsSettings {
 	const settings = { ...DEFAULT_SETTINGS, ...saved };
+	settings.timeSlotHeight = slotHeight(settings.timeSlotHeight);
 	if (!["inherit", "light", "dark"].includes(settings.theme)) settings.theme = "inherit";
 	if (typeof settings.showWeekNumbers !== "boolean") settings.showWeekNumbers = true;
 	if (typeof settings.showProgressBars !== "boolean") settings.showProgressBars = true;

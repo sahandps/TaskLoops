@@ -113,6 +113,10 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 			scale: view.scale,
 			anchor: view.anchor,
 			settings: view.plugin.settings,
+			saveZoom: (size) => {
+				view.plugin.settings.timeSlotHeight = size;
+				void view.plugin.saveSettings();
+			},
 			schedule: (task, schedule) => view.plugin.schedule(task, schedule),
 			complete: (task) => view.plugin.complete(task),
 			edit: (task) => new TaskEditorModal(view.app, view.plugin, task).open(),

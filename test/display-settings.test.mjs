@@ -7,6 +7,8 @@ export default async function run(mod) {
  eq([saved.theme,saved.showWeekNumbers,saved.showProgressBars],['dark',false,false],'saved explicit preferences are retained');
  const invalid=mod.normalizeSettings({theme:'unknown',showWeekNumbers:'false',showProgressBars:null});
  eq([invalid.theme,invalid.showWeekNumbers,invalid.showProgressBars],['inherit',true,true],'invalid stored display preferences fall back safely');
+ eq(mod.normalizeSettings({timeSlotHeight:NaN}).timeSlotHeight,24,'invalid saved zoom resets safely');
+ eq(mod.normalizeSettings({timeSlotHeight:1000}).timeSlotHeight,80,'stored zoom is bounded');
  const attrs={};const root={setAttribute:(k,v)=>{attrs[k]=v;},removeAttribute:k=>{delete attrs[k];}};
  mod.applyPlannerTheme(root,'light');eq(attrs,{'data-tl-theme':'light'},'light palette is applied to the chosen element only');
  mod.applyPlannerTheme(root,'dark');eq(attrs,{'data-tl-theme':'dark'},'dark palette updates the same scope');
@@ -23,5 +25,9 @@ export default async function run(mod) {
   eq(plugin.settings[key],false,name+' changes the live preference');
  }
  eq([saves,refreshes],[4,4],'each preference saves through the existing settings record and refreshes views');
+ component.setLimits=()=>component;
+ defs.find(d=>d.name==='Calendar zoom').render({addSlider:fn=>fn(component)});
+ await changed(150);eq(plugin.settings.timeSlotHeight,36,'settings zoom percentage updates calendar slot size');
+ eq([saves,refreshes],[5,5],'zoom setting saves and refreshes through the same preference record');
  return results;
 }

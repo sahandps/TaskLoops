@@ -40,3 +40,6 @@ export * from "../src/core/task-progress.ts";
 export {renderTaskProgress} from "../src/gui/components/task-progress.ts";
 export {normalizeSettings} from "../src/core/settings.ts";
 export {applyPlannerTheme} from "../src/gui/components/planner-theme.ts";
+
+export * from "../src/core/calendar-zoom.ts";
+export {attachCalendarZoom} from "../src/gui/interactions/calendar-zoom.ts";

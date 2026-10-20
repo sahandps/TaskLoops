@@ -488,3 +488,11 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 :is(.tl-view, .tl-task-modal)[data-tl-theme="light"] { color-scheme: light; --background-primary: #ffffff; --background-secondary: #f3f5f2; --background-secondary-alt: #e9ede7; --background-modifier-border: #d8dfd5; --background-modifier-hover: #e8eee5; --background-modifier-form-field: #f3f5f2; --input-background: #f3f5f2; --text-normal: #243129; --text-muted: #59685b; --text-faint: #728073; --interactive-normal: #edf1ea; --interactive-hover: #e0e8dc; --interactive-accent: #47705a; --interactive-accent-hover: #365b47; --text-on-accent: #ffffff; }
 :is(.tl-view, .tl-task-modal)[data-tl-theme="dark"] { color-scheme: dark; --background-primary: #1c211e; --background-secondary: #252c27; --background-secondary-alt: #2b342d; --background-modifier-border: #414c43; --background-modifier-hover: #343f36; --background-modifier-form-field: #252c27; --input-background: #252c27; --text-normal: #e6ece5; --text-muted: #b0bfb1; --text-faint: #8b9d8d; --interactive-normal: #303b32; --interactive-hover: #3d4d40; --interactive-accent: #91b89b; --interactive-accent-hover: #aacdb2; --text-on-accent: #17251a; }
 :is(.tl-view, .tl-task-modal)[data-tl-theme] { background: var(--background-primary); color: var(--text-normal); }
+
+.tl-view .tl-library-planner .ec-time-grid .ec-body > .ec-sidebar { cursor: ns-resize; touch-action: auto; user-select: none; }
+.tl-view .tl-library-planner .ec-time-grid .ec-body > .ec-sidebar:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
+.tl-view .tl-library-planner.tl-is-zooming { cursor: ns-resize; }
+.tl-view .tl-library-planner .tl-time-zoom-status { display: none; position: absolute; inset-inline-end: 22px; bottom: 12px; z-index: 1100; background: var(--background-primary); color: var(--text-normal); border: 1px solid var(--background-modifier-border); border-radius: 5px; padding: 5px 8px; font-size: 12px; pointer-events: none; }
+.tl-view .tl-library-planner.tl-is-zooming .tl-time-zoom-status { display: block; }
+
+.tl-view .tl-library-planner:is(.tl-day-view, .tl-week-view) { position: relative; }

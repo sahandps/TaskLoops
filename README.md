@@ -18,9 +18,20 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.10 — note progress bars and display settings.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.11 — drag the time ruler to zoom.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.11
+
+- In **Day and Week**, hold the left mouse button on the **time labels** and
+  drag **up to zoom in**, or **down to zoom out**. The time at your initial click
+  stays in place. Dragging on calendar cells still creates tasks.
+- Focus the time ruler and use **Up / Down** to adjust, or **Home** to reset.
+  Escape cancels an active drag. **Settings → TaskLoops → Calendar zoom** also
+  adjusts the scale, from 50% to 333%.
+- Zoom is remembered as one display preference. It does not change task dates,
+  durations, Markdown or note properties.
 
 ## What’s new in 0.5.10
 

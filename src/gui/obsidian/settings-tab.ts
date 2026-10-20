@@ -1,3 +1,4 @@
+import { slotHeight } from "../../core/calendar-zoom";
 import { App, normalizePath, PluginSettingTab, Setting } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
 import type TaskLoopsPlugin from "../../main";
@@ -248,6 +249,21 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 							this.plugin.settings.showProgressBars = value;
 							await save();
 						}),
+					);
+				},
+			},
+			{
+				name: "Calendar zoom",
+				desc: "Day/Week zoom percentage; 100 is the standard scale. Hold left-click on the time labels and drag up/down to zoom. Arrow keys adjust; Home resets.",
+				render: (setting) => {
+					setting.addSlider((slider) =>
+						slider
+							.setLimits(50, 333, 1)
+							.setValue(Math.round((this.plugin.settings.timeSlotHeight / 24) * 100))
+							.onChange(async (value) => {
+								this.plugin.settings.timeSlotHeight = slotHeight((24 * value) / 100);
+								await save();
+							}),
 					);
 				},
 			},

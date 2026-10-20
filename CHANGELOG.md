@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.11 — 2026-10-20
+
+- Add left-button vertical dragging on the Day/Week time ruler: up zooms in,
+  down zooms out, anchored to the time at the initial click.
+- Add keyboard Up/Down adjustment, Home reset, Escape cancellation and accessible
+  zoom feedback. Release saves only the final bounded display preference.
+- Add Calendar zoom to searchable plugin settings and the local preview.
+- Keep task selection, creation, dragging and resizing on event cells unchanged.
+  Zoom does not write task schedules, Markdown or note properties.
+
+Validation: 852 checks across 30 suites, TypeScript, ESLint, formatting and build
+pass. New cases cover bounds, anchor math, pointer isolation, commit/cancellation,
+keyboard reset and listener cleanup. Browser checks cover both drag directions,
+anchored time, persistence after reload and range selection opening task creation.
+
+
 ## 0.5.10 — 2026-10-20
 
 - Add per-note progress bars to Planner and Notes. Count every parent and nested

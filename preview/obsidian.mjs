@@ -133,6 +133,28 @@ export class Setting {
 		callback(component);
 		return this;
 	}
+	addSlider(callback) {
+		const input = this.control.createEl("input", { type: "range", attr: { "aria-label": this.name } });
+		const component = {
+			setLimits: (min, max, step) => {
+				input.min = min;
+				input.max = max;
+				input.step = step;
+				return component;
+			},
+			setValue: (value) => {
+				input.value = value;
+				return component;
+			},
+			setDynamicTooltip: () => component,
+			onChange: (fn) => {
+				input.onchange = () => void fn(Number(input.value));
+				return component;
+			},
+		};
+		callback(component);
+		return this;
+	}
 	addText(callback) {
 		const input = this.control.createEl("input", { type: "text", attr: { "aria-label": this.name } });
 		const component = {

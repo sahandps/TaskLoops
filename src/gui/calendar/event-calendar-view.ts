@@ -1,3 +1,4 @@
+import { attachCalendarZoom } from "../interactions/calendar-zoom";
 import { isoWeek } from "../../core/dates";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { createCalendarCreationHandlers } from "./creation-handlers";
@@ -56,6 +57,10 @@ export function renderEventCalendar(
 		nowIndicator: true,
 		scrollTime: String(options.settings.startHour).padStart(2, "0") + ":00:00",
 		slotDuration: "00:30:00",
+		slotHeight:
+			options.scale === "day" || options.scale === "week"
+				? (options.settings.timeSlotHeight ?? 24)
+				: 24,
 		snapDuration: "00:05:00",
 		selectable: true,
 		resources: [...new Set(tasks.map((task) => task.path))].map((path) => ({
@@ -108,12 +113,22 @@ export function renderEventCalendar(
 		eventResize: update,
 		...creationHandlers,
 	});
+	const disposeZoom =
+		options.scale === "day" || options.scale === "week"
+			? attachCalendarZoom(
+					host,
+					options.settings.timeSlotHeight ?? 24,
+					(size) => calendar.setOption("slotHeight", size),
+					(size) => options.saveZoom?.(size),
+				)
+			: () => {};
 	options.dropTarget?.(host, (event) => {
 		const info = calendar.dateFromPoint(event.clientX, event.clientY);
 		if (!info) return null;
 		return { due: localDay(info.date), ...(!info.allDay ? { time: localTime(info.date) } : {}) };
 	});
 	return () => {
+		disposeZoom();
 		void destroyCalendar(calendar);
 	};
 }
