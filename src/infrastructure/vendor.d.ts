@@ -9,6 +9,10 @@ declare module "frappe-gantt" {
 	}
 	interface Options {
 		view_mode?: string;
+		upper_header_height?: number;
+		lower_header_height?: number;
+		bar_height?: number;
+		padding?: number;
 		view_mode_select?: boolean;
 		readonly_progress?: boolean;
 		readonly_dates?: boolean;

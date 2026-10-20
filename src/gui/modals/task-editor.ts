@@ -1,3 +1,4 @@
+import { attachNoteLinkSuggest } from "../components/note-link-suggest";
 import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
@@ -29,6 +30,7 @@ export class TaskEditorModal extends Modal {
 			attr: { "aria-label": "Task", autofocus: "" },
 		});
 		text.value = taskWording(this.task.raw);
+		attachNoteLinkSuggest(text, this.app, () => this.path);
 		const meta = details.createDiv("tl-task-detail-actions");
 		const status = meta.createDiv("tl-task-status");
 		const statusLabel = status.createEl("label");
@@ -70,6 +72,7 @@ export class TaskEditorModal extends Modal {
 			this.plugin,
 			this.task,
 			(child, onUpdated) => new TaskEditorModal(this.app, this.plugin, child, onUpdated).open(),
+			() => this.path,
 		);
 		const defer = actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
 		defer.disabled = this.task.checked;

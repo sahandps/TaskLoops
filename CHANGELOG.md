@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.7 — 2026-10-20
+
+- Use theme-accent Gantt bars and contrasting labels. Keep task names in a
+  fixed column, synchronize vertical scrolling and allow editing from a row name.
+- Add left-button dragging on empty Gantt grid space to pan both axes. Preserve
+  bar movement, resize handles, toolbar controls and normal scrolling; clean up
+  active drags on release, cancellation, window blur and view disposal.
+- Add `[[` suggestions to task creation/editing, new subtasks and deferral reasons.
+  Search existing Markdown notes, choose by mouse or keyboard and insert a
+  source-aware wikilink using Obsidian’s link resolver. Preserve nearby text and
+  existing closing brackets. Selection never submits the surrounding form.
+- Keep all writes in the task source note; linking does not modify target note
+  content, frontmatter or properties. Manually typed aliases/headings remain valid.
+
+Validation: 748 checks across 26 suites, TypeScript, ESLint, formatting and
+production build pass. Browser checks cover background panning, deadline resizing,
+fixed task names, both keyboard and mouse note selection, Task/Subtask/Reason
+fields and source Markdown persistence. Regression checks cover link replacement,
+aliases/headings, target-note isolation, pan cancellation and vendor range rebasing.
+
+
 ## 0.5.6 — 2026-10-20
 
 - Add Can’t schedule now to default Add/Edit task dialogs. Preserve draft wording,

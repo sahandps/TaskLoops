@@ -1,3 +1,4 @@
+import { attachNoteLinkSuggest } from "../components/note-link-suggest";
 import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
 import { App, Modal } from "obsidian";
@@ -26,6 +27,7 @@ export class TaskModal extends Modal {
 			placeholder: "What needs doing?",
 			attr: { "aria-label": "Task", autofocus: "" },
 		});
+		attachNoteLinkSuggest(text, this.app, () => this.path);
 		projectDestination(taskSection(body, "Note"), this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});

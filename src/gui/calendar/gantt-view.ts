@@ -1,3 +1,4 @@
+import { attachGanttPan } from "../interactions/gantt-pan";
 import { TaskGantt } from "./task-gantt";
 import { localDay, localTime, taskInterval, ganttSchedule } from "../../core/planner-schedule";
 import type { ScannedTask } from "../../core/types";
@@ -9,7 +10,7 @@ export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: Pl
 	const lookup = new Map<string, ScannedTask>();
 	root.createEl("p", {
 		cls: "tl-library-hint",
-		text: "Drag bars to reschedule; drag their edges to resize. Click a bar to edit. Undated tasks stay in the task list. Progress reflects task completion.",
+		text: "Hold the left mouse button on empty chart space to scroll. Drag bars to reschedule; drag their edges to resize. Click a bar to edit. Undated tasks stay in the task list. Progress reflects task completion.",
 	});
 	if (!scheduled.length) {
 		host.createEl("p", { text: "Schedule a task to see it in Gantt." });
@@ -34,8 +35,24 @@ export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: Pl
 			progress: task.checked ? 100 : 0,
 		};
 	});
-	new TaskGantt(host, bars, {
+	const layout = host.createDiv("tl-gantt-layout");
+	const names = layout.createDiv({ cls: "tl-gantt-names", attr: { "aria-label": "Gantt tasks" } });
+	names.createDiv({ cls: "tl-gantt-names-header", text: "Tasks · click to edit" });
+	for (const task of scheduled) {
+		const button = names.createEl("button", {
+			text: task.text,
+			attr: { title: task.text, "aria-label": "Edit Gantt task " + task.text },
+		});
+		button.onclick = () => options.edit(task);
+	}
+	const chart = layout.createDiv("tl-gantt-chart");
+	new TaskGantt(chart, bars, {
 		view_mode: "Day",
+		// Match the fixed name column's 85px header and 48px rows.
+		upper_header_height: 45,
+		lower_header_height: 30,
+		bar_height: 30,
+		padding: 18,
 		view_mode_select: true,
 		readonly_progress: true,
 		// Completed tasks remain viewable; editing is guarded in callbacks.
@@ -52,5 +69,28 @@ export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: Pl
 			if (task && !task.checked) void options.schedule(task, ganttSchedule(start, end, task));
 		},
 	});
-	return () => host.remove();
+	const scroller = chart.querySelector<HTMLElement>(".gantt-container")!;
+	const content = names.createDiv();
+	content.style.setProperty(
+		"--tl-gantt-footer-height",
+		Math.max(8, scroller.scrollHeight - 85 - scheduled.length * 48) +
+			(scroller.offsetHeight - scroller.clientHeight) +
+			"px",
+	);
+	content.className = "tl-gantt-names-footer";
+	const sync = () => {
+		names.scrollTop = scroller.scrollTop;
+	};
+	const syncChart = () => {
+		scroller.scrollTop = names.scrollTop;
+	};
+	scroller.addEventListener("scroll", sync);
+	names.addEventListener("scroll", syncChart);
+	const pan = attachGanttPan(scroller);
+	return () => {
+		pan();
+		scroller.removeEventListener("scroll", sync);
+		names.removeEventListener("scroll", syncChart);
+		host.remove();
+	};
 }

@@ -30,3 +30,6 @@ export { isoWeek } from "../src/core/dates.ts";
 export { todayISO } from "../src/core/dates.ts";
 
 export { weekNumberLabel } from "../src/core/dates.ts";
+
+export * from "../src/core/note-links.ts";
+export {attachGanttPan} from "../src/gui/interactions/gantt-pan.ts";

@@ -18,9 +18,23 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.6 — defer from task dialogs and cleaner plugin packaging.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.7 — clearer Gantt, drag scrolling and note-link suggestions.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.7
+
+- **Readable Gantt:** theme-accent bars and a fixed task-name column make each
+  row identifiable even when its scheduled dates are outside the visible range.
+  Click a task name to edit; hover for its full wording.
+- **Drag to scroll:** hold the left mouse button on empty Gantt grid space and
+  drag horizontally or vertically. Bar dragging and edge resizing keep their
+  existing scheduling behavior.
+- **Link notes:** type `[[` in a Task, Subtask or Can’t schedule reason field.
+  Filter by note name/path, use ↑/↓ then Enter, or click a suggestion. Escape
+  dismisses the suggestions. Choosing a note inserts `[[Note]]` without saving
+  the form. Links are stored in the task’s source note; linked notes and their
+  properties stay unchanged. Dates, time and duration keep their usual formats.
 
 ## What’s new in 0.5.6
 

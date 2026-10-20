@@ -1,3 +1,4 @@
+import { attachNoteLinkSuggest } from "./note-link-suggest";
 import { App, Notice } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -12,6 +13,7 @@ export function renderSubtaskEditor(
 	actions: TaskActions,
 	task: ScannedTask,
 	openEditor: (task: ScannedTask, onUpdated: () => void) => void,
+	source: () => string = () => task.path,
 ): { flushDraft: () => void; drafts: string[]; selected: ScannedTask[] } {
 	const children = root.createDiv("tl-existing-subtasks");
 	const drawChildren = () => {
@@ -38,6 +40,7 @@ export function renderSubtaskEditor(
 		placeholder: "Add a subtask…",
 		attr: { "aria-label": "New subtask" },
 	});
+	attachNoteLinkSuggest(subtask, app, source);
 	const add = () => {
 		const value = subtask.value.trim();
 		if (!value) return;

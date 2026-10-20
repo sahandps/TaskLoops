@@ -1,3 +1,4 @@
+import { attachNoteLinkSuggest } from "../components/note-link-suggest";
 import { App, Modal, Notice } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -63,6 +64,7 @@ export class TaskDeferralModal extends Modal {
 					placeholder: "What needs doing?",
 					attr: { "aria-label": "Task" },
 				});
+				attachNoteLinkSuggest(input, this.app, () => this.path);
 				input.value = this.wording;
 				input.oninput = () => {
 					this.wording = input.value;
@@ -108,6 +110,7 @@ export class TaskDeferralModal extends Modal {
 				placeholder: "For example: waiting for the supplier to confirm a date.",
 			},
 		});
+		attachNoteLinkSuggest(reason, this.app, () => this.draft?.path ?? this.task?.path ?? this.path);
 		reason.value = this.reason;
 		reason.oninput = () => {
 			this.reason = reason.value;
