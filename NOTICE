@@ -1,7 +1,7 @@
 TaskLoops
 Copyright (c) 2026 Sahand Poursadeghi Khiavi
 
-TaskLoops version 0.5.7 is licensed under the GNU General Public License,
+TaskLoops version 0.5.8 is licensed under the GNU General Public License,
 version 3 only (SPDX: GPL-3.0-only). See LICENSE for the complete terms.
 
 This program is free software: you can redistribute it and/or modify it
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 Corresponding source and build instructions:
-https://github.com/sahandps/TaskLoops/tree/0.5.7
+https://github.com/sahandps/TaskLoops/tree/0.5.8
 GitHub provides matching Source code archives at the release tag.
 Build with npm ci and npm run build.
 The unused EventCalendar remote-feed transport is disabled during bundling.

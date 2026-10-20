@@ -1,5 +1,5 @@
 import { attachNoteLinkSuggest } from "./note-link-suggest";
-import { App, Notice } from "obsidian";
+import { App, Notice, normalizePath } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
 import { existingSubtaskCandidates } from "../../core/existing-tasks";
@@ -14,6 +14,7 @@ export function renderSubtaskEditor(
 	task: ScannedTask,
 	openEditor: (task: ScannedTask, onUpdated: () => void) => void,
 	source: () => string = () => task.path,
+	onSelectionChange: (selected: ScannedTask[]) => void = () => {},
 ): { flushDraft: () => void; drafts: string[]; selected: ScannedTask[] } {
 	const children = root.createDiv("tl-existing-subtasks");
 	const drawChildren = () => {
@@ -71,6 +72,17 @@ export function renderSubtaskEditor(
 		}
 	};
 	const selected: ScannedTask[] = [];
+	const standalone = task.path === normalizePath(actions.settings.standaloneNote);
+	const candidates = () =>
+		existingSubtaskCandidates(actions.allTasks(), task, selected).filter(
+			(child) => !standalone || !selected.length || child.path === selected[0].path,
+		);
+	const selectionHint = () =>
+		standalone
+			? selected.length
+				? "Parent moves to " + selected[0].path + " when you save. Selected tasks stay in that note."
+				: "Choose tasks from one note. This standalone parent will move into that note on save."
+			: "Selected tasks move here when you save.";
 	const selectedList = root.createDiv("tl-selected-subtasks");
 	const existingButton = root.createEl("button", {
 		cls: "tl-choose-existing tl-quiet-button",
@@ -78,7 +90,7 @@ export function renderSubtaskEditor(
 	});
 	const hint = root.createEl("small", {
 		cls: "tl-subtask-hint",
-		text: "Selected tasks move here when you save.",
+		text: selectionHint(),
 	});
 	const drawSelected = () => {
 		selectedList.empty();
@@ -86,7 +98,10 @@ export function renderSubtaskEditor(
 			const item = selectedList.createDiv("tl-selected-subtask");
 			const label = item.createDiv();
 			label.createDiv({ text: child.text });
-			label.createDiv({ cls: "tl-picker-meta", text: "From " + child.path + " · Added on save" });
+			label.createDiv({
+				cls: "tl-picker-meta",
+				text: "From " + child.path + (standalone ? " · Stays in this note" : " · Added on save"),
+			});
 			item.createEl("button", {
 				text: "×",
 				attr: { "aria-label": "Remove selection " + child.text },
@@ -95,23 +110,23 @@ export function renderSubtaskEditor(
 				drawSelected();
 			};
 		}
-		existingButton.disabled = !existingSubtaskCandidates(actions.allTasks(), task, selected).length;
+		onSelectionChange(selected);
+		existingButton.disabled = !candidates().length;
 		hint.setText(
 			existingButton.disabled
-				? "No other open tasks available. Create a subtask above, or add a checkbox in another note."
-				: "Selected tasks move here when you save.",
+				? standalone && selected.length
+					? "No more available tasks in this note. " + selectionHint()
+					: "No other open tasks available. Create a subtask above, or add a checkbox in another note."
+				: selectionHint(),
 		);
 	};
 	existingButton.onclick = () => {
-		const candidates = existingSubtaskCandidates(actions.allTasks(), task, selected);
-		const notes = [...new Set(candidates.map((task) => task.path))];
+		const notes = [...new Set(candidates().map((task) => task.path))];
 		new NotePicker(
 			app,
 			actions.settings.standaloneNote,
 			(path) => {
-				const tasks = existingSubtaskCandidates(actions.allTasks(), task, selected).filter(
-					(task) => task.path === path,
-				);
+				const tasks = candidates().filter((task) => task.path === path);
 				if (!tasks.length) {
 					new Notice("No available open tasks remain in that note.");
 					drawSelected();

@@ -5,7 +5,7 @@ import type { LegacyItem, ScannedTask, Schedule, TaskLoopsSettings } from "../co
 import { validSchedule, writeSchedule } from "../core/schedule";
 import { setCheckboxDone } from "../infrastructure/obsidian/task-repository";
 import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/note-transaction";
-import { existingSubtaskCandidates } from "../core/existing-tasks";
+import { existingSubtaskCandidates, existingSubtaskDestination } from "../core/existing-tasks";
 import {
 	appendTaskBlock,
 	editedBlock,
@@ -301,7 +301,12 @@ export class TaskService {
 					);
 				selected.push(child);
 			}
-			path = normalizePath(path);
+			path = existingSubtaskDestination(
+				parent.path,
+				normalizePath(this.settings.standaloneNote),
+				normalizePath(path),
+				children.map((child) => child.path),
+			);
 			if (!path.endsWith(".md")) throw new Error("Choose a Markdown project note.");
 			const changes = new Map<string, NoteChange>();
 			for (const note of new Set([parent.path, ...children.map((child) => child.path), path])) {

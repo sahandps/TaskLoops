@@ -69,3 +69,10 @@ export const Platform = { isMobile: false };
 export function setIcon(el) {
 	el.textContent = "↗";
 }
+
+export function normalizePath(path) {
+	return path
+		.replace(/\\/g, "/")
+		.replace(/\/{2,}/g, "/")
+		.replace(/^\/+|\/+$/g, "");
+}

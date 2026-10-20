@@ -26,3 +26,19 @@ export function existingSubtaskCandidates(
 		)
 		.sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
 }
+
+/** A standalone parent follows existing subtasks into their original note. */
+export function existingSubtaskDestination(
+	parentPath: string,
+	standalonePath: string,
+	requestedPath: string,
+	childPaths: string[],
+): string {
+	if (parentPath !== standalonePath || !childPaths.length) return requestedPath;
+	const destination = childPaths[0];
+	if (childPaths.some((path) => path !== destination))
+		throw new Error(
+			"Choose existing subtasks from one note. The standalone parent will move to that note.",
+		);
+	return destination;
+}

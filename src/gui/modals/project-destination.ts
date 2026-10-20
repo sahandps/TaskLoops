@@ -8,7 +8,7 @@ export function projectDestination(
 	plugin: TaskActions,
 	initial: string,
 	onPick: (path: string) => void,
-): void {
+): { update: (path: string, lockReason?: string) => void } {
 	const destination = root.createDiv("tl-destination");
 	const selected = destination.createDiv("tl-selected-project");
 	const name = selected.createDiv("tl-selected-project-name");
@@ -24,7 +24,8 @@ export function projectDestination(
 		text: "Open note ↗",
 	});
 	const hint = destination.createEl("small", { cls: "tl-field-hint" });
-	const update = (path: string) => {
+	const update = (path: string, lockReason?: string) => {
+		pick.disabled = !!lockReason;
 		name.setText(plugin.noteName(path));
 		location.setText(path);
 		const exists = app.vault.getAbstractFileByPath(path) instanceof TFile;
@@ -34,11 +35,12 @@ export function projectDestination(
 			: "Save the task before opening this note.";
 		projectLink.onclick = () => void plugin.openNote(path);
 		hint.setText(
-			exists
-				? "Saves directly to this note."
-				: path === plugin.settings.standaloneNote
-					? "This note will be created when you save."
-					: "Note unavailable. Choose another note before saving.",
+			lockReason ??
+				(exists
+					? "Saves directly to this note."
+					: path === plugin.settings.standaloneNote
+						? "This note will be created when you save."
+						: "Note unavailable. Choose another note before saving."),
 		);
 	};
 	pick.onclick = () =>
@@ -47,4 +49,5 @@ export function projectDestination(
 			update(path);
 		}).open();
 	update(initial);
+	return { update };
 }

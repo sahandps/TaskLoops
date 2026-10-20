@@ -43,6 +43,45 @@ export default async function run(mod) {
 		const get = (text) => plugin.allTasks().find((task) => task.text === text);
 		return { notes, plugin, errors, get, before: (fn) => { beforeProcess = fn; }, after: (fn) => { afterProcess = fn; } };
 	}
+	const standalone = fixture(); standalone.plugin.settings.standaloneNote = "Parent.md";
+	await standalone.plugin.rescan();
+	const untouchedDestination = standalone.notes.get("Destination.md");
+	eq(await standalone.plugin.editTask(standalone.get("Parent"), "Standalone parent", "Destination.md", {due:"2026-10-20"}, ["Draft child"], [standalone.get("Existing action"),standalone.get("Unrelated")]), true, "standalone parent follows selected existing tasks instead of moving them out of their note");
+	const moved = standalone.get("Standalone parent");
+	eq(moved.path,"Other.md","subtask source overrides the old standalone/editor destination");
+	for (const title of ["Already nested","Draft child","Existing action","Unrelated"]) {
+	 eq(standalone.get(title).path,"Other.md","subtree stays with parent in the selected note: "+title);
+	 eq(standalone.get(title).parentId,moved.id,"subtask remains nested under the moved parent: "+title);
+	}
+	eq(standalone.get("Its child").parentId,standalone.get("Existing action").id,"selected task preserves its own subtree");
+	eq(standalone.get("Existing action").due,"2026-10-17","selected task keeps its schedule");
+	eq(standalone.notes.get("Other.md").includes("^action"),true,"selected task retains block ID");
+	eq(standalone.notes.get("Other.md").startsWith("---\nproject: Other\n---\n"),true,"project note properties remain intact");
+	eq(standalone.notes.get("Parent.md").includes("Parent Due date"),false,"old standalone copy is removed");
+	eq(standalone.get("Same note task").path,"Parent.md","unselected standalone tasks stay put");
+	eq(standalone.notes.get("Destination.md"),untouchedDestination,"unrelated editor destination is never written");
+	eq(standalone.plugin.allTasks().filter(t=>t.text==="Existing action").length,1,"no duplicate selected task");
+
+	const mixed = fixture(); mixed.plugin.settings.standaloneNote = "Parent.md"; await mixed.plugin.rescan();
+	const beforeMixed = [...mixed.notes];
+	eq(await mixed.plugin.editTask(mixed.get("Parent"),"Parent","Parent.md",{},[],[mixed.get("Existing action"),mixed.get("Destination task")]),false,"standalone parent rejects a cross-note selection");
+	eq([...mixed.notes],beforeMixed,"mixed-note rejection changes no note");
+	eq(mixed.errors.at(-1).includes("one note"),true,"mixed-note error explains the required source");
+
+	const rollback = fixture(); rollback.plugin.settings.standaloneNote="Parent.md"; await rollback.plugin.rescan();
+	const beforeRollback=[...rollback.notes];
+	rollback.before(file=>{if(file.path==="Parent.md")throw new Error("Standalone source locked");});
+	eq(await rollback.plugin.editTask(rollback.get("Parent"),"Parent","Parent.md",{},[],[rollback.get("Existing action")]),false,"failed standalone removal aborts the move");
+	eq([...rollback.notes],beforeRollback,"safe rollback restores both standalone and project notes");
+
+	const same = fixture(); same.plugin.settings.standaloneNote="Parent.md"; await same.plugin.rescan();
+	eq(await same.plugin.editTask(same.get("Parent"),"Parent","Other.md",{},[],[same.get("Same note task")]),true,"choosing an existing standalone task keeps both tasks in the standalone note");
+	eq(same.get("Same note task").path,"Parent.md","same-note selection never exports the child");
+
+	const waitingMove = fixture(); waitingMove.plugin.settings.standaloneNote="Parent.md"; await waitingMove.plugin.rescan();
+	eq(await waitingMove.plugin.editTask(waitingMove.get("Parent"),"Waiting parent","Parent.md",{},[],[waitingMove.get("Existing action")],"Waiting for approval"),true,"reason-popup save uses the same parent-following rule");
+	eq(waitingMove.get("Waiting parent").path,"Other.md","deferred parent follows the existing child");
+	eq(waitingMove.get("Waiting parent").deferral,{reason:"Waiting for approval"},"parent reason survives note move");
 	const deferred = fixture(); await deferred.plugin.rescan();
 	eq(await deferred.plugin.editTask(deferred.get("Parent"), "Draft wording", "Destination.md", {due:"2026-10-23"}, ["Pending draft"], [deferred.get("Existing action")], "Waiting for approval"), true, "editor deferral saves wording, move, draft and selected subtasks together");
 	const waiting = deferred.get("Draft wording");

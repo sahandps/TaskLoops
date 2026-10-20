@@ -3,7 +3,7 @@ import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { renderSubtaskEditor } from "../components/subtask-editor";
-import { App, Modal } from "obsidian";
+import { App, Modal, normalizePath } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
 import { taskWording } from "../../core/task-edits";
@@ -57,7 +57,7 @@ export class TaskEditorModal extends Modal {
 			text: "Completion saves immediately. Other edits save below.",
 		});
 		const note = taskSection(body, "Note");
-		projectDestination(note, this.app, this.plugin, this.path, (path) => {
+		const destination = projectDestination(note, this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
 		const schedule = taskSection(body, "Schedule");
@@ -66,6 +66,8 @@ export class TaskEditorModal extends Modal {
 			text: "Clear schedule",
 			cls: "tl-clear-schedule tl-quiet-button",
 		}).onclick = () => fields.clear();
+		let previousPath = this.path;
+		let followingSubtasks = false;
 		const subtasks = renderSubtaskEditor(
 			taskSection(body, "Subtasks"),
 			this.app,
@@ -73,6 +75,22 @@ export class TaskEditorModal extends Modal {
 			this.task,
 			(child, onUpdated) => new TaskEditorModal(this.app, this.plugin, child, onUpdated).open(),
 			() => this.path,
+			(selected) => {
+				if (this.task.path !== normalizePath(this.plugin.settings.standaloneNote)) return;
+				const target = selected[0]?.path;
+				if (target) {
+					if (!followingSubtasks) previousPath = this.path;
+					this.path = target;
+					destination.update(
+						target,
+						"This parent moves here when you save. Existing subtasks stay in this note. Remove the selections to choose another destination.",
+					);
+				} else if (followingSubtasks) {
+					this.path = previousPath;
+					destination.update(this.path);
+				}
+				followingSubtasks = !!target;
+			},
 		);
 		const defer = actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
 		defer.disabled = this.task.checked;

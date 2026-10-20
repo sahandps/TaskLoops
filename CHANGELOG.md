@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.8 — 2026-10-20
+
+- When a parent in the configured standalone note adopts existing subtasks,
+  move the parent into their original note instead of exporting the subtasks.
+  Preserve schedules, block IDs, descendants, prose and note properties.
+- Show the destination immediately in the editor, explain the pending move and
+  keep further selections in the same source note. Removing every selection
+  restores the previous destination. No files change until saving.
+- Reject mixed-note selections for standalone parents before any writes. Apply
+  the same rule to normal and reason-popup saves, including rollback protection.
+- Keep preview parent/child paths together and show actual nesting in note previews.
+
+Validation: 776 checks across 26 suites, TypeScript, ESLint, formatting and build
+pass. Added cases cover parent direction, multiple same-note subtasks, schedules,
+block IDs, existing descendants, note properties, unrelated notes, mixed-note
+rejection, same-standalone-note selection, deferral and rollback on write failure.
+Browser checks cover destination preview, removing/reselecting a task and saving
+a standalone parent into the selected task’s note.
+
+
 ## 0.5.7 — 2026-10-20
 
 - Use theme-accent Gantt bars and contrasting labels. Keep task names in a

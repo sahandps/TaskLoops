@@ -1,3 +1,4 @@
+import { existingSubtaskDestination } from "../src/core/existing-tasks.ts";
 import {
 	deferBlock,
 	resolveDeferral,
@@ -87,6 +88,18 @@ export function createPreviewActions(app, store, onChange) {
 			return true;
 		},
 		editTask: async (task, text, path, schedule, drafts, selected, reason) => {
+			path = existingSubtaskDestination(
+				task.path,
+				actions.settings.standaloneNote,
+				path,
+				selected.map((child) => child.path),
+			);
+			const moveTree = (id) => {
+				const item = store.tasks.find((t) => t.id === id);
+				if (item) item.path = path;
+				for (const child of store.tasks.filter((t) => t.parentId === id)) moveTree(child.id);
+			};
+			moveTree(task.id);
 			if (reason !== undefined) schedule = {};
 			const index = store.tasks.findIndex((t) => t.id === task.id);
 			store.tasks[index] = {
@@ -117,12 +130,13 @@ export function createPreviewActions(app, store, onChange) {
 			drafts.forEach((text) =>
 				store.tasks.push({ ...makeTask(text, path), parentId: task.id, indent: 2 }),
 			);
-			selected.forEach((child) =>
+			selected.forEach((child) => {
+				moveTree(child.id);
 				Object.assign(
 					store.tasks.find((t) => t.id === child.id),
 					{ parentId: task.id, path, indent: 2 },
-				),
-			);
+				);
+			});
 			persist();
 			return true;
 		},

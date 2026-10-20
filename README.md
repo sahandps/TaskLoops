@@ -18,9 +18,22 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.7 — clearer Gantt, drag scrolling and note-link suggestions.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.8 — standalone parents follow existing subtasks into their note.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.8
+
+Choosing existing subtasks for a parent in your configured standalone note now
+moves **the parent into the selected tasks’ original note** when you save. The
+selected tasks stay in that note, nested beneath the parent. Schedules, existing
+subtrees, task details and note properties are preserved.
+
+The Note section previews the destination as soon as you select a task. Existing
+subtasks for a standalone parent must come from one note; further choices stay
+within that note. Remove the selections to restore the previous destination.
+Nothing moves until you save. The same rule applies when saving through
+**Can’t schedule now**.
 
 ## What’s new in 0.5.7
 
@@ -422,8 +435,12 @@ your notes:
 2. Search its task list; each result shows its current schedule and source line.
 3. Select one or more tasks. The pending rows show where they come from and can
    be removed before saving.
-4. Select **Save changes** to move them beneath the parent. Their schedules,
-   formatting and own subtasks are preserved; successful saves keep one copy.
+4. For a **standalone parent**, its destination changes to the selected tasks’
+   note. Select tasks from that one note, then **Save changes**: the parent moves
+   there and the selected tasks stay in their original note beneath it.
+   For a parent already in a project note, selected tasks are placed beneath
+   it at its chosen destination. Schedules, formatting and existing subtrees
+   are preserved; successful saves keep one copy.
 
 Selecting a task makes no note changes until you save. Cancel discards the
 selection. Existing descendants, ancestors and overlapping selections are
