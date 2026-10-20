@@ -105,7 +105,7 @@ export function renderCalendar(root: HTMLElement, view: TaskLoopsView, tasks: Sc
 			settings: view.plugin.settings,
 			schedule: (task, schedule) => view.plugin.schedule(task, schedule),
 			edit: (task) => new TaskEditorModal(view.app, view.plugin, task).open(),
-			create: (schedule) => view.plugin.newTask(schedule),
+			create: (schedule, path) => view.plugin.newTask(schedule, path),
 			dropTarget: (element, scheduleAt) =>
 				view.dropTarget(element, (task, event) => {
 					const schedule = scheduleAt(event);

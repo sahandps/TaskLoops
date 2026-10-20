@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.2 — 2026-10-20
+
+- Fix dragging an empty Calendar range only highlighting it without opening Add
+  task. Connect the selection callback to the existing task creation dialog.
+- Pre-fill due date, start time and exact duration for timed selections. For
+  all-day and multi-day selections, pre-fill the inclusive deadline instead of
+  inventing an effort duration. Preserve overnight and daylight-saving boundaries.
+- Clear the selection highlight when opening the dialog. Selection creates only
+  a draft; Cancel leaves notes unchanged and Add task performs the write.
+- Preselect the source note when clicking or selecting within a resource Timeline
+  row. Keep single-click task creation and its default duration working.
+
+Validation: 598 automated checks, TypeScript, ESLint, formatting and production
+build pass. Real browser drags verify a timed selection opening one pre-filled
+Add task dialog and an October 6–8 selection producing the same inclusive date
+span. Single-click creation is also verified without duplicate dialogs.
+
 ## 0.5.1 — 2026-10-20
 
 - Fix Gantt label, header, control, row, grid and weekend colors in Obsidian dark

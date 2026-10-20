@@ -6,6 +6,6 @@ export interface PlannerOptions {
 	settings: TaskLoopsSettings;
 	schedule: (task: ScannedTask, schedule: Schedule) => Promise<unknown>;
 	edit: (task: ScannedTask) => void;
-	create: (schedule: Schedule) => void;
+	create: (schedule: Schedule, path?: string) => void;
 	dropTarget?: (element: HTMLElement, scheduleAt: (event: DragEvent) => Schedule | null) => void;
 }

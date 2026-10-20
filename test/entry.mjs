@@ -16,3 +16,6 @@ export { noteTaskRows, locateNoteTask } from "../src/core/inline-task-data.ts";
 export { Platform as TestPlatform } from "obsidian";
 export { taskInterval, eventSchedule, ganttSchedule } from "../src/core/planner-schedule.ts";
 export { isAllDayTask, hasDeadlineSpan, moveTaskToDay, dayDistance, localDay } from "../src/core/planner-schedule.ts";
+
+export { selectionSchedule } from "../src/core/planner-schedule.ts";
+export { createCalendarCreationHandlers } from "../src/gui/calendar/creation-handlers.ts";

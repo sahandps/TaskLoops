@@ -18,9 +18,16 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.1 — theme compatibility fixes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.2 — drag-to-create tasks.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.2
+
+Drag an empty range in Day, Week, Month or resource Timeline to open **Add task**.
+Timed selections pre-fill the date, time and duration; multi-day selections
+pre-fill the inclusive deadline. Timeline rows preselect their source note.
+Select **Add task** to save or **Cancel** to discard the draft.
 
 ## What’s new in 0.5.1
 

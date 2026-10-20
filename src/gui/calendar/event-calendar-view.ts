@@ -1,3 +1,4 @@
+import { createCalendarCreationHandlers } from "./creation-handlers";
 import {
 	createCalendar,
 	destroyCalendar,
@@ -33,6 +34,7 @@ export function renderEventCalendar(
 		}
 		void options.schedule(task, schedule).catch(() => info.revert());
 	};
+	const creationHandlers = createCalendarCreationHandlers(options, () => calendar.unselect());
 	const calendar = createCalendar(host, [DayGrid, TimeGrid, ResourceTimeline, Interaction], {
 		view:
 			options.scale === "timeline"
@@ -83,13 +85,7 @@ export function renderEventCalendar(
 		},
 		eventDrop: update,
 		eventResize: update,
-		dateClick: (info) =>
-			options.create({
-				due: localDay(info.date),
-				...(!info.allDay
-					? { time: localTime(info.date), duration: options.settings.defaultDuration }
-					: {}),
-			}),
+		...creationHandlers,
 	});
 	options.dropTarget?.(host, (event) => {
 		const info = calendar.dateFromPoint(event.clientX, event.clientY);

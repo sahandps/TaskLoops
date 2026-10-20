@@ -86,3 +86,17 @@ export function ganttSchedule(start: Date, inclusiveEnd: Date, task: ScannedTask
 	}
 	return eventSchedule(start, new Date(inclusiveEnd.getTime() + 1000), false, task);
 }
+
+/** Calendar selection ends are exclusive; task deadlines include the final day. */
+export function selectionSchedule(start: Date, end: Date, allDay: boolean): Schedule | null {
+	if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) return null;
+	const due = localDay(start);
+	const deadline = localDay(new Date(end.getTime() - 1));
+	if (allDay) return { due, deadline };
+	return {
+		due,
+		...(deadline !== due ? { deadline } : {}),
+		time: localTime(start),
+		duration: Math.max(5, Math.round((end.getTime() - start.getTime()) / 60000)),
+	};
+}
