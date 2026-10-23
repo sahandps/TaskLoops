@@ -17,7 +17,17 @@ export type DateFormat =
 	| "MMM D, YYYY"
 	| "MMMM D, YYYY";
 
+export interface PriorityDefinition {
+	id: string;
+	name: string;
+	color: string;
+}
+
 export interface Schedule {
+	/** Stable priority ID; empty string explicitly clears it. */
+	priority?: string;
+	/** Optional calendar bar color; empty string restores the project color. */
+	color?: string;
 	/** Calendar day, always ISO internally. */
 	due?: string;
 	/** Inclusive final calendar day; must be on or after due. */
@@ -53,6 +63,8 @@ export interface ScannedTask extends Schedule {
 export type PlannerTheme = "inherit" | "light" | "dark";
 
 export interface TaskLoopsSettings {
+	priorities: PriorityDefinition[];
+	projectColors: Record<string, string>;
 	theme: PlannerTheme;
 	showWeekNumbers: boolean;
 	showProgressBars: boolean;
@@ -74,6 +86,12 @@ export interface TaskLoopsSettings {
 }
 
 export const DEFAULT_SETTINGS: TaskLoopsSettings = {
+	priorities: [
+		{ id: "low", name: "Low", color: "#397a56" },
+		{ id: "medium", name: "Medium", color: "#a56b16" },
+		{ id: "high", name: "High", color: "#bf4545" },
+	],
+	projectColors: {},
 	theme: "inherit",
 	showWeekNumbers: true,
 	showProgressBars: true,

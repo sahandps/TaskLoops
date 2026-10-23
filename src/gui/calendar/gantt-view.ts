@@ -1,3 +1,5 @@
+import { taskColorResolver } from "../../core/task-colors";
+import { priorityBadge, projectAccent } from "../components/task-appearance";
 import { attachGanttPan } from "../interactions/gantt-pan";
 import { TaskGantt } from "./task-gantt";
 import { localDay, localTime, taskInterval, ganttSchedule } from "../../core/planner-schedule";
@@ -6,6 +8,7 @@ import type { PlannerOptions } from "./contracts";
 
 export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: PlannerOptions): () => void {
 	const host = root.createDiv("tl-library-planner");
+	const colors = taskColorResolver(options.allTasks ?? tasks, options.settings.projectColors);
 	const scheduled = tasks.filter((task) => task.due);
 	const lookup = new Map<string, ScannedTask>();
 	root.createEl("p", {
@@ -43,6 +46,8 @@ export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: Pl
 			text: task.text,
 			attr: { title: task.text, "aria-label": "Edit Gantt task " + task.text },
 		});
+		projectAccent(button, task.path, options.settings);
+		priorityBadge(button, task, options.settings);
 		button.onclick = () => options.edit(task);
 	}
 	const chart = layout.createDiv("tl-gantt-chart");
@@ -69,6 +74,14 @@ export function renderGantt(root: HTMLElement, tasks: ScannedTask[], options: Pl
 			if (task && !task.checked) void options.schedule(task, ganttSchedule(start, end, task));
 		},
 	});
+	for (const group of chart.querySelectorAll<SVGElement>(".bar-wrapper[data-id]")) {
+		const task = lookup.get(group.getAttribute("data-id") ?? "");
+		const color = task && colors.color(task);
+		if (color) {
+			group.style.setProperty("--project-color", color);
+			group.classList.add("tl-gantt-project-colored");
+		}
+	}
 	const scroller = chart.querySelector<HTMLElement>(".gantt-container")!;
 	const content = names.createDiv();
 	content.style.setProperty(

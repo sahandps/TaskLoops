@@ -111,7 +111,7 @@ export function createPreviewActions(app, store, onChange) {
 				for (const child of store.tasks.filter((t) => t.parentId === id)) moveTree(child.id);
 			};
 			moveTree(task.id);
-			if (reason !== undefined) schedule = {};
+			if (reason !== undefined) schedule = { priority: schedule.priority, color: schedule.color };
 			const index = store.tasks.findIndex((t) => t.id === task.id);
 			store.tasks[index] = {
 				...store.tasks[index],

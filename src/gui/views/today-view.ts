@@ -1,3 +1,4 @@
+import { priorityBadge, projectAccent } from "../components/task-appearance";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
 import { todayAgenda, type AgendaEntry } from "../../core/today-agenda";
@@ -78,6 +79,7 @@ export function renderTodayView(
 								: "Upcoming",
 				});
 		}
+		projectAccent(item, task.path, actions.settings);
 		const content = item.createDiv("tl-today-task-content");
 		const row = content.createDiv("tl-today-task-row");
 		const checkTarget = row.createEl("label", { cls: "tl-today-check" });
@@ -88,6 +90,7 @@ export function renderTodayView(
 			text: task.text,
 			attr: { "aria-label": "Edit " + task.text, "data-today-focus": "edit:" + task.id },
 		}).onclick = () => edit(task);
+		priorityBadge(row, task, actions.settings);
 		const metadata = content.createDiv("tl-today-task-meta");
 		metadata.createEl("button", {
 			cls: "tl-today-source",

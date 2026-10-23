@@ -108,7 +108,26 @@ export function formatDuration(minutes: number): string {
 }
 
 /** Read only a complete, valid scheduling suffix, before an optional block id. */
-export function parseSchedule(raw: string): {
+export function parseSchedule(raw: string): ReturnType<typeof parseScheduleBody> {
+	const metadata: Schedule = {};
+	let body = raw;
+	let match: RegExpMatchArray | null;
+	while (
+		(match = body.match(
+			/ <!-- taskloops-(priority:[a-zA-Z0-9_-]+|color:#[0-9a-fA-F]{6}) -->(?=\s*(?:\^[\w-]+\s*)?\r?$)/,
+		))
+	) {
+		const [key, value] = match[1].split(":");
+		metadata[key as "priority" | "color"] = value;
+		body = body.replace(match[0], "");
+	}
+	const parsed = parseScheduleBody(body);
+	if (metadata.priority) parsed.schedule.priority = metadata.priority;
+	if (metadata.color) parsed.schedule.color = metadata.color;
+	return parsed;
+}
+
+function parseScheduleBody(raw: string): {
 	body: string;
 	schedule: Schedule;
 	suffix: string;
@@ -159,6 +178,10 @@ export function parseSchedule(raw: string): {
 
 export function validSchedule(schedule: Schedule): boolean {
 	return (
+		(schedule.priority === undefined ||
+			schedule.priority === "" ||
+			/^[a-zA-Z0-9_-]+$/.test(schedule.priority)) &&
+		(schedule.color === undefined || schedule.color === "" || /^#[0-9a-f]{6}$/i.test(schedule.color)) &&
 		(!schedule.due || validDate(schedule.due)) &&
 		(!schedule.time || validTime(schedule.time)) &&
 		(!schedule.deadline ||
@@ -175,7 +198,11 @@ export function writeSchedule(raw: string, schedule: Schedule, format: DateForma
 	const suffix = schedule.due
 		? ` - Due date: ${formatDate(schedule.due, format)}${schedule.time ? " Time: " + schedule.time : ""}${schedule.duration ? " Duration: " + formatDuration(schedule.duration) : ""}${schedule.deadline ? " Deadline: " + formatDate(schedule.deadline, format) : ""}`
 		: "";
-	return parsed.body + suffix + parsed.block;
+	const priority = schedule.priority === undefined ? parsed.schedule.priority : schedule.priority;
+	const marker = priority ? ` <!-- taskloops-priority:${priority} -->` : "";
+	const color = schedule.color === undefined ? parsed.schedule.color : schedule.color;
+	const colorMarker = color ? ` <!-- taskloops-color:${color} -->` : "";
+	return parsed.body + suffix + marker + colorMarker + parsed.block;
 }
 
 /** Append inside Tasks:, respecting headings, fenced code and frontmatter. */

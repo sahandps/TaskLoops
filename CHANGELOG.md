@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.16 — 2026-10-23
+
+- Add Low, Medium and High task priorities with customizable names, colors and additional levels.
+- Group settings into General, Calendar, Tasks, Notes and Projects sections.
+- Add project color pickers and a Calendar color picker in task creation and editing.
+- Apply chosen colors to calendar and Gantt bars, with readable text on light and dark colors.
+- Let subtasks inherit the nearest parent’s custom calendar color. Individual overrides flow to their own descendants; resetting restores inheritance.
+- Store priority and individual color choices in Markdown comments, preserving them through title edits, scheduling, deferral and note moves.
+
+Validation: 991 checks across 36 suites pass, along with TypeScript, ESLint,
+formatting and the production build. Browser checks cover custom task colors,
+project colors and saved priorities in the local preview.
+
 ## 0.5.15 — 2026-10-20
 
 - Fix calendar jumps after moving/resizing zoomed events. Capture EventCalendar's

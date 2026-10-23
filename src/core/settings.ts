@@ -5,6 +5,30 @@ import { DATE_FORMATS } from "./schedule";
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
 export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoopsSettings {
 	const settings = { ...DEFAULT_SETTINGS, ...saved };
+	const validColor = (color: unknown): color is string =>
+		typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color);
+	const ids = new Set<string>();
+	settings.priorities = (Array.isArray(saved?.priorities) ? saved.priorities : DEFAULT_SETTINGS.priorities)
+		.filter((item) => {
+			if (
+				!item ||
+				typeof item.id !== "string" ||
+				!/^[a-zA-Z0-9_-]+$/.test(item.id) ||
+				ids.has(item.id) ||
+				typeof item.name !== "string" ||
+				!item.name.trim() ||
+				!validColor(item.color)
+			)
+				return false;
+			ids.add(item.id);
+			return true;
+		})
+		.map((item) => ({ id: item.id, name: item.name.trim(), color: item.color }));
+	settings.projectColors = Object.fromEntries(
+		Object.entries(
+			saved?.projectColors && typeof saved.projectColors === "object" ? saved.projectColors : {},
+		).filter(([, color]) => validColor(color)),
+	);
 	settings.timeSlotHeight = slotHeight(settings.timeSlotHeight);
 	if (!["inherit", "light", "dark"].includes(settings.theme)) settings.theme = "inherit";
 	if (typeof settings.showWeekNumbers !== "boolean") settings.showWeekNumbers = true;

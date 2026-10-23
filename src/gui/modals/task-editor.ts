@@ -1,3 +1,6 @@
+import { taskColorResolver } from "../../core/task-colors";
+import { calendarColorField } from "./calendar-color-field";
+import { priorityField } from "./priority-field";
 import { attachNoteLinkSuggest } from "../components/note-link-suggest";
 import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
@@ -60,6 +63,13 @@ export class TaskEditorModal extends Modal {
 		const destination = projectDestination(note, this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
+		const readPriority = priorityField(details, this.plugin.settings, this.task.priority);
+		const readColor = calendarColorField(
+			details,
+			this.task.color,
+			() => this.plugin.settings.projectColors?.[this.path],
+			() => taskColorResolver(this.plugin.allTasks()).inherited(this.task),
+		);
 		const schedule = taskSection(body, "Schedule");
 		const fields = scheduleFields(schedule, this.task);
 		schedule.createEl("button", {
@@ -108,7 +118,7 @@ export class TaskEditorModal extends Modal {
 						this.task,
 						text.value,
 						this.path,
-						{},
+						{ priority: readPriority(), color: readColor() },
 						subtasks.drafts,
 						subtasks.selected,
 						reason,
@@ -121,6 +131,10 @@ export class TaskEditorModal extends Modal {
 		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
 		save.onclick = () => {
 			const schedule = fields.read();
+			if (schedule) {
+				schedule.priority = readPriority();
+				schedule.color = readColor();
+			}
 			if (!schedule) return;
 			if (!text.value.trim()) {
 				text.focus();

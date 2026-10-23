@@ -19,7 +19,7 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.15 — keep your place when editing zoomed calendar events.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.16 — customizable priorities and calendar colors with subtask inheritance.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -599,6 +599,24 @@ then removes the original only if the source subtree still matches. On failure
 it rolls back its destination write when safe. If another edit prevents a safe
 rollback, both copies remain and a notice tells you to review them; no external
 edit is overwritten.
+
+## Task priorities and calendar colors
+
+Choose Low, Medium, High or a custom priority in the task editor. In plugin
+settings, use **Tasks → Task priorities → Customize** to rename levels, choose
+their colors or add more levels.
+
+Set a project’s color under **Projects → Project colors**. To color an individual
+calendar bar, open its task and choose **Calendar color**, then save. Subtasks
+inherit the nearest parent’s custom color automatically, including through
+unscheduled parents. A subtask can choose its own color; its descendants inherit
+that override. **Use parent color** removes the override, or **Use project color**
+restores the project default for a task without a custom-colored ancestor.
+
+Colors apply to calendar and Gantt bars. Priorities and individual task colors
+are stored as hidden Markdown comments beside the task, while project colors
+and priority definitions stay in plugin settings. Changing a parent’s color
+updates inheriting descendants without rewriting their notes.
 
 ## Upgrading from earlier versions
 

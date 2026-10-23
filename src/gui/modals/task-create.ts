@@ -1,3 +1,5 @@
+import { calendarColorField } from "./calendar-color-field";
+import { priorityField } from "./priority-field";
 import { attachNoteLinkSuggest } from "../components/note-link-suggest";
 import { TaskDeferralModal } from "./task-deferral";
 import { taskDialog, taskSection } from "./task-dialog";
@@ -31,6 +33,12 @@ export class TaskModal extends Modal {
 		projectDestination(taskSection(body, "Note"), this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
+		const readPriority = priorityField(label, this.plugin.settings, this.initial.priority);
+		const readColor = calendarColorField(
+			label,
+			this.initial.color,
+			() => this.plugin.settings.projectColors?.[this.path],
+		);
 		const fields = scheduleFields(taskSection(body, "Schedule"), this.initial);
 		actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" }).onclick =
 			() => {
@@ -41,7 +49,13 @@ export class TaskModal extends Modal {
 				new TaskDeferralModal(this.app, this.plugin, undefined, {
 					text: text.value,
 					path: this.path,
-					save: (reason) => this.plugin.createTask(text.value, this.path, {}, reason),
+					save: (reason) =>
+						this.plugin.createTask(
+							text.value,
+							this.path,
+							{ priority: readPriority(), color: readColor() },
+							reason,
+						),
 					onSaved: () => this.close(),
 				}).open();
 			};
@@ -49,6 +63,10 @@ export class TaskModal extends Modal {
 		const save = actions.createEl("button", { text: "Add task", cls: "mod-cta" });
 		const commit = async () => {
 			const schedule = fields.read();
+			if (schedule) {
+				schedule.priority = readPriority();
+				schedule.color = readColor();
+			}
 			if (!schedule) return;
 			if (!text.value.trim()) {
 				text.focus();

@@ -5,6 +5,8 @@ export interface PlannerOptions {
 	scale: CalendarScale;
 	anchor: string;
 	settings: TaskLoopsSettings;
+	/** Unfiltered hierarchy for inherited task colors. */
+	allTasks?: ScannedTask[];
 	schedule: (task: ScannedTask, schedule: Schedule) => Promise<unknown>;
 	complete: (task: ScannedTask) => Promise<boolean>;
 	edit: (task: ScannedTask) => void;

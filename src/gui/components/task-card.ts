@@ -1,3 +1,4 @@
+import { priorityBadge, projectAccent } from "./task-appearance";
 import { isDeferred } from "../../core/task-deferral";
 import { shiftISO } from "../../core/dates";
 import { overdueDays } from "../../core/task-review";
@@ -24,6 +25,7 @@ export function renderTaskCard(
 			(compact ? " is-compact" : "") +
 			(task.parentId ? " is-subtask" : ""),
 	);
+	projectAccent(card, task.path, actions.settings);
 	const content = card.createDiv("tl-task-content");
 	const row = content.createDiv("tl-task-row");
 	renderCompletionCheckbox(row, task, (task) => actions.complete(task));
@@ -36,6 +38,7 @@ export function renderTaskCard(
 	card.onclick = (event) => {
 		if (event.target instanceof Element && !event.target.closest("button, input, a")) open();
 	};
+	priorityBadge(row, task, actions.settings);
 	const schedule = row.createEl("button", {
 		cls: "tl-schedule-button",
 		text: "⋯",

@@ -2,7 +2,7 @@ import { deferBlock, resolveDeferral, validateDeferralReason } from "../core/tas
 import { todayISO } from "../core/dates";
 import { App, TFile, normalizePath } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
-import { validSchedule, writeSchedule } from "../core/schedule";
+import { parseSchedule, validSchedule, writeSchedule } from "../core/schedule";
 import { setCheckboxDone } from "../infrastructure/obsidian/task-repository";
 import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/note-transaction";
 import { existingSubtaskCandidates, existingSubtaskDestination } from "../core/existing-tasks";
@@ -128,7 +128,14 @@ export class TaskService {
 				if (schedule.due) throw new Error("A deferred task must be unscheduled.");
 			}
 			const raw = "- [ ] " + text.trim();
-			const base = schedule.due ? writeSchedule(raw, schedule, this.settings.dateFormat) : raw;
+			const base =
+				schedule.due || schedule.priority || schedule.color
+					? writeSchedule(
+							raw,
+							{ ...parseSchedule(raw).schedule, ...schedule },
+							this.settings.dateFormat,
+						)
+					: raw;
 			const line = reason !== undefined ? deferBlock([base], reason).join("\n") : base;
 			const file = this.app.vault.getAbstractFileByPath(path);
 			if (file instanceof TFile)
@@ -161,7 +168,7 @@ export class TaskService {
 		await this.enqueue(async () => {
 			if (reason !== undefined) {
 				validateDeferralReason(reason);
-				schedule = {};
+				schedule = { priority: schedule.priority, color: schedule.color };
 			}
 			if (!validSchedule(schedule)) throw new Error("Enter a valid date, time and duration.");
 			const current = this.current(task);
@@ -280,7 +287,7 @@ export class TaskService {
 		await this.enqueue(async () => {
 			if (reason !== undefined) {
 				validateDeferralReason(reason);
-				schedule = {};
+				schedule = { priority: schedule.priority, color: schedule.color };
 			}
 			if (!validSchedule(schedule)) throw new Error("Enter a valid schedule.");
 			validateWording(text);

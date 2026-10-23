@@ -119,6 +119,7 @@ export function renderCalendar(
 			scale: view.scale,
 			anchor: view.anchor,
 			settings: view.plugin.settings,
+			allTasks: view.plugin.allTasks(),
 			timeViewport,
 			saveZoom: (size) => {
 				view.plugin.settings.timeSlotHeight = size;

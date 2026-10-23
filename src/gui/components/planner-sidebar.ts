@@ -1,3 +1,4 @@
+import { projectAccent } from "./task-appearance";
 import { renderTaskCompletionTabs } from "./task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
 import { renderTaskProgress } from "./task-progress";
@@ -122,6 +123,7 @@ export function renderPlannerSidebar(
 		const path = group.path;
 		const task = group.tasks[0];
 		const section = list.createDiv("tl-task-group");
+		projectAccent(section, path, actions.settings);
 		const heading = section.createDiv("tl-note-heading");
 		section.createDiv({ cls: "tl-note-path", text: path });
 		if (progress) renderTaskProgress(section, path, progress.get(path));

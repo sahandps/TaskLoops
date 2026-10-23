@@ -57,7 +57,7 @@ export function editedBlock(
 ): string[] {
 	validateWording(text);
 	subtasks.forEach(validateWording);
-	if (reason !== undefined) schedule = {};
+	if (reason !== undefined) schedule = { priority: schedule.priority, color: schedule.color };
 	const block = taskBlock(content, task).lines;
 	const raw = block[0];
 	const prefix = raw.match(TASK_PREFIX)?.[0];
@@ -67,9 +67,19 @@ export function editedBlock(
 		parsed.schedule.due === schedule.due &&
 		parsed.schedule.deadline === schedule.deadline &&
 		parsed.schedule.time === schedule.time &&
-		parsed.schedule.duration === schedule.duration;
+		parsed.schedule.duration === schedule.duration &&
+		(schedule.priority === undefined || (parsed.schedule.priority ?? "") === schedule.priority) &&
+		(schedule.color === undefined || (parsed.schedule.color ?? "") === schedule.color);
 	if (text !== taskWording(raw) || !sameSchedule)
-		block[0] = writeSchedule(prefix + text.trim() + parsed.block, schedule, format);
+		block[0] = writeSchedule(
+			prefix + text.trim() + parsed.block,
+			{
+				...schedule,
+				priority: schedule.priority ?? parsed.schedule.priority,
+				color: schedule.color ?? parsed.schedule.color,
+			},
+			format,
+		);
 	const container = raw.match(TASK_PREFIX)?.[1] ?? "";
 	const cr = raw.endsWith("\r") ? "\r" : "";
 	for (const subtask of subtasks) block.push(container + "    - [ ] " + subtask.trim() + cr);

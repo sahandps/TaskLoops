@@ -59,3 +59,5 @@ export {shiftISO} from "../src/core/dates.ts";
 export {timedDropMinutes,crossGridSchedule} from "../src/core/planner-schedule.ts";
 
 export * from "../src/gui/interactions/calendar-viewport.ts";
+
+export {taskColorResolver} from "../src/core/task-colors.ts";

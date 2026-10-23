@@ -1,3 +1,5 @@
+import { taskColorResolver } from "../../core/task-colors";
+import { priorityBadge, projectTextColor } from "../components/task-appearance";
 import { viewportScrollTime, restoreTimeGridViewport } from "../interactions/calendar-viewport";
 import { attachCalendarZoom } from "../interactions/calendar-zoom";
 import { isoWeek } from "../../core/dates";
@@ -30,6 +32,7 @@ export function renderEventCalendar(
 	options: PlannerOptions,
 ): () => void {
 	const host = root.createDiv("tl-library-planner tl-" + options.scale + "-view");
+	const colors = taskColorResolver(options.allTasks ?? tasks, options.settings.projectColors);
 	const scheduled = tasks.filter((task) => task.due);
 	const lookup = new Map(tasks.map((task) => [task.id, task]));
 	const update = (info: Calendar.EventDropInfo | Calendar.EventResizeInfo) => {
@@ -86,6 +89,8 @@ export function renderEventCalendar(
 			return {
 				id: task.id,
 				title: task.text,
+				backgroundColor: colors.color(task),
+				textColor: projectTextColor(colors.color(task)),
 				...interval,
 				allDay: isAllDayTask(task),
 				resourceIds: [task.path],
@@ -118,6 +123,7 @@ export function renderEventCalendar(
 			content.remove();
 			renderCompletionCheckbox(content, task, options.complete);
 			content.createEl("h4", { cls: "ec-event-title", text: task.text });
+			priorityBadge(content, task, options.settings);
 			const minutes = (info.event.end.getTime() - info.event.start.getTime()) / 60000;
 			if (!info.event.allDay && info.timeText && minutes > 30)
 				content.createEl("time", { cls: "ec-event-time", text: info.timeText });

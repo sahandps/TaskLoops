@@ -85,6 +85,25 @@ export class PluginSettingTab {
 	}
 }
 export class Setting {
+	setHeading() {
+		this.row.classList.add("tl-setting-heading");
+		return this;
+	}
+	addButton(callback) {
+		const input = this.control.createEl("button");
+		const component = {
+			setButtonText: (text) => {
+				input.textContent = text;
+				return component;
+			},
+			onClick: (fn) => {
+				input.onclick = fn;
+				return component;
+			},
+		};
+		callback(component);
+		return this;
+	}
 	constructor(root) {
 		this.row = root.createDiv("tl-preview-setting");
 		this.info = this.row.createDiv();

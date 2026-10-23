@@ -1,3 +1,4 @@
+import { PlannerSettingsModal } from "../modals/planner-settings";
 import { slotHeight } from "../../core/calendar-zoom";
 import { App, normalizePath, PluginSettingTab, Setting } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
@@ -271,13 +272,97 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 		];
 	}
+	private groupedDefinitions() {
+		const definitions = this.definitions();
+		const groups: [string, string[]][] = [
+			["General", ["Default view", "Planner theme"]],
+			[
+				"Calendar",
+				[
+					"Date format",
+					"Time display",
+					"Week starts on",
+					"Calendar scale",
+					"Timeline opening hour",
+					"Show week numbers",
+					"Calendar zoom",
+				],
+			],
+			[
+				"Tasks",
+				[
+					"Default task duration",
+					"Show completed by default",
+					"Standalone tasks note",
+					"Task scan folder",
+					"Show progress bars",
+				],
+			],
+			["Notes", ["Tasks per note card", "Note card spacing"]],
+			["Projects", []],
+		];
+		return groups.flatMap(([name, names]) => [
+			{
+				name,
+				desc: "",
+				render: (setting: Setting) => {
+					setting.setHeading();
+				},
+			},
+			...names.map((key) => definitions.find((item) => item.name === key)!),
+			...(name === "Tasks"
+				? [
+						{
+							name: "Task priorities",
+							desc: "Customize Low, Medium and High, or add your own priority levels and colors.",
+							render: (setting: Setting) => {
+								setting.addButton((button) =>
+									button
+										.setButtonText("Customize…")
+										.onClick(() =>
+											new PlannerSettingsModal(
+												this.app,
+												this.plugin,
+												() => this.plugin.refreshViews(),
+												"Tasks",
+											).open(),
+										),
+								);
+							},
+						},
+					]
+				: []),
+			...(name === "Projects"
+				? [
+						{
+							name: "Project colors",
+							desc: "Color-code project notes in task lists, Today and the calendar.",
+							render: (setting: Setting) => {
+								setting.addButton((button) =>
+									button
+										.setButtonText("Choose colors…")
+										.onClick(() =>
+											new PlannerSettingsModal(
+												this.app,
+												this.plugin,
+												() => this.plugin.refreshViews(),
+												"Projects",
+											).open(),
+										),
+								);
+							},
+						},
+					]
+				: []),
+		]);
+	}
 	getSettingDefinitions(): SettingDefinitionItem[] {
-		return this.definitions();
+		return this.groupedDefinitions();
 	}
 	// Older Obsidian versions call display(); 1.13+ renders the definitions above.
 	display(): void {
 		this.containerEl.empty();
-		for (const definition of this.definitions()) {
+		for (const definition of this.groupedDefinitions()) {
 			const setting = new Setting(this.containerEl)
 				.setName(definition.name)
 				.setDesc(definition.desc ?? "");

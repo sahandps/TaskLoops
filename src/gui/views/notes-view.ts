@@ -1,3 +1,4 @@
+import { projectAccent } from "../components/task-appearance";
 import { renderTaskCompletionTabs } from "../components/task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
 import { renderTaskProgress } from "../components/task-progress";
@@ -86,6 +87,7 @@ export function renderNotesView(
 	const grid = pane.createDiv("tl-notes-grid");
 	for (const group of groups) {
 		const note = grid.createEl("article", { cls: "tl-note-card" });
+		projectAccent(note, group.path, actions.settings);
 		const heading = note.createDiv("tl-note-heading");
 		note.createDiv({ cls: "tl-note-path", text: group.path });
 		if (progress) renderTaskProgress(note, group.path, progress.get(group.path));
