@@ -2,7 +2,10 @@ import { App, TFile, moment, normalizePath } from "obsidian";
 
 interface DailyNotesCore {
 	enabled: boolean;
-	instance?: { options?: { folder?: string; format?: string; template?: string } };
+	instance?: {
+		options?: { folder?: string; format?: string; template?: string };
+		getDailyNote?(date: ReturnType<typeof moment>): Promise<TFile | null | undefined>;
+	};
 }
 
 /** Core Daily Notes has no public typed API; keep its settings access here. */
@@ -29,7 +32,12 @@ export class DailyNotes {
 		const day = moment(date, "YYYY-MM-DD", true);
 		if (!day.isValid()) throw new Error("Choose a valid daily note date.");
 		return normalizePath(
-			[options.folder, day.format(options.format || "YYYY-MM-DD") + ".md"].filter(Boolean).join("/"),
+			[
+				options.folder || this.app.fileManager.getNewFileParent("").path,
+				day.format(options.format || "YYYY-MM-DD").trim() + ".md",
+			]
+				.filter(Boolean)
+				.join("/"),
 		);
 	}
 	exists(date: string): boolean {
@@ -51,39 +59,14 @@ export class DailyNotes {
 		const existing = this.app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) return existing;
 		if (existing) throw new Error("The daily note path is occupied by a folder.");
-		const options = this.options();
-		let content = "";
-		if (options.template) {
-			const templatePath = normalizePath(options.template.replace(/\.md$/i, "") + ".md");
-			const file = this.app.vault.getAbstractFileByPath(templatePath);
-			if (!(file instanceof TFile)) throw new Error("The Daily notes template could not be found.");
-			const day = moment(date, "YYYY-MM-DD", true);
-			content = (await this.app.vault.read(file))
-				.replace(/{{\s*date(?::([^}]+))?\s*}}/gi, (_match: string, format: string | undefined) =>
-					day.format(format?.trim() || options.format || "YYYY-MM-DD"),
-				)
-				.replace(/{{\s*time(?::([^}]+))?\s*}}/gi, (_match: string, format: string | undefined) =>
-					moment().format(format?.trim() || "HH:mm"),
-				)
-				.replace(/{{\s*title\s*}}/gi, path.split("/").pop()!.replace(/\.md$/, ""));
-		}
-		const parts = path.split("/").slice(0, -1);
-		for (let i = 1; i <= parts.length; i++) {
-			const folder = parts.slice(0, i).join("/");
-			if (!this.app.vault.getAbstractFileByPath(folder)) {
-				try {
-					await this.app.vault.createFolder(folder);
-				} catch (error) {
-					if (!this.app.vault.getAbstractFileByPath(folder)) throw error;
-				}
-			}
-		}
-		try {
-			return await this.app.vault.create(path, content);
-		} catch (error) {
-			const file = this.app.vault.getAbstractFileByPath(path);
-			if (file instanceof TFile) return file;
-			throw error;
-		}
+		const instance = this.core()?.instance;
+		if (!this.enabled || !instance?.getDailyNote)
+			throw new Error("Core Daily notes is unavailable. Enable it in Obsidian Settings and try again.");
+		const file = await instance.getDailyNote(moment(date, "YYYY-MM-DD", true));
+		if (!(file instanceof TFile))
+			throw new Error(
+				"Core Daily notes could not create the note. Check its folder and template settings.",
+			);
+		return file;
 	}
 }

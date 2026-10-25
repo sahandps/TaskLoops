@@ -119,7 +119,7 @@ export class TaskService {
 		path: string,
 		schedule: Schedule,
 		reason?: string,
-		prepare?: () => Promise<unknown>,
+		prepare?: () => Promise<string>,
 	): Promise<boolean> {
 		if (schedule.time && schedule.duration === undefined)
 			schedule = { ...schedule, duration: this.settings.defaultDuration ?? 30 };
@@ -133,7 +133,7 @@ export class TaskService {
 				validateDeferralReason(reason);
 				if (schedule.due) throw new Error("A deferred task must be unscheduled.");
 			}
-			await prepare?.();
+			if (prepare) path = normalizePath(await prepare());
 			const raw = "- [ ] " + text.trim();
 			const base =
 				schedule.due || schedule.priority || schedule.color

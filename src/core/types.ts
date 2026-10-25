@@ -81,6 +81,7 @@ export interface TaskLoopsSettings {
 	panelWidth: number;
 	panelHeight: number;
 	standaloneNote: string;
+	standaloneDestination: "note" | "daily";
 	dateFormat: DateFormat;
 	lastScale: CalendarScale;
 }
@@ -108,6 +109,7 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	panelWidth: 260,
 	panelHeight: 220,
 	standaloneNote: "Standalone Tasks.md",
+	standaloneDestination: "note",
 	dateFormat: "YYYY-MM-DD",
 	lastScale: "week",
 };

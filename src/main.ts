@@ -65,7 +65,7 @@ export default class TaskLoopsPlugin extends Plugin {
 						this.daily.path(date),
 						schedule,
 						reason,
-						() => this.daily.ensure(date),
+						async () => (await this.daily.ensure(date)).path,
 					);
 				} catch (error) {
 					this.report(error, "Could not save to the daily note.");

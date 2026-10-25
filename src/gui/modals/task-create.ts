@@ -33,9 +33,17 @@ export class TaskModal extends Modal {
 		attachNoteLinkSuggest(text, this.app, () => this.path);
 		const storage = taskSection(body, "Store in");
 		const mode = storage.createEl("select", { attr: { "aria-label": "Task storage" } });
-		mode.createEl("option", { value: "note", text: "Selected note" });
+		mode.createEl("option", { value: "standalone", text: "Standalone task note" });
+		mode.createEl("option", { value: "note", text: "Existing note" });
+		const standalone = this.path === this.plugin.settings.standaloneNote;
+		let selectedNote = this.path;
 		const dailyOption = mode.createEl("option", { value: "daily", text: "Daily note" });
 		dailyOption.disabled = !this.plugin.dailyNotes?.enabled;
+		mode.value = standalone
+			? this.plugin.settings.standaloneDestination === "daily"
+				? "daily"
+				: "standalone"
+			: "note";
 		const dailyDate = storage.createEl("input", {
 			type: "date",
 			attr: { "aria-label": "Daily note date" },
@@ -47,15 +55,19 @@ export class TaskModal extends Modal {
 		const updateStorage = () => {
 			const daily = mode.value === "daily";
 			dailyDate.hidden = !daily;
-			noteSection.hidden = daily;
+			noteSection.hidden = mode.value !== "note";
+			this.path = mode.value === "standalone" ? this.plugin.settings.standaloneNote : selectedNote;
 			try {
 				dailyHint.setText(
 					daily
-						? this.plugin.dailyNotes!.path(dailyDate.value) +
-								" — opens or creates on save using Daily notes settings."
-						: this.plugin.dailyNotes?.enabled
-							? "Choose an existing note or your standalone task note."
-							: "Enable the core Daily notes plugin to use daily notes.",
+						? this.plugin.dailyNotes?.enabled
+							? this.plugin.dailyNotes.path(dailyDate.value) +
+								" — core Daily notes opens or creates this note when you save."
+							: "Enable Obsidian’s core Daily notes plugin in Settings before saving to a daily note."
+						: mode.value === "standalone"
+							? this.plugin.settings.standaloneNote +
+								" — saves here, creating the standalone task note if needed."
+							: "Choose the existing note where this task should be stored.",
 				);
 			} catch {
 				dailyHint.setText("Choose a valid daily note date.");
@@ -66,10 +78,13 @@ export class TaskModal extends Modal {
 		updateStorage();
 		const create = (schedule: Schedule, reason?: string) =>
 			mode.value === "daily"
-				? this.plugin.dailyNotes!.createTask(dailyDate.value, text.value, schedule, reason)
+				? (this.plugin.dailyNotes?.createTask(dailyDate.value, text.value, schedule, reason) ??
+					Promise.resolve(false))
 				: this.plugin.createTask(text.value, this.path, schedule, reason);
 		projectDestination(noteSection, this.app, this.plugin, this.path, (path) => {
-			this.path = path;
+			selectedNote = path;
+			mode.value = path === this.plugin.settings.standaloneNote ? "standalone" : "note";
+			updateStorage();
 		});
 		const readPriority = priorityField(label, this.plugin.settings, this.initial.priority);
 		const readColor = calendarColorField(

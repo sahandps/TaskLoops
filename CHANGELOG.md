@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.18 — 2026-10-25
+
+- Add Settings → Tasks → Standalone task storage, choosing the configured standalone task note or a daily note for new standalone tasks.
+- Default daily-note storage to the initially scheduled date, or today for unscheduled tasks. Keep explicit project-note destinations and allow per-task overrides.
+- Delegate missing daily-note creation directly to the enabled core Daily Notes plugin, then insert the task into the returned note. Core Daily Notes owns folder, filename, and template behavior.
+- Reuse existing daily notes and preserve their contents. Reject failed core creation without creating an independent fallback note.
+- Keep existing task locations unchanged when the storage preference changes.
+
+Validation: TypeScript, ESLint, production build, and 1,016 checks across 37 suites pass, including storage preference persistence, core creation ordering, existing content preservation, and invalid-task and core-failure handling.
+
 ## 0.5.17 — 2026-10-25
 
 - Add a daily-note destination when creating tasks, alongside regular notes and the standalone task note.

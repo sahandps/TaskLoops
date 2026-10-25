@@ -5,6 +5,7 @@ import { DATE_FORMATS } from "./schedule";
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
 export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoopsSettings {
 	const settings = { ...DEFAULT_SETTINGS, ...saved };
+	if (settings.standaloneDestination !== "daily") settings.standaloneDestination = "note";
 	const validColor = (color: unknown): color is string =>
 		typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color);
 	const ids = new Set<string>();

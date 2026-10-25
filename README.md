@@ -19,17 +19,23 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.17 — daily-note task storage and a separate daily-note sidebar calendar.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.18 — configurable standalone task storage using core Daily Notes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
 ## Daily notes
 
-Enable Obsidian’s core **Daily notes** plugin to use its folder, date format,
-and template for task storage. In **Add a task**, choose **Store in → Daily note**
-and select a date. Saving appends the task to that day’s existing note or creates
-it from the configured template. **Selected note** keeps the regular note and
-standalone task destinations available.
+In **Settings → TaskLoops → Tasks → Standalone task storage**, choose
+**Standalone tasks note** or **Daily note (core plugin)**. The first uses the
+configured standalone note, creating it if needed. The second requires the core
+Daily notes plugin and defaults new standalone tasks to the scheduled day’s
+note, or today for unscheduled tasks. Saving asks core Daily Notes to open or
+create the daily note with its own folder, filename, and template settings,
+then inserts the task. Existing daily-note content is preserved.
+
+Tasks added to a specific project note keep that destination. The task dialog
+also lets you override the destination and choose a different daily-note date.
+Changing this setting does not move previously saved tasks.
 
 Open **TaskLoops: Open daily note calendar** from the command palette or use the
 **Daily note calendar** ribbon icon. This is an independent sidebar tab, separate

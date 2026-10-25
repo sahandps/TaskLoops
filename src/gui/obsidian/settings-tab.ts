@@ -183,6 +183,23 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 				},
 			},
 			{
+				name: "Standalone task storage",
+				desc: "Choose where new standalone tasks are saved. Daily note uses the scheduled date, or today when unscheduled, and asks the core Daily notes plugin to create the note if needed. Existing tasks stay in their notes.",
+				render: (setting) => {
+					setting.addDropdown((dropdown) =>
+						dropdown
+							.addOption("note", "Standalone tasks note")
+							.addOption("daily", "Daily note (core plugin)")
+							.setValue(this.plugin.settings.standaloneDestination)
+							.onChange(async (value) => {
+								this.plugin.settings.standaloneDestination =
+									value === "daily" ? "daily" : "note";
+								await save();
+							}),
+					);
+				},
+			},
+			{
 				name: "Standalone tasks note",
 				desc: "Vault-relative Markdown path, created when needed. Existing tasks stay in their notes when this changes.",
 				render: (setting) => {
@@ -293,6 +310,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 				[
 					"Default task duration",
 					"Show completed by default",
+					"Standalone task storage",
 					"Standalone tasks note",
 					"Task scan folder",
 					"Show progress bars",

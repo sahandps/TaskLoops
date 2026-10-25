@@ -1,7 +1,7 @@
 {
 	"id": "taskloops",
 	"name": "TaskLoops",
-	"version": "0.5.17",
+	"version": "0.5.18",
 	"minAppVersion": "1.7.2",
 	"description": "Plan Markdown tasks with calendars, timelines and Gantt charts. Track deadlines, find overdue tasks, and record why a task can't be scheduled yet.",
 	"author": "Sahand Poursadeghi Khiavi",

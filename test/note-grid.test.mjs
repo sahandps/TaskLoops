@@ -25,7 +25,7 @@ export default async function run(mod) {
  plugin.saveSettings=async()=>{saves++;};plugin.refreshViews=()=>{refresh++;};
  const tab=new TaskLoopsSettingTab({},plugin);
  const defs=tab.getSettingDefinitions();
- eq(defs.map(d=>d.name),['General','Default view','Planner theme','Calendar','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Show week numbers','Calendar zoom','Tasks','Default task duration','Show completed by default','Standalone tasks note','Task scan folder','Show progress bars','Task priorities','Notes','Tasks per note card','Note card spacing','Projects','Project colors'],'settings are grouped and remain searchable');
+ eq(defs.map(d=>d.name),['General','Default view','Planner theme','Calendar','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Show week numbers','Calendar zoom','Tasks','Default task duration','Show completed by default','Standalone task storage','Standalone tasks note','Task scan folder','Show progress bars','Task priorities','Notes','Tasks per note card','Note card spacing','Projects','Project colors'],'settings are grouped and remain searchable');
  let change;
  const dropdown={addOption:()=>dropdown,setValue:()=>dropdown,onChange:fn=>{change=fn;return dropdown;}};
  defs.find(d=>d.name==='Default view').render({addDropdown:fn=>fn(dropdown)});
@@ -37,5 +37,11 @@ export default async function run(mod) {
  await plugin.reveal({path:'Work/Alpha.md',line:42});
  eq(type,'tab','source navigation creates a new tab');
  eq(opened[1],{eState:{line:42},active:true},'source navigation preserves task line');
+ defs.find(d=>d.name==='Standalone task storage').render({addDropdown:fn=>fn(dropdown)});
+ await change('daily');
+ eq(plugin.settings.standaloneDestination,'daily','settings control selects daily notes for standalone tasks');
+ await change('note');
+ eq(plugin.settings.standaloneDestination,'note','settings control restores the configured standalone note');
+ eq([saves,refresh],[3,3],'standalone storage preference saves and refreshes');
  return results;
 }
