@@ -1,3 +1,6 @@
+import type { DailyNoteActions } from "./application/task-actions";
+import { DailyNotes } from "./infrastructure/obsidian/daily-notes";
+import { DailyCalendarView, VIEW_TYPE_DAILY_CALENDAR } from "./gui/views/daily-calendar-view";
 import { TaskService } from "./application/task-service";
 import { normalizeSettings } from "./core/settings";
 import { Notice, Platform, Plugin, TFile } from "obsidian";
@@ -32,7 +35,63 @@ export default class TaskLoopsPlugin extends Plugin {
 		report: (error, message) => this.report(error, message),
 	});
 
+	private daily = new DailyNotes(() => this.app);
+	readonly dailyNotes: DailyNoteActions = (() => {
+		const daily = this.daily;
+		return {
+			get enabled() {
+				return daily.enabled;
+			},
+			path: (date: string) => this.daily.path(date),
+			exists: (date: string) => this.daily.exists(date),
+			open: async (date: string): Promise<boolean> => {
+				try {
+					const file = await this.daily.ensure(date);
+					return await this.openNote(file.path);
+				} catch (error) {
+					this.report(error, "Could not open the daily note.");
+					return false;
+				}
+			},
+			createTask: async (
+				date: string,
+				text: string,
+				schedule: Schedule,
+				reason?: string,
+			): Promise<boolean> => {
+				try {
+					return await this.taskService.createTask(
+						text,
+						this.daily.path(date),
+						schedule,
+						reason,
+						() => this.daily.ensure(date),
+					);
+				} catch (error) {
+					this.report(error, "Could not save to the daily note.");
+					return false;
+				}
+			},
+		};
+	})();
+
+	async activateDailyCalendar(): Promise<void> {
+		const leaf =
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_DAILY_CALENDAR)[0] ??
+			this.app.workspace.getRightLeaf(false);
+		if (!leaf) return;
+		await leaf.setViewState({ type: VIEW_TYPE_DAILY_CALENDAR, active: true });
+		await this.app.workspace.revealLeaf(leaf);
+	}
+
 	async onload(): Promise<void> {
+		this.registerView(VIEW_TYPE_DAILY_CALENDAR, (leaf) => new DailyCalendarView(leaf, this));
+		this.addCommand({
+			id: "open-daily-calendar",
+			name: "Open daily note calendar",
+			callback: () => void this.activateDailyCalendar(),
+		});
+		this.addRibbonIcon("calendar", "Daily note calendar", () => void this.activateDailyCalendar());
 		const data = (await this.loadData()) as (Partial<TaskLoopsData> & Record<string, unknown>) | null;
 		this.retained = data ?? {};
 		this.items = data?.items ?? {};

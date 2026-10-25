@@ -1,3 +1,4 @@
+import { todayISO } from "../../core/dates";
 import { calendarColorField } from "./calendar-color-field";
 import { priorityField } from "./priority-field";
 import { attachNoteLinkSuggest } from "../components/note-link-suggest";
@@ -30,7 +31,44 @@ export class TaskModal extends Modal {
 			attr: { "aria-label": "Task", autofocus: "" },
 		});
 		attachNoteLinkSuggest(text, this.app, () => this.path);
-		projectDestination(taskSection(body, "Note"), this.app, this.plugin, this.path, (path) => {
+		const storage = taskSection(body, "Store in");
+		const mode = storage.createEl("select", { attr: { "aria-label": "Task storage" } });
+		mode.createEl("option", { value: "note", text: "Selected note" });
+		const dailyOption = mode.createEl("option", { value: "daily", text: "Daily note" });
+		dailyOption.disabled = !this.plugin.dailyNotes?.enabled;
+		const dailyDate = storage.createEl("input", {
+			type: "date",
+			attr: { "aria-label": "Daily note date" },
+		});
+		dailyDate.value = this.initial.due ?? todayISO();
+		dailyDate.hidden = true;
+		const dailyHint = storage.createEl("small", { cls: "tl-field-hint" });
+		const noteSection = taskSection(body, "Note");
+		const updateStorage = () => {
+			const daily = mode.value === "daily";
+			dailyDate.hidden = !daily;
+			noteSection.hidden = daily;
+			try {
+				dailyHint.setText(
+					daily
+						? this.plugin.dailyNotes!.path(dailyDate.value) +
+								" — opens or creates on save using Daily notes settings."
+						: this.plugin.dailyNotes?.enabled
+							? "Choose an existing note or your standalone task note."
+							: "Enable the core Daily notes plugin to use daily notes.",
+				);
+			} catch {
+				dailyHint.setText("Choose a valid daily note date.");
+			}
+		};
+		mode.onchange = updateStorage;
+		dailyDate.onchange = updateStorage;
+		updateStorage();
+		const create = (schedule: Schedule, reason?: string) =>
+			mode.value === "daily"
+				? this.plugin.dailyNotes!.createTask(dailyDate.value, text.value, schedule, reason)
+				: this.plugin.createTask(text.value, this.path, schedule, reason);
+		projectDestination(noteSection, this.app, this.plugin, this.path, (path) => {
 			this.path = path;
 		});
 		const readPriority = priorityField(label, this.plugin.settings, this.initial.priority);
@@ -49,13 +87,7 @@ export class TaskModal extends Modal {
 				new TaskDeferralModal(this.app, this.plugin, undefined, {
 					text: text.value,
 					path: this.path,
-					save: (reason) =>
-						this.plugin.createTask(
-							text.value,
-							this.path,
-							{ priority: readPriority(), color: readColor() },
-							reason,
-						),
+					save: (reason) => create({ priority: readPriority(), color: readColor() }, reason),
 					onSaved: () => this.close(),
 				}).open();
 			};
@@ -73,7 +105,7 @@ export class TaskModal extends Modal {
 				return;
 			}
 			save.disabled = true;
-			if (await this.plugin.createTask(text.value, this.path, schedule)) this.close();
+			if (await create(schedule)) this.close();
 			else save.disabled = false;
 		};
 		save.onclick = () => void commit();

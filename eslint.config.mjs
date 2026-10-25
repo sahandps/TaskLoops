@@ -55,5 +55,12 @@ export default tseslint.config(
 			 */
 			"obsidianmd/hardcoded-config-path": "off",
 		},
-	}
+	},
+	{
+		files: ["test/obsidian-stub.mjs"],
+		rules: {
+			"import/no-extraneous-dependencies": "off",
+			"@typescript-eslint/no-restricted-imports": "off",
+		},
+	},
 );

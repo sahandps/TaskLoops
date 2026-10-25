@@ -114,7 +114,13 @@ export class TaskService {
 		return saved;
 	}
 
-	async createTask(text: string, path: string, schedule: Schedule, reason?: string): Promise<boolean> {
+	async createTask(
+		text: string,
+		path: string,
+		schedule: Schedule,
+		reason?: string,
+		prepare?: () => Promise<unknown>,
+	): Promise<boolean> {
 		if (schedule.time && schedule.duration === undefined)
 			schedule = { ...schedule, duration: this.settings.defaultDuration ?? 30 };
 		let created = false;
@@ -127,6 +133,7 @@ export class TaskService {
 				validateDeferralReason(reason);
 				if (schedule.due) throw new Error("A deferred task must be unscheduled.");
 			}
+			await prepare?.();
 			const raw = "- [ ] " + text.trim();
 			const base =
 				schedule.due || schedule.priority || schedule.color

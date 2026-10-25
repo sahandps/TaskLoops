@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.17 — 2026-10-25
+
+- Add a daily-note destination when creating tasks, alongside regular notes and the standalone task note.
+- Read the enabled core Daily notes plugin’s folder, date format, and template settings; reuse existing notes and create missing notes only on save or calendar date clicks.
+- Add an independent Daily note calendar sidebar with its own ribbon icon and command, month navigation, Today, week numbers, and dots for existing daily notes.
+- Preserve existing daily-note content and apply template date tokens for the selected day when creating a note.
+
+Validation: TypeScript, ESLint, production build, and 1,003 checks across 37 suites pass. New checks cover core settings, nested folders, templates, existing notes, concurrent creation, and disabled-plugin behavior.
+
 ## 0.5.16 — 2026-10-23
 
 - Add Low, Medium and High task priorities with customizable names, colors and additional levels.

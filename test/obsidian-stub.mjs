@@ -1,3 +1,4 @@
+export { default as moment } from "moment";
 /**
  * Stands in for the `obsidian` module so scanner.ts can be bundled and tested
  * outside the app. Only the shapes the scanner touches need to exist.

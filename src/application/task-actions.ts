@@ -1,7 +1,16 @@
 import type { ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
 
 /** UI-facing actions, shared by the Obsidian plugin and browser preview. */
+export interface DailyNoteActions {
+	readonly enabled: boolean;
+	path(date: string): string;
+	exists(date: string): boolean;
+	open(date: string): Promise<boolean>;
+	createTask(date: string, text: string, schedule: Schedule, reason?: string): Promise<boolean>;
+}
+
 export interface TaskActions {
+	dailyNotes?: DailyNoteActions;
 	settings: TaskLoopsSettings;
 	allTasks(): ScannedTask[];
 	noteName(path: string): string;

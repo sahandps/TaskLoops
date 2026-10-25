@@ -218,3 +218,20 @@ dialog pre {
 .tl-preview-setting-control :is(input, select) {
 	max-width: 100%;
 }
+
+.preview-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 300px;
+}
+#daily-calendar {
+	border-left: 1px solid var(--background-modifier-border);
+}
+@media (max-width: 800px) {
+	.preview-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	#daily-calendar {
+		grid-row: 1;
+		max-width: 380px;
+	}
+}
