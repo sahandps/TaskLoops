@@ -44,7 +44,10 @@ actions.dailyNotes = {
 redrawDaily = renderDailyCalendar(document.getElementById("daily-calendar"), actions);
 view = new TaskLoopsView({ app }, actions);
 await view.onOpen();
-actions.refreshViews = () => view.render();
+actions.refreshViews = () => {
+	view.render();
+	redrawDaily?.();
+};
 document.getElementById("settings").onclick = () => {
 	const modal = new Modal(app);
 	modal.onOpen = () => {

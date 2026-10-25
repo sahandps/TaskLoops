@@ -30,6 +30,7 @@ export class PlannerSettingsModal extends Modal {
 			["General", "Appearance and your starting view."],
 			["Calendar", "Dates, time, and your calendar layout."],
 			["Tasks", "Priorities and task defaults."],
+			["Daily note calendar", "Personalize the separate daily-note sidebar."],
 			["Projects", "Use a color to recognize each project or page across your planner."],
 		]) {
 			const section = taskSection(body, name);
@@ -49,6 +50,7 @@ export class PlannerSettingsModal extends Modal {
 		const calendar = sections.get("Calendar")!;
 		const tasks = sections.get("Tasks")!;
 		const projects = sections.get("Projects")!;
+		const dailyCalendar = sections.get("Daily note calendar")!;
 		const select = (
 			parent: HTMLElement,
 			name: string,
@@ -125,7 +127,7 @@ export class PlannerSettingsModal extends Modal {
 		select(
 			calendar,
 			"Week starts on",
-			"Applies to all calendar views.",
+			"Applies to the task planner.",
 			String(draft.weekStart),
 			[
 				["1", "Monday"],
@@ -149,6 +151,47 @@ export class PlannerSettingsModal extends Modal {
 		toggle(calendar, "Week numbers", "Show ISO week numbers.", draft.showWeekNumbers, (v) => {
 			draft.showWeekNumbers = v;
 		});
+		select(
+			dailyCalendar,
+			"Daily calendar week starts on",
+			"First weekday in the daily-note sidebar.",
+			String(draft.dailyCalendarWeekStart),
+			[
+				["1", "Monday"],
+				["0", "Sunday"],
+				["6", "Saturday"],
+			],
+			(value) => {
+				draft.dailyCalendarWeekStart = Number(value);
+			},
+		);
+		toggle(
+			dailyCalendar,
+			"Daily calendar week numbers",
+			"Show the ISO week-number column.",
+			draft.dailyCalendarShowWeekNumbers,
+			(value) => {
+				draft.dailyCalendarShowWeekNumbers = value;
+			},
+		);
+		toggle(
+			dailyCalendar,
+			"Daily calendar weekend shading",
+			"Highlight Saturday and Sunday.",
+			draft.dailyCalendarHighlightWeekends,
+			(value) => {
+				draft.dailyCalendarHighlightWeekends = value;
+			},
+		);
+		toggle(
+			dailyCalendar,
+			"Daily calendar note dots",
+			"Mark dates with existing daily notes.",
+			draft.dailyCalendarShowNoteDots,
+			(value) => {
+				draft.dailyCalendarShowNoteDots = value;
+			},
+		);
 		select(
 			tasks,
 			"Default duration",

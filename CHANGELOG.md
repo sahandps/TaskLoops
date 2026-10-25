@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.19 — 2026-10-25
+
+- Fix Daily Notes Moment typing when esModuleInterop is enabled, using explicit factory and Moment types at the Obsidian boundary. Build checks now validate both compiler configurations.
+- Add a separate Daily note calendar settings section with independent week start, ISO week numbers, weekend shading, and existing-note dots. Existing users retain their prior week-start and week-number choices on upgrade.
+- Apply sidebar preference changes immediately without resetting the displayed month.
+- Remove the explanatory footer below the daily-note calendar.
+- Clarify the fixed standalone-note and daily-note storage options and when the standalone note path is used.
+
+Validation: production build, ESLint, TypeScript with and without esModuleInterop, and 1,033 checks across 38 suites pass. Added sidebar rendering checks cover independent preferences, weekday alignment, hidden week-column layout, dots, weekend shading, and daily-note navigation.
+
 ## 0.5.18 — 2026-10-25
 
 - Add Settings → Tasks → Standalone task storage, choosing the configured standalone task note or a daily note for new standalone tasks.

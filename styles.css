@@ -1420,7 +1420,7 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-daily-calendar-header { display: flex; align-items: center; gap: 4px; margin-bottom: 16px; }
 .tl-daily-calendar-header h3 { flex: 1; margin: 0; font-size: 1.2em; }
 .tl-daily-calendar-header button { padding: 4px 8px; box-shadow: none; background: transparent; }
-.tl-daily-calendar-grid { display: grid; grid-template-columns: 24px repeat(7, minmax(0, 1fr)); gap: 3px 1px; align-items: center; }
+.tl-daily-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px 1px; align-items: center; }
 .tl-daily-weekday, .tl-daily-week-label, .tl-daily-week-number { text-align: center; color: var(--text-muted); font-size: .82em; padding: 8px 0; }
 .tl-daily-day { position: relative; display: flex; justify-content: center; align-items: center; height: 42px; padding: 0 0 7px; border: 1px solid transparent; border-radius: 7px; box-shadow: none; background: transparent; color: var(--text-normal); }
 .tl-daily-day.is-weekend { background: var(--background-modifier-hover); }
@@ -1430,4 +1430,5 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-daily-day:hover { background: var(--background-modifier-hover); }
 .tl-daily-day:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
 .tl-daily-note-dot { position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .65; }
-.tl-daily-calendar-legend { display: block; margin-top: 14px; color: var(--text-muted); font-size: .75em; }
+
+.tl-daily-calendar-grid.has-week-numbers { grid-template-columns: 24px repeat(7, minmax(0, 1fr)); }

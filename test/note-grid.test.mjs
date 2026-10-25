@@ -25,7 +25,7 @@ export default async function run(mod) {
  plugin.saveSettings=async()=>{saves++;};plugin.refreshViews=()=>{refresh++;};
  const tab=new TaskLoopsSettingTab({},plugin);
  const defs=tab.getSettingDefinitions();
- eq(defs.map(d=>d.name),['General','Default view','Planner theme','Calendar','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Show week numbers','Calendar zoom','Tasks','Default task duration','Show completed by default','Standalone task storage','Standalone tasks note','Task scan folder','Show progress bars','Task priorities','Notes','Tasks per note card','Note card spacing','Projects','Project colors'],'settings are grouped and remain searchable');
+ eq(defs.map(d=>d.name),['General','Default view','Planner theme','Calendar','Date format','Time display','Week starts on','Calendar scale','Timeline opening hour','Show week numbers','Calendar zoom','Tasks','Default task duration','Show completed by default','Standalone task storage','Standalone tasks note','Task scan folder','Show progress bars','Task priorities','Daily note calendar','Daily calendar week starts on','Daily calendar week numbers','Daily calendar weekend shading','Daily calendar note dots','Notes','Tasks per note card','Note card spacing','Projects','Project colors'],'settings are grouped and remain searchable');
  let change;
  const dropdown={addOption:()=>dropdown,setValue:()=>dropdown,onChange:fn=>{change=fn;return dropdown;}};
  defs.find(d=>d.name==='Default view').render({addDropdown:fn=>fn(dropdown)});

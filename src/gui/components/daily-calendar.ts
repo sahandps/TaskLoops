@@ -42,18 +42,22 @@ export function renderDailyCalendar(root: HTMLElement, plugin: TaskActions): () 
 		}
 		const grid = root.createDiv("tl-daily-calendar-grid");
 		grid.setAttribute("aria-label", monthLabel(month));
-		grid.createSpan({ cls: "tl-daily-week-label", text: "Wk" });
-		for (const name of weekdayNames(plugin.settings.weekStart))
+		const showWeeks = plugin.settings.dailyCalendarShowWeekNumbers;
+		grid.classList.toggle("has-week-numbers", showWeeks);
+		if (showWeeks) grid.createSpan({ cls: "tl-daily-week-label", text: "Wk" });
+		for (const name of weekdayNames(plugin.settings.dailyCalendarWeekStart))
 			grid.createSpan({ cls: "tl-daily-weekday", text: name });
-		const days = monthGrid(month, plugin.settings.weekStart);
+		const days = monthGrid(month, plugin.settings.dailyCalendarWeekStart);
 		for (let row = 0; row < 6; row++) {
 			const week = days.slice(row * 7, row * 7 + 7);
-			grid.createSpan({
-				cls: "tl-daily-week-number",
-				text: String(
-					isoWeek(week.find((day) => new Date(day + "T12:00:00").getDay() === 4) ?? week[0]).week,
-				),
-			});
+			if (showWeeks)
+				grid.createSpan({
+					cls: "tl-daily-week-number",
+					text: String(
+						isoWeek(week.find((day) => new Date(day + "T12:00:00").getDay() === 4) ?? week[0])
+							.week,
+					),
+				});
 			for (const day of week) {
 				const exists = plugin.dailyNotes.exists(day);
 				const button = grid.createEl("button", {
@@ -67,10 +71,15 @@ export function renderDailyCalendar(root: HTMLElement, plugin: TaskActions): () 
 				button.disabled = busy;
 				button.createSpan({ text: String(Number(day.slice(-2))) });
 				if (day.slice(0, 7) !== month) button.addClass("is-outside-month");
-				if ([0, 6].includes(new Date(day + "T12:00:00").getDay())) button.addClass("is-weekend");
+				if (
+					plugin.settings.dailyCalendarHighlightWeekends &&
+					[0, 6].includes(new Date(day + "T12:00:00").getDay())
+				)
+					button.addClass("is-weekend");
 				if (day === todayISO()) button.addClass("is-today");
 				if (day === selected) button.addClass("is-selected");
-				if (exists) button.createSpan({ cls: "tl-daily-note-dot", attr: { "aria-hidden": "true" } });
+				if (exists && plugin.settings.dailyCalendarShowNoteDots)
+					button.createSpan({ cls: "tl-daily-note-dot", attr: { "aria-hidden": "true" } });
 				button.onclick = () => {
 					busy = true;
 					draw();
@@ -89,10 +98,6 @@ export function renderDailyCalendar(root: HTMLElement, plugin: TaskActions): () 
 				};
 			}
 		}
-		root.createEl("small", {
-			cls: "tl-daily-calendar-legend",
-			text: "● Daily note exists · Click a date to open or create",
-		});
 	};
 	draw();
 	return draw;

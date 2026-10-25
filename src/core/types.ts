@@ -72,6 +72,10 @@ export interface TaskLoopsSettings {
 	defaultView: "planner" | "notes" | "today";
 	timeFormat: "24h" | "12h";
 	weekStart: number;
+	dailyCalendarWeekStart: number;
+	dailyCalendarShowWeekNumbers: boolean;
+	dailyCalendarHighlightWeekends: boolean;
+	dailyCalendarShowNoteDots: boolean;
 	startHour: number;
 	defaultDuration: number;
 	showCompleted: boolean;
@@ -100,6 +104,10 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	defaultView: "planner",
 	timeFormat: "24h",
 	weekStart: 1,
+	dailyCalendarWeekStart: 1,
+	dailyCalendarShowWeekNumbers: true,
+	dailyCalendarHighlightWeekends: true,
+	dailyCalendarShowNoteDots: true,
 	startHour: 8,
 	defaultDuration: 30,
 	showCompleted: false,

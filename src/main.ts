@@ -260,6 +260,9 @@ export default class TaskLoopsPlugin extends Plugin {
 	}
 
 	refreshViews(): void {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_DAILY_CALENDAR)) {
+			if (leaf.view instanceof DailyCalendarView) leaf.view.render();
+		}
 		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKLOOPS)) {
 			if (leaf.view instanceof TaskLoopsView) leaf.view.render();
 		}

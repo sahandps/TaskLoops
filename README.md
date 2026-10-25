@@ -19,7 +19,7 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.18 — configurable standalone task storage using core Daily Notes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.19 — independent daily-calendar preferences and safer Daily Notes integration.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -42,6 +42,10 @@ Open **TaskLoops: Open daily note calendar** from the command palette or use the
 from the main TaskLoops task planner. Click a date to open or create its daily
 note. Dots mark dates with an existing daily note; month arrows and **Today**
 change the calendar’s displayed month.
+
+**Settings → TaskLoops → Daily note calendar** controls its first weekday,
+ISO week numbers, weekend shading, and existing-note dots independently of the
+main task planner. Changes apply immediately to an open daily-note calendar.
 
 ## What’s new in 0.5.15
 

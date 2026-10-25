@@ -49,5 +49,14 @@ export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoops
 	if (![5, 15, 30, 45, 60, 90, 120].includes(settings.defaultDuration)) settings.defaultDuration = 30;
 	if (typeof settings.showCompleted !== "boolean") settings.showCompleted = false;
 	if (!["compact", "comfortable"].includes(settings.noteDensity)) settings.noteDensity = "comfortable";
+	if (![0, 1, 6].includes(settings.dailyCalendarWeekStart)) settings.dailyCalendarWeekStart = 1;
+	if (saved?.dailyCalendarWeekStart === undefined) settings.dailyCalendarWeekStart = settings.weekStart;
+	if (typeof settings.dailyCalendarShowWeekNumbers !== "boolean")
+		settings.dailyCalendarShowWeekNumbers = true;
+	if (saved?.dailyCalendarShowWeekNumbers === undefined)
+		settings.dailyCalendarShowWeekNumbers = settings.showWeekNumbers;
+	if (typeof settings.dailyCalendarHighlightWeekends !== "boolean")
+		settings.dailyCalendarHighlightWeekends = true;
+	if (typeof settings.dailyCalendarShowNoteDots !== "boolean") settings.dailyCalendarShowNoteDots = true;
 	return settings;
 }

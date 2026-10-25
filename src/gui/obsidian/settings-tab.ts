@@ -21,6 +21,66 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 		};
 		return [
 			{
+				name: "Daily calendar week starts on",
+				desc: "First weekday in the separate daily-note calendar.",
+				render: (setting) => {
+					setting.addDropdown((dropdown) =>
+						dropdown
+							.addOption("1", "Monday")
+							.addOption("0", "Sunday")
+							.addOption("6", "Saturday")
+							.setValue(String(this.plugin.settings.dailyCalendarWeekStart))
+							.onChange(async (value) => {
+								this.plugin.settings.dailyCalendarWeekStart = Number(value);
+								await save();
+							}),
+					);
+				},
+			},
+			{
+				name: "Daily calendar week numbers",
+				desc: "Show the ISO week-number column.",
+				render: (setting) => {
+					setting.addToggle((toggle) =>
+						toggle
+							.setValue(this.plugin.settings.dailyCalendarShowWeekNumbers)
+							.onChange(async (value) => {
+								this.plugin.settings.dailyCalendarShowWeekNumbers = value;
+								await save();
+							}),
+					);
+				},
+			},
+			{
+				name: "Daily calendar weekend shading",
+				desc: "Highlight Saturday and Sunday.",
+				render: (setting) => {
+					setting.addToggle((toggle) =>
+						toggle
+							.setValue(this.plugin.settings.dailyCalendarHighlightWeekends)
+							.onChange(async (value) => {
+								this.plugin.settings.dailyCalendarHighlightWeekends = value;
+								await save();
+							}),
+					);
+				},
+			},
+			{
+				name: "Daily calendar note dots",
+				desc: "Mark dates that already have a daily note.",
+				render: (setting) => {
+					setting.addToggle((toggle) =>
+						toggle
+							.setValue(this.plugin.settings.dailyCalendarShowNoteDots)
+							.onChange(async (value) => {
+								this.plugin.settings.dailyCalendarShowNoteDots = value;
+								await save();
+							}),
+					);
+				},
+			},
+
+			{
 				name: "Default view",
 				desc: "Choose the view shown when opening a new TaskLoops panel.",
 				render: (setting) => {
@@ -184,7 +244,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 			{
 				name: "Standalone task storage",
-				desc: "Choose where new standalone tasks are saved. Daily note uses the scheduled date, or today when unscheduled, and asks the core Daily notes plugin to create the note if needed. Existing tasks stay in their notes.",
+				desc: "Standalone tasks note: one fixed note. Daily note: a note for the task’s date, or today if unscheduled, created by core Daily Notes when missing. Existing tasks stay where they are.",
 				render: (setting) => {
 					setting.addDropdown((dropdown) =>
 						dropdown
@@ -201,7 +261,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 			{
 				name: "Standalone tasks note",
-				desc: "Vault-relative Markdown path, created when needed. Existing tasks stay in their notes when this changes.",
+				desc: "Used for the Standalone tasks note option. Enter a vault-relative Markdown path; the note is created on save if missing.",
 				render: (setting) => {
 					setting.addText((text) => {
 						text.setValue(this.plugin.settings.standaloneNote);
@@ -314,6 +374,15 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 					"Standalone tasks note",
 					"Task scan folder",
 					"Show progress bars",
+				],
+			],
+			[
+				"Daily note calendar",
+				[
+					"Daily calendar week starts on",
+					"Daily calendar week numbers",
+					"Daily calendar weekend shading",
+					"Daily calendar note dots",
 				],
 			],
 			["Notes", ["Tasks per note card", "Note card spacing"]],

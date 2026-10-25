@@ -33,6 +33,10 @@ export class DailyCalendarView extends ItemView {
 		this.registerInterval(window.setInterval(() => this.redraw?.(), 60000));
 		return Promise.resolve();
 	}
+	render(): void {
+		applyPlannerTheme(this.contentEl, this.plugin.settings.theme);
+		this.redraw?.();
+	}
 	onClose(): Promise<void> {
 		this.redraw = undefined;
 		this.contentEl.empty();

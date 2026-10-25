@@ -1,10 +1,15 @@
 import { App, TFile, moment, normalizePath } from "obsidian";
+import type { Moment } from "moment";
+
+// Obsidian bundles a callable Moment factory, but its namespace export loses
+// the call signature when a consumer enables esModuleInterop.
+const dailyMoment = moment as unknown as (date: string, format: string, strict: boolean) => Moment;
 
 interface DailyNotesCore {
 	enabled: boolean;
 	instance?: {
 		options?: { folder?: string; format?: string; template?: string };
-		getDailyNote?(date: ReturnType<typeof moment>): Promise<TFile | null | undefined>;
+		getDailyNote?(date: Moment): Promise<TFile | null | undefined>;
 	};
 }
 
@@ -29,7 +34,7 @@ export class DailyNotes {
 	}
 	path(date: string): string {
 		const options = this.options();
-		const day = moment(date, "YYYY-MM-DD", true);
+		const day = dailyMoment(date, "YYYY-MM-DD", true);
 		if (!day.isValid()) throw new Error("Choose a valid daily note date.");
 		return normalizePath(
 			[
@@ -62,7 +67,7 @@ export class DailyNotes {
 		const instance = this.core()?.instance;
 		if (!this.enabled || !instance?.getDailyNote)
 			throw new Error("Core Daily notes is unavailable. Enable it in Obsidian Settings and try again.");
-		const file = await instance.getDailyNote(moment(date, "YYYY-MM-DD", true));
+		const file = await instance.getDailyNote(dailyMoment(date, "YYYY-MM-DD", true));
 		if (!(file instanceof TFile))
 			throw new Error(
 				"Core Daily notes could not create the note. Check its folder and template settings.",
