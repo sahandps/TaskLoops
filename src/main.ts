@@ -226,6 +226,10 @@ export default class TaskLoopsPlugin extends Plugin {
 		return this.taskService.complete(task);
 	}
 
+	deleteTask(task: ScannedTask): Promise<boolean> {
+		return this.taskService.deleteTask(task);
+	}
+
 	deferTask(task: ScannedTask, reason: string): Promise<boolean> {
 		return this.taskService.deferTask(task, reason);
 	}

@@ -19,6 +19,7 @@ export interface TaskActions {
 	newTask(schedule?: Schedule, path?: string): void;
 	schedule(task: ScannedTask, schedule: Schedule): Promise<void>;
 	complete(task: ScannedTask): Promise<boolean>;
+	deleteTask(task: ScannedTask): Promise<boolean>;
 	reveal(task: ScannedTask): Promise<void>;
 	openNote(path: string, line?: number): Promise<boolean>;
 	deferTask(task: ScannedTask, reason: string): Promise<boolean>;

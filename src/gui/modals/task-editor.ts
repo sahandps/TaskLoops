@@ -57,7 +57,7 @@ export class TaskEditorModal extends Modal {
 		}).onclick = () => void this.plugin.reveal(this.task);
 		details.createEl("small", {
 			cls: "tl-field-hint",
-			text: "Completion saves immediately. Other edits save below.",
+			text: "Completion and deletion save immediately. Other edits save below.",
 		});
 		const note = taskSection(body, "Note");
 		const destination = projectDestination(note, this.app, this.plugin, this.path, (path) => {
@@ -127,8 +127,31 @@ export class TaskEditorModal extends Modal {
 				onSaved: () => this.close(),
 			}).open();
 		};
+		const remove = actions.createEl("button", {
+			text: "Delete task",
+			cls: "tl-delete-task mod-warning",
+			attr: {
+				title: "Removes this task’s line from its source note. Subtasks and other note content remain.",
+			},
+		});
 		actions.createEl("button", { text: "Cancel" }).onclick = () => this.close();
 		const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
+		const setBusy = (busy: boolean) => {
+			save.disabled = busy;
+			remove.disabled = busy;
+			defer.disabled = busy || this.task.checked;
+			check.disabled = busy || this.task.checked;
+		};
+		remove.onclick = () => {
+			setBusy(true);
+			void this.plugin
+				.deleteTask(this.task)
+				.then((deleted) => {
+					if (deleted) this.close();
+					else setBusy(false);
+				})
+				.catch(() => setBusy(false));
+		};
 		save.onclick = () => {
 			const schedule = fields.read();
 			if (schedule) {
@@ -141,13 +164,14 @@ export class TaskEditorModal extends Modal {
 				return;
 			}
 			subtasks.flushDraft();
-			save.disabled = true;
+			setBusy(true);
 			void this.plugin
 				.editTask(this.task, text.value, this.path, schedule, subtasks.drafts, subtasks.selected)
 				.then((ok) => {
 					if (ok) this.close();
-					else save.disabled = false;
-				});
+					else setBusy(false);
+				})
+				.catch(() => setBusy(false));
 		};
 		text.focus();
 	}

@@ -1,4 +1,5 @@
 import { resolveDeferral, deferBlock } from "./task-deferral";
+import { locateNoteTask, noteTaskRows } from "./inline-task-data";
 import { todayISO } from "./dates";
 import type { DateFormat, ScannedTask, Schedule } from "./types";
 import { appendTask, parseSchedule, writeSchedule } from "./schedule";
@@ -17,6 +18,15 @@ export function locateTask(content: string, task: ScannedTask): number {
 	const matches = lines.flatMap((line, index) => (line === task.raw ? [index] : []));
 	if (matches.length === 1) return matches[0];
 	throw new Error("The task changed or moved ambiguously. Refresh and try again.");
+}
+
+/** Remove exactly the selected checkbox row, retaining children and prose. */
+export function removeTaskLine(content: string, task: ScannedTask): string {
+	const match = locateNoteTask(noteTaskRows(content, task.path), task.line, task.raw);
+	if (!match) throw new Error("The task changed or moved ambiguously. Refresh and try again.");
+	const lines = content.split("\n");
+	lines.splice(match.line, 1);
+	return lines.join("\n");
 }
 
 function depth(raw: string): { quote: number; indent: number } {

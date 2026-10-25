@@ -7,6 +7,8 @@ Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
 lets you schedule, resize and edit them without managing note properties.
 
+![TaskLoops planner with note-grouped tasks and a daily calendar](docs/images/day-planner.jpg)
+
 - Open **Today** for a mobile daily agenda with clear time sections and direct task actions.
 - Plan in **Day, Week, Month and Year** views, plus a resource **Timeline** and **Gantt**.
 - Set a **Deadline** to stretch a task from its due date through its last day.
@@ -19,9 +21,6 @@ lets you schedule, resize and edit them without managing note properties.
   or its name on a calendar task. The note opens at the task's line.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
-**Current release: 0.5.19 — independent daily-calendar preferences and safer Daily Notes integration.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
-Obsidian's Community plugins, or download the plugin files from
-[Releases](https://github.com/sahandps/TaskLoops/releases).
 
 ## Daily notes
 
@@ -46,212 +45,6 @@ change the calendar’s displayed month.
 **Settings → TaskLoops → Daily note calendar** controls its first weekday,
 ISO week numbers, weekend shading, and existing-note dots independently of the
 main task planner. Changes apply immediately to an open daily-note calendar.
-
-## What’s new in 0.5.15
-
-- Moving or resizing a task in a zoomed Day/Week calendar keeps the same visible
-  time instead of jumping back to the configured opening hour.
-- Retain the time grid’s internal scroll position through edits, completion,
-  filters and refresh. Use that position for the first layout so the old opening
-  hour does not flash before restoration. Preserve the visible hour if zoom changes.
-- Navigating to a different date or calendar scale still uses your opening-hour
-  setting. Viewport snapshots are temporary and never written to notes or settings.
-
-## What’s new in 0.5.14
-
-- In Day and Week, drag an **all-day task into a time slot**, or drag a timed task
-  back into the **all-day row**. The drag preview follows the target area and
-  timed drops use the existing five-minute snap.
-- A time-slot drop creates a single-day time block and **replaces the old deadline
-  range**. Effort under 24 hours is retained; longer day-sized spans use your
-  **Default task duration**. Returning to all-day removes the time.
-- Normal moves and edge resizing keep their date-span behavior. Completed tasks
-  stay locked, and dragging does not move a task to another source note.
-
-## What’s new in 0.5.13
-
-- **Today:** a focused daily agenda with generous spacing, a quiet time rail,
-  wrapping task names and 44-pixel touch targets. Open Today beside Planner and
-  Notes, or choose **Settings → TaskLoops → Default view → Today**.
-- See **All day, Morning, Afternoon and Evening**, with start/end times and
-  Earlier / Now / Upcoming labels. Deadline spans and overnight tasks appear
-  while they overlap your local day. Today always follows the current date,
-  independently of Planner’s selected date or filters.
-- Tick tasks complete, tap a title to edit, open its original note, or add a task
-  with today’s date already filled in. **Overdue** and **Completed** stay separate
-  in collapsible sections. Overdue tasks offer **Plan for today**.
-- Daily progress counts today’s scheduled checkbox tasks and subtasks once each.
-  It follows the progress visibility setting; time display, week numbers and
-  TaskLoops themes apply here too. The view updates with the clock and on wake,
-  retaining scroll and open sections while it remains open.
-- The agenda is derived from existing tasks. It adds no daily JSON history,
-  progress cache or note properties. Only explicit task actions change Markdown.
-
-## What’s new in 0.5.12
-
-- With **Show completed** enabled, Planner starts on **Unfinished**. Use the
-  separate **Completed** tab to review finished tasks without filling the active
-  list with completed-only notes. Notes uses the same two tabs.
-- Tabs show task counts, including subtasks. When a search or filter contains
-  only completed tasks, those appear automatically. An empty tab is disabled.
-- Switching lists starts at the top. Note progress still counts all tasks and
-  subtasks, and calendar visibility still follows Show completed.
-- These tabs only change the view; no task content or note properties are changed.
-
-## What’s new in 0.5.11
-
-- In **Day and Week**, hold the left mouse button on the **time labels** and
-  drag **up to zoom in**, or **down to zoom out**. The time at your initial click
-  stays in place. Dragging on calendar cells still creates tasks.
-- Focus the time ruler and use **Up / Down** to adjust, or **Home** to reset.
-  Escape cancels an active drag. **Settings → TaskLoops → Calendar zoom** also
-  adjusts the scale, from 50% to 333%.
-- Zoom is remembered as one display preference. It does not change task dates,
-  durations, Markdown or note properties.
-
-## What’s new in 0.5.10
-
-- **Progress per note:** Planner and Notes show completed / total checkbox tasks
-  and a percentage. Every parent and subtask counts once, at every depth.
-  Completing a parent does not complete its unfinished children.
-- Progress uses the full note’s tasks, including hidden completed checkboxes.
-  Search, list filters and collapsed groups do not change its denominator.
-  The bar remains visible when a group is folded.
-- **Settings → TaskLoops:** choose Planner theme (Follow Obsidian, Light or Dark),
-  Show week numbers and Show progress bars. Local palettes affect TaskLoops and
-  its task dialogs, leaving the rest of Obsidian unchanged. Week numbers can be
-  hidden in calendar headings, Month/Timeline and the Year overview.
-- Progress is calculated from the existing task scan. There is **no progress
-  JSON, history or per-task cache** to grow or clean up. Refreshing recalculates
-  the current values, so removed or moved tasks leave no stale progress records.
-  Completed checkboxes remain in your Markdown. Only the small display preferences
-  are saved in the plugin’s existing settings record; note properties stay untouched.
-
-The local preview includes **Plugin settings**, using the same setting definitions
-as Obsidian, with sample display preferences retained in this browser.
-
-## What’s new in 0.5.9
-
-- Use the **arrow and task count beside a note heading** to hide or show that
-  note’s tasks in the Planner sidebar and Notes page.
-- Use **Collapse all / Expand all** to fold or unfold the notes matching the
-  current search and filters. Note headings, source links and Add task actions
-  remain available; Notes cards also keep their open/total counts visible.
-- Fold choices are shared between Planner and Notes, and survive refreshes and
-  task edits while that TaskLoops view remains open. Reopening a view starts
-  expanded. Notes’ existing Show all / Show less preview control still works.
-- Folding changes only what is shown. It does not change Markdown, note
-  properties, task schedules or the calendar’s events and scroll position.
-
-## What’s new in 0.5.8
-
-Choosing existing subtasks for a parent in your configured standalone note now
-moves **the parent into the selected tasks’ original note** when you save. The
-selected tasks stay in that note, nested beneath the parent. Schedules, existing
-subtrees, task details and note properties are preserved.
-
-The Note section previews the destination as soon as you select a task. Existing
-subtasks for a standalone parent must come from one note; further choices stay
-within that note. Remove the selections to restore the previous destination.
-Nothing moves until you save. The same rule applies when saving through
-**Can’t schedule now**.
-
-## What’s new in 0.5.7
-
-- **Readable Gantt:** theme-accent bars and a fixed task-name column make each
-  row identifiable even when its scheduled dates are outside the visible range.
-  Click a task name to edit; hover for its full wording.
-- **Drag to scroll:** hold the left mouse button on empty Gantt grid space and
-  drag horizontally or vertically. Bar dragging and edge resizing keep their
-  existing scheduling behavior.
-- **Link notes:** type `[[` in a Task, Subtask or Can’t schedule reason field.
-  Filter by note name/path, use ↑/↓ then Enter, or click a suggestion. Escape
-  dismisses the suggestions. Choosing a note inserts `[[Note]]` without saving
-  the form. Links are stored in the task’s source note; linked notes and their
-  properties stay unchanged. Dates, time and duration keep their usual formats.
-
-## What’s new in 0.5.6
-
-- Open **Can’t schedule now** directly from Add/Edit task. Save your wording,
-  destination and subtasks with the reason, or cancel back to your draft.
-- Replace flagged CSS with scoped selectors and compatible gap styling.
-- Disable the calendar library’s unused remote-feed transport in shipped builds.
-- Release downloads contain only `main.js`, `manifest.json` and `styles.css`.
-  Matching source remains available through GitHub’s automatic Source code archives.
-
-TaskLoops enumerates Markdown note paths to discover checkboxes across the vault.
-The scan-folder setting limits which notes are read. Vault enumeration is an
-expected capability disclosure. “Malware scan unavailable” and “Network requests
-scan unavailable” report the community scanner’s availability, not a successful
-scan; a new release must be scanned by that service before its report updates.
-
-## What’s new in 0.5.5
-
-- **Can’t schedule now:** add a new task or choose an existing one and record
-  the reason. It stays beneath the checkbox in its source note. Choose Today,
-  Tomorrow, Next week or a custom date when ready; scheduling retains the reason
-  and records when you scheduled it and the date you chose.
-- **Readable calendar events:** text stays inside its bar, all-day labels use
-  an ellipsis, timed labels prioritise the title, and narrow weeks scroll.
-  The full wording remains in the tooltip and task editor.
-- **Week numbers:** ISO weeks appear in Day/Week/Timeline headings, Month rows
-  and the Year overview, including the correct week year at New Year.
-
-Select **Overdue** beside All and Unscheduled to find unfinished tasks whose
-final day has passed, even when they are outside the calendar’s visible dates.
-The count follows your search, and the oldest tasks appear first with a
-**days overdue** label. A deadline takes priority over the due date; its final
-day is included, so tasks due today are not overdue. Completed and undated tasks
-are excluded. Notes also has an Overdue filter that puts missed tasks first.
-Complete a task or change its schedule to remove it from the overdue list.
-
-## What’s new in 0.5.4
-
-Task creation and editing now share a minimal layout inspired by Japanese
-simplicity: calm typography, generous spacing and thin section dividers.
-**Task**, **Note**, **Schedule** and **Subtasks** have clear boundaries. Date
-ranges and effort fields are grouped separately, note actions stay secondary,
-and the header and save actions remain visible while the form scrolls.
-The layout follows the active Obsidian theme and adapts to narrow screens.
-
-## What’s new in 0.5.3
-
-Complete tasks using the checkbox on Calendar events in Day, Week, Month and
-resource Timeline. The task editor also has a **Mark complete** checkbox,
-including when opened from Gantt. Completion writes the Markdown checkbox
-immediately; the editor keeps other draft edits open for **Save changes**.
-Enable **Show completed** to keep finished tasks visible.
-
-## What’s new in 0.5.2
-
-Drag an empty range in Day, Week, Month or resource Timeline to open **Add task**.
-Timed selections pre-fill the date, time and duration; multi-day selections
-pre-fill the inclusive deadline. Timeline rows preselect their source note.
-Select **Add task** to save or **Cancel** to discard the draft.
-
-## What’s new in 0.5.1
-
-Calendar and Gantt now follow Obsidian's light, dark and custom theme colors,
-including labels, weekend shading, controls, selection and events. Vendor styles
-are scoped to TaskLoops so they do not affect other plugins. The browser preview
-includes a Theme picker for checking live palette changes.
-
-## What’s new in 0.5.0
-
-- **Calendar:** EventCalendar powers Day, Week and Month, with drag/drop,
-  resizing, overlapping events and five-minute scheduling.
-- **Resource Timeline:** see tasks in time-based rows grouped by source note.
-- **Gantt:** plan task spans, move bars, resize their edges and edit tasks.
-- **Deadlines:** the due date is the first day; the deadline is the inclusive
-  last day. Date spans are separate from effort duration and remain ordinary Markdown.
-- **Cleaner code:** separate core functions, application services, GUI components
-  and Obsidian file access. See the [architecture guide](docs/architecture.md).
-- **Local preview:** inspect the real GUI with browser-local sample tasks using
-  `npm run preview`. Both UI libraries are MIT licensed; no paid UI license is needed.
-
-Existing tasks, settings, the Year overview and Notes grid remain supported.
-Notes are not automatically rewritten on upgrade. To update an installed copy,
-open **Settings → Community plugins → Check for updates**, then update TaskLoops.
 
 ## Screenshots
 
@@ -536,7 +329,8 @@ mobile, open the task editor and select **Save changes**.
 Click a task title, its card, schedule details or **⋯** to open **Edit task**.
 The popup lets you change its wording, choose its project note, edit its
 schedule, and add subtasks. Changes are applied only when you select
-**Save changes**; **Cancel** discards the draft. **Clear schedule** clears the
+**Save changes**; **Cancel** discards the draft. **Delete task** immediately removes only that
+task’s checkbox line from its source note; subtasks and other note content remain. **Clear schedule** clears the
 form's scheduling fields and is applied when you save.
 
 Existing direct subtasks are clickable rows in the popup: select one to open
@@ -641,6 +435,226 @@ Colors apply to calendar and Gantt bars. Priorities and individual task colors
 are stored as hidden Markdown comments beside the task, while project colors
 and priority definitions stay in plugin settings. Changing a parent’s color
 updates inheriting descendants without rewriting their notes.
+
+## Release updates
+
+**Current release: 0.5.20 — delete tasks directly from the task popup.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+Obsidian's Community plugins, or download the plugin files from
+[Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.20
+
+- **Delete task** in the Edit task popup removes the task’s checkbox line from
+  its source note. Subtasks and other note content remain.
+- Deletion checks the current source before writing, preserves line endings,
+  and refreshes the planner after saving.
+- The product overview and main screenshot now appear before release updates.
+
+## What’s new in 0.5.15
+
+- Moving or resizing a task in a zoomed Day/Week calendar keeps the same visible
+  time instead of jumping back to the configured opening hour.
+- Retain the time grid’s internal scroll position through edits, completion,
+  filters and refresh. Use that position for the first layout so the old opening
+  hour does not flash before restoration. Preserve the visible hour if zoom changes.
+- Navigating to a different date or calendar scale still uses your opening-hour
+  setting. Viewport snapshots are temporary and never written to notes or settings.
+
+## What’s new in 0.5.14
+
+- In Day and Week, drag an **all-day task into a time slot**, or drag a timed task
+  back into the **all-day row**. The drag preview follows the target area and
+  timed drops use the existing five-minute snap.
+- A time-slot drop creates a single-day time block and **replaces the old deadline
+  range**. Effort under 24 hours is retained; longer day-sized spans use your
+  **Default task duration**. Returning to all-day removes the time.
+- Normal moves and edge resizing keep their date-span behavior. Completed tasks
+  stay locked, and dragging does not move a task to another source note.
+
+## What’s new in 0.5.13
+
+- **Today:** a focused daily agenda with generous spacing, a quiet time rail,
+  wrapping task names and 44-pixel touch targets. Open Today beside Planner and
+  Notes, or choose **Settings → TaskLoops → Default view → Today**.
+- See **All day, Morning, Afternoon and Evening**, with start/end times and
+  Earlier / Now / Upcoming labels. Deadline spans and overnight tasks appear
+  while they overlap your local day. Today always follows the current date,
+  independently of Planner’s selected date or filters.
+- Tick tasks complete, tap a title to edit, open its original note, or add a task
+  with today’s date already filled in. **Overdue** and **Completed** stay separate
+  in collapsible sections. Overdue tasks offer **Plan for today**.
+- Daily progress counts today’s scheduled checkbox tasks and subtasks once each.
+  It follows the progress visibility setting; time display, week numbers and
+  TaskLoops themes apply here too. The view updates with the clock and on wake,
+  retaining scroll and open sections while it remains open.
+- The agenda is derived from existing tasks. It adds no daily JSON history,
+  progress cache or note properties. Only explicit task actions change Markdown.
+
+## What’s new in 0.5.12
+
+- With **Show completed** enabled, Planner starts on **Unfinished**. Use the
+  separate **Completed** tab to review finished tasks without filling the active
+  list with completed-only notes. Notes uses the same two tabs.
+- Tabs show task counts, including subtasks. When a search or filter contains
+  only completed tasks, those appear automatically. An empty tab is disabled.
+- Switching lists starts at the top. Note progress still counts all tasks and
+  subtasks, and calendar visibility still follows Show completed.
+- These tabs only change the view; no task content or note properties are changed.
+
+## What’s new in 0.5.11
+
+- In **Day and Week**, hold the left mouse button on the **time labels** and
+  drag **up to zoom in**, or **down to zoom out**. The time at your initial click
+  stays in place. Dragging on calendar cells still creates tasks.
+- Focus the time ruler and use **Up / Down** to adjust, or **Home** to reset.
+  Escape cancels an active drag. **Settings → TaskLoops → Calendar zoom** also
+  adjusts the scale, from 50% to 333%.
+- Zoom is remembered as one display preference. It does not change task dates,
+  durations, Markdown or note properties.
+
+## What’s new in 0.5.10
+
+- **Progress per note:** Planner and Notes show completed / total checkbox tasks
+  and a percentage. Every parent and subtask counts once, at every depth.
+  Completing a parent does not complete its unfinished children.
+- Progress uses the full note’s tasks, including hidden completed checkboxes.
+  Search, list filters and collapsed groups do not change its denominator.
+  The bar remains visible when a group is folded.
+- **Settings → TaskLoops:** choose Planner theme (Follow Obsidian, Light or Dark),
+  Show week numbers and Show progress bars. Local palettes affect TaskLoops and
+  its task dialogs, leaving the rest of Obsidian unchanged. Week numbers can be
+  hidden in calendar headings, Month/Timeline and the Year overview.
+- Progress is calculated from the existing task scan. There is **no progress
+  JSON, history or per-task cache** to grow or clean up. Refreshing recalculates
+  the current values, so removed or moved tasks leave no stale progress records.
+  Completed checkboxes remain in your Markdown. Only the small display preferences
+  are saved in the plugin’s existing settings record; note properties stay untouched.
+
+The local preview includes **Plugin settings**, using the same setting definitions
+as Obsidian, with sample display preferences retained in this browser.
+
+## What’s new in 0.5.9
+
+- Use the **arrow and task count beside a note heading** to hide or show that
+  note’s tasks in the Planner sidebar and Notes page.
+- Use **Collapse all / Expand all** to fold or unfold the notes matching the
+  current search and filters. Note headings, source links and Add task actions
+  remain available; Notes cards also keep their open/total counts visible.
+- Fold choices are shared between Planner and Notes, and survive refreshes and
+  task edits while that TaskLoops view remains open. Reopening a view starts
+  expanded. Notes’ existing Show all / Show less preview control still works.
+- Folding changes only what is shown. It does not change Markdown, note
+  properties, task schedules or the calendar’s events and scroll position.
+
+## What’s new in 0.5.8
+
+Choosing existing subtasks for a parent in your configured standalone note now
+moves **the parent into the selected tasks’ original note** when you save. The
+selected tasks stay in that note, nested beneath the parent. Schedules, existing
+subtrees, task details and note properties are preserved.
+
+The Note section previews the destination as soon as you select a task. Existing
+subtasks for a standalone parent must come from one note; further choices stay
+within that note. Remove the selections to restore the previous destination.
+Nothing moves until you save. The same rule applies when saving through
+**Can’t schedule now**.
+
+## What’s new in 0.5.7
+
+- **Readable Gantt:** theme-accent bars and a fixed task-name column make each
+  row identifiable even when its scheduled dates are outside the visible range.
+  Click a task name to edit; hover for its full wording.
+- **Drag to scroll:** hold the left mouse button on empty Gantt grid space and
+  drag horizontally or vertically. Bar dragging and edge resizing keep their
+  existing scheduling behavior.
+- **Link notes:** type `[[` in a Task, Subtask or Can’t schedule reason field.
+  Filter by note name/path, use ↑/↓ then Enter, or click a suggestion. Escape
+  dismisses the suggestions. Choosing a note inserts `[[Note]]` without saving
+  the form. Links are stored in the task’s source note; linked notes and their
+  properties stay unchanged. Dates, time and duration keep their usual formats.
+
+## What’s new in 0.5.6
+
+- Open **Can’t schedule now** directly from Add/Edit task. Save your wording,
+  destination and subtasks with the reason, or cancel back to your draft.
+- Replace flagged CSS with scoped selectors and compatible gap styling.
+- Disable the calendar library’s unused remote-feed transport in shipped builds.
+- Release downloads contain only `main.js`, `manifest.json` and `styles.css`.
+  Matching source remains available through GitHub’s automatic Source code archives.
+
+TaskLoops enumerates Markdown note paths to discover checkboxes across the vault.
+The scan-folder setting limits which notes are read. Vault enumeration is an
+expected capability disclosure. “Malware scan unavailable” and “Network requests
+scan unavailable” report the community scanner’s availability, not a successful
+scan; a new release must be scanned by that service before its report updates.
+
+## What’s new in 0.5.5
+
+- **Can’t schedule now:** add a new task or choose an existing one and record
+  the reason. It stays beneath the checkbox in its source note. Choose Today,
+  Tomorrow, Next week or a custom date when ready; scheduling retains the reason
+  and records when you scheduled it and the date you chose.
+- **Readable calendar events:** text stays inside its bar, all-day labels use
+  an ellipsis, timed labels prioritise the title, and narrow weeks scroll.
+  The full wording remains in the tooltip and task editor.
+- **Week numbers:** ISO weeks appear in Day/Week/Timeline headings, Month rows
+  and the Year overview, including the correct week year at New Year.
+
+Select **Overdue** beside All and Unscheduled to find unfinished tasks whose
+final day has passed, even when they are outside the calendar’s visible dates.
+The count follows your search, and the oldest tasks appear first with a
+**days overdue** label. A deadline takes priority over the due date; its final
+day is included, so tasks due today are not overdue. Completed and undated tasks
+are excluded. Notes also has an Overdue filter that puts missed tasks first.
+Complete a task or change its schedule to remove it from the overdue list.
+
+## What’s new in 0.5.4
+
+Task creation and editing now share a minimal layout inspired by Japanese
+simplicity: calm typography, generous spacing and thin section dividers.
+**Task**, **Note**, **Schedule** and **Subtasks** have clear boundaries. Date
+ranges and effort fields are grouped separately, note actions stay secondary,
+and the header and save actions remain visible while the form scrolls.
+The layout follows the active Obsidian theme and adapts to narrow screens.
+
+## What’s new in 0.5.3
+
+Complete tasks using the checkbox on Calendar events in Day, Week, Month and
+resource Timeline. The task editor also has a **Mark complete** checkbox,
+including when opened from Gantt. Completion writes the Markdown checkbox
+immediately; the editor keeps other draft edits open for **Save changes**.
+Enable **Show completed** to keep finished tasks visible.
+
+## What’s new in 0.5.2
+
+Drag an empty range in Day, Week, Month or resource Timeline to open **Add task**.
+Timed selections pre-fill the date, time and duration; multi-day selections
+pre-fill the inclusive deadline. Timeline rows preselect their source note.
+Select **Add task** to save or **Cancel** to discard the draft.
+
+## What’s new in 0.5.1
+
+Calendar and Gantt now follow Obsidian's light, dark and custom theme colors,
+including labels, weekend shading, controls, selection and events. Vendor styles
+are scoped to TaskLoops so they do not affect other plugins. The browser preview
+includes a Theme picker for checking live palette changes.
+
+## What’s new in 0.5.0
+
+- **Calendar:** EventCalendar powers Day, Week and Month, with drag/drop,
+  resizing, overlapping events and five-minute scheduling.
+- **Resource Timeline:** see tasks in time-based rows grouped by source note.
+- **Gantt:** plan task spans, move bars, resize their edges and edit tasks.
+- **Deadlines:** the due date is the first day; the deadline is the inclusive
+  last day. Date spans are separate from effort duration and remain ordinary Markdown.
+- **Cleaner code:** separate core functions, application services, GUI components
+  and Obsidian file access. See the [architecture guide](docs/architecture.md).
+- **Local preview:** inspect the real GUI with browser-local sample tasks using
+  `npm run preview`. Both UI libraries are MIT licensed; no paid UI license is needed.
+
+Existing tasks, settings, the Year overview and Notes grid remain supported.
+Notes are not automatically rewritten on upgrade. To update an installed copy,
+open **Settings → Community plugins → Check for updates**, then update TaskLoops.
 
 ## Upgrading from earlier versions
 

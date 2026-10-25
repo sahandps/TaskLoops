@@ -8,6 +8,7 @@ import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/no
 import { existingSubtaskCandidates, existingSubtaskDestination } from "../core/existing-tasks";
 import {
 	appendTaskBlock,
+	removeTaskLine,
 	editedBlock,
 	replaceTaskBlock,
 	taskBlock,
@@ -89,6 +90,27 @@ export class TaskService {
 			completed = true;
 		});
 		return completed;
+	}
+
+	async deleteTask(task: ScannedTask): Promise<boolean> {
+		let deleted = false;
+		await this.enqueue(async () => {
+			const current = this.current(task);
+			const file = this.app.vault.getAbstractFileByPath(current.path);
+			if (!(file instanceof TFile)) throw new Error("The source note no longer exists.");
+			await this.app.vault.process(file, (content) => removeTaskLine(content, current));
+			deleted = true;
+			if (this.items[current.id]) {
+				delete this.items[current.id];
+				try {
+					await this.host.saveSettings();
+				} catch (error) {
+					this.host.report(error, "Task deleted, but its settings backup could not be updated.");
+				}
+			}
+			await this.host.reloadWrittenFile(current.path);
+		});
+		return deleted;
 	}
 
 	async deferTask(task: ScannedTask, reason: string): Promise<boolean> {

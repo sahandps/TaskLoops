@@ -607,3 +607,5 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-daily-note-dot { position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .65; }
 
 .tl-daily-calendar-grid.has-week-numbers { grid-template-columns: 24px repeat(7, minmax(0, 1fr)); }
+
+.tl-task-modal .tl-dialog-actions button.tl-delete-task { color: var(--text-error); border-color: var(--background-modifier-error); }

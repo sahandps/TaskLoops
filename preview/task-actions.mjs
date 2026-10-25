@@ -64,6 +64,15 @@ export function createPreviewActions(app, store, onChange) {
 		reveal: async (task) => actions.openNote(task.path),
 		openNote: async (path) => showNotePreview(path, store.tasks),
 		newTask: (schedule = {}, path) => new TaskModal(app, actions, schedule, path).open(),
+		deleteTask: async (task) => {
+			const current = store.tasks.find((item) => item.id === task.id);
+			if (!current) return false;
+			store.tasks = store.tasks.filter((item) => item.id !== current.id);
+			for (const child of store.tasks)
+				if (child.parentId === current.id) child.parentId = current.parentId;
+			persist();
+			return true;
+		},
 		deferTask: async (task, reason) => {
 			validateDeferralReason(reason);
 			const current = store.tasks.find((t) => t.id === task.id);

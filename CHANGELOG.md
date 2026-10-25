@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.20 — 2026-10-25
+
+- Add Delete task to the Edit task popup. Remove only the selected checkbox line from its source note, preserving subtasks, prose, frontmatter, and line endings.
+- Serialize deletion with other task writes, reject changed or ambiguous targets, ignore fenced examples, refresh the planner, and clean up legacy task data only after a successful source write.
+- Disable conflicting popup actions while saving or deleting; close only after successful deletion.
+- Put the main screenshot and product description before release updates in the README used by the plugin listing.
+
+Validation: production build, ESLint, TypeScript in both module configurations, and 1,061 checks across 39 suites pass. Deletion tests cover nested/completed tasks, CRLF, moved or stale targets, fenced examples, repeated requests, queued edits, failed writes, and settings-backup failures.
+
 ## 0.5.19 — 2026-10-25
 
 - Fix Daily Notes Moment typing when esModuleInterop is enabled, using explicit factory and Moment types at the Obsidian boundary. Build checks now validate both compiler configurations.
