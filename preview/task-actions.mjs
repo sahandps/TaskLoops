@@ -9,7 +9,8 @@ import {
 import { todayISO } from "../src/core/dates.ts";
 import { TaskModal } from "../src/gui/modals/task-create.ts";
 import { DEFAULT_SETTINGS } from "../src/core/types.ts";
-import { writeSchedule } from "../src/core/schedule.ts";
+import { parseSchedule, writeSchedule } from "../src/core/schedule.ts";
+import { nextRepeatSchedule } from "../src/core/repeat.ts";
 import { makeTask } from "./sample-data.mjs";
 import { showNotePreview } from "./note-preview.mjs";
 
@@ -51,13 +52,26 @@ export function createPreviewActions(app, store, onChange) {
 				...schedule,
 				raw: writeSchedule(store.tasks[index].raw, schedule, "YYYY-MM-DD"),
 			};
+			store.tasks[index].repeat = parseSchedule(store.tasks[index].raw).schedule.repeat;
 			updateHistory(store.tasks[index], schedule.due);
 			persist();
 		},
 		complete: async (task) => {
 			const current = store.tasks.find((t) => t.id === task.id);
+			const next = nextRepeatSchedule(current, todayISO());
 			current.checked = true;
 			current.raw = current.raw.replace(/^(\s*- \[)[^\]](\])/, "$1x$2");
+			if (next) {
+				const copy = makeTask(current.text, current.path, next);
+				Object.assign(copy, { parentId: current.parentId, indent: current.indent });
+				store.tasks.push(copy);
+				for (const child of store.tasks.filter((t) => t.parentId === current.id))
+					store.tasks.push({
+						...makeTask(child.text, child.path, {}),
+						parentId: copy.id,
+						indent: child.indent,
+					});
+			}
 			persist();
 			return true;
 		},
@@ -137,6 +151,7 @@ export function createPreviewActions(app, store, onChange) {
 					"YYYY-MM-DD",
 				),
 			};
+			store.tasks[index].repeat = parseSchedule(store.tasks[index].raw).schedule.repeat;
 			updateHistory(store.tasks[index], schedule.due);
 			if (reason !== undefined) {
 				const current = store.tasks[index];

@@ -7,6 +7,7 @@ import { renderCompletionCheckbox } from "./completion-checkbox";
 import type { ScannedTask } from "../../core/types";
 import type { TaskActions } from "../../application/task-actions";
 import { formatDate, formatDuration, formatTime } from "../../core/schedule";
+import { describeRepeat, parseRepeat } from "../../core/repeat";
 
 export function renderTaskCard(
 	parent: HTMLElement,
@@ -50,11 +51,15 @@ export function renderTaskCard(
 			cls: "tl-overdue-label",
 			text: `${late} ${late === 1 ? "day" : "days"} overdue`,
 		});
+	const repeatRule = task.repeat ? parseRepeat(task.repeat) : undefined;
 	const details = [
 		task.due ? formatDate(task.due, actions.settings.dateFormat) : "No date",
 		task.deadline ? "Deadline: " + formatDate(task.deadline, actions.settings.dateFormat) : undefined,
 		task.time ? formatTime(task.time, actions.settings.timeFormat) : undefined,
 		task.duration ? formatDuration(task.duration) : undefined,
+		repeatRule
+			? "↻ " + describeRepeat(repeatRule, (iso) => formatDate(iso, actions.settings.dateFormat))
+			: undefined,
 	]
 		.filter(Boolean)
 		.join(" · ");

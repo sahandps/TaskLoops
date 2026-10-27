@@ -65,3 +65,5 @@ export {taskColorResolver} from "../src/core/task-colors.ts";
 export { DailyNotes } from "../src/infrastructure/obsidian/daily-notes.ts";
 
 export { renderDailyCalendar } from "../src/gui/components/daily-calendar.ts";
+
+export * from "../src/core/repeat.ts";

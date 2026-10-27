@@ -1,4 +1,5 @@
 import type { DateFormat, Schedule } from "./types";
+import { validRepeat } from "./repeat";
 
 export const DATE_FORMATS: DateFormat[] = [
 	"YYYY-MM-DD",
@@ -114,16 +115,18 @@ export function parseSchedule(raw: string): ReturnType<typeof parseScheduleBody>
 	let match: RegExpMatchArray | null;
 	while (
 		(match = body.match(
-			/ <!-- taskloops-(priority:[a-zA-Z0-9_-]+|color:#[0-9a-fA-F]{6}) -->(?=\s*(?:\^[\w-]+\s*)?\r?$)/,
+			/ <!-- taskloops-(priority:[a-zA-Z0-9_-]+|color:#[0-9a-fA-F]{6}|repeat:[A-Za-z0-9=;,_-]+) -->(?=\s*(?:\^[\w-]+\s*)?\r?$)/,
 		))
 	) {
 		const [key, value] = match[1].split(":");
-		metadata[key as "priority" | "color"] = value;
+		if (key === "repeat" && !validRepeat(value)) break;
+		metadata[key as "priority" | "color" | "repeat"] = value;
 		body = body.replace(match[0], "");
 	}
 	const parsed = parseScheduleBody(body);
 	if (metadata.priority) parsed.schedule.priority = metadata.priority;
 	if (metadata.color) parsed.schedule.color = metadata.color;
+	if (metadata.repeat && parsed.schedule.due) parsed.schedule.repeat = metadata.repeat;
 	return parsed;
 }
 
@@ -188,6 +191,9 @@ export function validSchedule(schedule: Schedule): boolean {
 			(!!schedule.due && validDate(schedule.deadline) && schedule.deadline >= schedule.due)) &&
 		(schedule.duration === undefined ||
 			(Number.isSafeInteger(schedule.duration) && schedule.duration > 0)) &&
+		(schedule.repeat === undefined ||
+			schedule.repeat === "" ||
+			(validRepeat(schedule.repeat) && !!schedule.due)) &&
 		((!schedule.time && schedule.duration === undefined) || !!schedule.due)
 	);
 }
@@ -202,7 +208,14 @@ export function writeSchedule(raw: string, schedule: Schedule, format: DateForma
 	const marker = priority ? ` <!-- taskloops-priority:${priority} -->` : "";
 	const color = schedule.color === undefined ? parsed.schedule.color : schedule.color;
 	const colorMarker = color ? ` <!-- taskloops-color:${color} -->` : "";
-	return parsed.body + suffix + marker + colorMarker + parsed.block;
+	// A repeat rule needs a due date, so clearing the schedule also clears it.
+	const repeat = !schedule.due
+		? ""
+		: schedule.repeat === undefined
+			? parsed.schedule.repeat
+			: schedule.repeat;
+	const repeatMarker = repeat ? ` <!-- taskloops-repeat:${repeat} -->` : "";
+	return parsed.body + suffix + marker + colorMarker + repeatMarker + parsed.block;
 }
 
 /** Append inside Tasks:, respecting headings, fenced code and frontmatter. */

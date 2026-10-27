@@ -3,7 +3,8 @@ import { locateNoteTask, noteTaskRows } from "./inline-task-data";
 import { todayISO } from "./dates";
 import type { DateFormat, ScannedTask, Schedule } from "./types";
 import { appendTask, parseSchedule, writeSchedule } from "./schedule";
-import { indentOf } from "./task-parsing";
+import { indentOf, markCheckboxDone, stripHandledMarker } from "./task-parsing";
+import { nextRepeatSchedule } from "./repeat";
 
 const TASK_PREFIX = /^([ \t]*(?:>[ \t]*)*)(?:[-*+]|\d+[.)])[ \t]+\[.\][ \t]*/;
 
@@ -79,7 +80,8 @@ export function editedBlock(
 		parsed.schedule.time === schedule.time &&
 		parsed.schedule.duration === schedule.duration &&
 		(schedule.priority === undefined || (parsed.schedule.priority ?? "") === schedule.priority) &&
-		(schedule.color === undefined || (parsed.schedule.color ?? "") === schedule.color);
+		(schedule.color === undefined || (parsed.schedule.color ?? "") === schedule.color) &&
+		(schedule.repeat === undefined || (parsed.schedule.repeat ?? "") === schedule.repeat);
 	if (text !== taskWording(raw) || !sameSchedule)
 		block[0] = writeSchedule(
 			prefix + text.trim() + parsed.block,
@@ -87,6 +89,7 @@ export function editedBlock(
 				...schedule,
 				priority: schedule.priority ?? parsed.schedule.priority,
 				color: schedule.color ?? parsed.schedule.color,
+				repeat: schedule.repeat ?? parsed.schedule.repeat,
 			},
 			format,
 		);
@@ -154,4 +157,48 @@ export function nestTaskBlock(parent: string, block: string[]): string[] {
 			(parent.endsWith("\r") ? "\r" : "")
 		);
 	});
+}
+
+/**
+ * The next occurrence of a repeating task, as a fresh block placed after the
+ * completed one. Subtasks come back unchecked; block ids, handled markers and
+ * "Can't schedule now" notes stay with the finished occurrence.
+ */
+export function repeatBlock(block: string[], today: string, format: DateFormat): string[] | undefined {
+	const parsed = parseSchedule(block[0]);
+	const next = nextRepeatSchedule(parsed.schedule, today);
+	const prefix = block[0].match(TASK_PREFIX)?.[0];
+	if (!next || !prefix) return;
+	const cr = block[0].endsWith("\r") ? "\r" : "";
+	const container = block[0].match(TASK_PREFIX)?.[1] ?? "";
+	const reasons = container + "    Can't schedule now: ";
+	const first = stripHandledMarker(parsed.body.trimEnd()).replace(
+		/^(\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+))\[.\]/,
+		"$1[ ]",
+	);
+	const lines = [writeSchedule(first + cr, next, format)];
+	for (const line of block.slice(1)) {
+		if (line.startsWith(reasons)) continue;
+		lines.push(
+			line
+				.replace(/\s+\^[\w-]+(\r?)$/, "$1")
+				.replace(/^(\s*(?:>\s*)*(?:(?:[-*+]|\d+[.)])\s+))\[[xX]\]/, "$1[ ]"),
+		);
+	}
+	return lines;
+}
+
+/** Mark a block's first line done and add the next occurrence, if the rule continues. */
+export function completeTaskBlock(
+	content: string,
+	task: ScannedTask,
+	today: string,
+	format: DateFormat,
+): string {
+	const located = taskBlock(content, task);
+	const lines = content.split("\n");
+	const next = repeatBlock(located.lines, today, format);
+	lines[located.start] = markCheckboxDone(lines[located.start]);
+	if (next) lines.splice(located.end, 0, ...next);
+	return lines.join("\n");
 }

@@ -36,6 +36,8 @@ export interface Schedule {
 	time?: string;
 	/** Positive whole minutes. */
 	duration?: number;
+	/** Repeat rule (see core/repeat.ts); empty string clears it. Requires a due date. */
+	repeat?: string;
 }
 
 export interface TaskDeferral {

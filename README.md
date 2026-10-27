@@ -16,6 +16,8 @@ lets you schedule, resize and edit them without managing note properties.
 - Switch to **Notes**, a searchable task grid grouped by source note.
 - Drag tasks to a date or time in **five-minute intervals** and resize durations.
 - Click a task to edit its wording, schedule, project note and subtasks.
+- Make a task **repeat** daily, weekly, monthly or yearly, on chosen weekdays,
+  days of the month or months. Completing it adds the next occurrence.
 - Pick projects with **Obsidian's native fuzzy note search**.
 - Open a source note in a **new tab** using the arrow beside its sidebar heading
   or its name on a calendar task. The note opens at the task's line.
@@ -418,6 +420,22 @@ it rolls back its destination write when safe. If another edit prevents a safe
 rollback, both copies remain and a notice tells you to review them; no external
 edit is overwritten.
 
+## Repeating tasks
+
+Open a task and choose **Repeat**. Pick **Daily**, **Weekly**, **Monthly** or
+**Yearly**, set **Every** (for example every 2 weeks), then refine it:
+
+- **Weekly:** choose weekdays, or use **Weekdays** for Monday to Friday.
+- **Monthly:** choose days of the month such as `1, 15, last`, or a weekday such
+  as the 2nd Tuesday or the last Friday.
+- **Yearly:** choose months, then the day or weekday.
+- **Ends:** never, on a date, or after a number of times.
+
+A repeating task needs a due date. When you complete it in TaskLoops, the task is
+ticked and the next occurrence is added directly below it, with subtasks
+unchecked. Earlier occurrences stay in the note as history. The rule is stored
+as a hidden `<!-- taskloops-repeat:… -->` marker on the task line.
+
 ## Task priorities and calendar colors
 
 Choose Low, Medium, High or a custom priority in the task editor. In plugin
@@ -438,9 +456,22 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.20 — delete tasks directly from the task popup.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.21 — repeating tasks.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
+
+## What’s new in 0.5.21
+
+- **Repeat** in the task dialog makes a task daily, weekly, monthly or yearly.
+  Set Every N, choose weekdays, days of the month (such as 1, 15 or last), the
+  2nd Tuesday or last Friday, or months for yearly tasks, then end it on a date
+  or after a number of times.
+- Completing a repeating task in TaskLoops ticks it and adds the next occurrence
+  below it. Subtasks come back unchecked. A task completed late moves to the
+  next future date, and day 31 uses the last day of shorter months.
+- The rule is saved as a hidden `taskloops-repeat` marker on the task line.
+  Clearing the schedule clears it. Ticking a checkbox directly in a note does not
+  add the next occurrence.
 
 ## What’s new in 0.5.20
 

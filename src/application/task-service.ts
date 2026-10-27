@@ -10,6 +10,7 @@ import {
 	appendTaskBlock,
 	removeTaskLine,
 	editedBlock,
+	completeTaskBlock,
 	replaceTaskBlock,
 	taskBlock,
 	nestTaskBlock,
@@ -84,7 +85,13 @@ export class TaskService {
 				completed = true;
 				return;
 			}
-			if (!(await setCheckboxDone(this.app, current)))
+			if (current.repeat && current.due) {
+				const file = this.app.vault.getAbstractFileByPath(current.path);
+				if (!(file instanceof TFile)) throw new Error("The source note no longer exists.");
+				await this.app.vault.process(file, (content) =>
+					completeTaskBlock(content, current, todayISO(), this.settings.dateFormat),
+				);
+			} else if (!(await setCheckboxDone(this.app, current)))
 				throw new Error("The task changed or moved ambiguously. Refresh and try again.");
 			await this.host.reloadWrittenFile(current.path);
 			completed = true;

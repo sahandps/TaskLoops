@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.21 — 2026-10-27
+
+- Add repeating tasks. In the task dialog, Repeat offers daily, weekly, monthly and yearly patterns with Every N, specific weekdays, days of the month (including the last day), the nth or last weekday of a month, chosen months for yearly tasks, and an end date or number of times.
+- Store the rule in a hidden `taskloops-repeat` marker on the task line. Completing a repeating task through TaskLoops ticks it and adds the next occurrence as a new task directly below it. Subtasks return unchecked; block ids and "Can't schedule now" notes stay with the finished task.
+- A task completed late advances to the next future date instead of creating a backlog. Day 31 clamps to the last day of shorter months, and a deadline span keeps its length.
+- Clearing a task's schedule also clears its repeat. Moving or resizing a task keeps its repeat. Task cards show a repeat summary.
+
+Validation: production build, ESLint, TypeScript in both module configurations, and 1,151 checks across 40 suites pass. New repeat tests cover rule parsing and rejection, daily to yearly sequences, biweekly alignment, month-end clamping, nth weekdays, end dates and counts, late completion, marker round trips, subtask copies and end-to-end completion through the real write service.
+
 ## 0.5.20 — 2026-10-25
 
 - Add Delete task to the Edit task popup. Remove only the selected checkbox line from its source note, preserving subtasks, prose, frontmatter, and line endings.

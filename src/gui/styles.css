@@ -609,3 +609,20 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-daily-calendar-grid.has-week-numbers { grid-template-columns: 24px repeat(7, minmax(0, 1fr)); }
 
 .tl-task-modal .tl-dialog-actions button.tl-delete-task { color: var(--text-error); border-color: var(--background-modifier-error); }
+
+/* Repeat options in the task dialog. */
+.tl-task-modal .tl-repeat-fields { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px solid var(--background-modifier-border); }
+.tl-task-modal .tl-repeat-head { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+.tl-task-modal .tl-repeat-head label[hidden], .tl-task-modal .tl-repeat-fields [hidden] { display: none; }
+.tl-task-modal .tl-repeat-row { display: flex; flex-direction: column; gap: 6px; }
+.tl-task-modal .tl-repeat-mode, .tl-task-modal .tl-repeat-end { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.tl-task-modal .tl-repeat-mode label, .tl-task-modal .tl-repeat-end label { min-width: 130px; flex: 1 1 130px; }
+.tl-task-modal .tl-repeat-end input { flex: 1 1 130px; min-width: 0; }
+.tl-task-modal .tl-repeat-label { font-size: 13px; }
+.tl-task-modal .tl-repeat-shortcuts { display: flex; }
+.tl-task-modal .tl-repeat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-task-modal button.tl-repeat-chip { height: 30px; min-width: 44px; padding: 0 10px; border: 1px solid var(--background-modifier-border); border-radius: 15px; background: transparent; box-shadow: none; font-size: 12px; color: var(--text-muted); }
+.tl-task-modal button.tl-repeat-chip[aria-pressed="true"] { background: var(--interactive-accent); border-color: var(--interactive-accent); color: var(--text-on-accent, #fff); }
+.tl-task-modal .tl-repeat-summary { color: var(--text-normal); font-size: 12px; }
+.tl-task-modal .tl-repeat-hint { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.tl-view .tl-task-repeat { color: var(--text-muted); }
