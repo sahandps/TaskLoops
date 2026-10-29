@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.22 — 2026-11-02
 
 - Open **Edit task** in a panel docked on the right of a wide planner. The calendar stays visible and usable; choosing another task switches the panel. **×**, **Cancel** and Escape close it. Completion and deletion still save immediately, and other edits still use **Save changes**.
 - On Obsidian mobile, and whenever the planner is narrow, open the same editor as a full page instead of a centered popup.

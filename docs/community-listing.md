@@ -17,5 +17,6 @@ Month and Year calendars, a note-based Timeline or a Gantt chart. Drag to
 schedule, resize date spans, set inclusive deadlines and review overdue work.
 Keep tasks that cannot be scheduled in a separate section with a reason saved
 beneath the checkbox; when you schedule them later, the note keeps a dated
-history. Create and edit tasks and subtasks in their source notes. Task data
-stays in your vault.
+history. Create and edit tasks and subtasks in their source notes. On a wide screen,
+Edit task opens in a panel on the right and the planner stays visible. On a
+phone it opens as a full page. Task data stays in your vault.

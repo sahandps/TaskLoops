@@ -476,6 +476,12 @@ Obsidian's Community plugins, or download the plugin files from
   Clearing the schedule clears it. Ticking a checkbox directly in a note does not
   add the next occurrence.
 
+## What’s new in 0.5.22
+
+- **Edit task** opens in a panel on the right of a wide planner. The calendar stays visible, and choosing another task switches the panel.
+- On a phone or a narrow window the same editor opens as a full page.
+- Close it with **×**, **Cancel**, or Escape. Completion and deletion still save immediately; other edits still use **Save changes**.
+
 ## What’s new in 0.5.20
 
 - **Delete task** in the Edit task popup removes the task’s checkbox line from

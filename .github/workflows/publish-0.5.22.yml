@@ -1,0 +1,86 @@
+name: Publish 0.5.22 on 2 November 2026
+
+# GitHub cron has no year, and scheduled workflows run only from the default
+# branch. This job publishes once, on 2 November 2026 UTC, so Obsidian can
+# offer the update that day. 06:00 UTC is 07:00 in Stockholm (CET).
+# Delete this file after the release exists.
+on:
+    schedule:
+        - cron: '0 6 2 11 *'
+    workflow_dispatch:
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Publish only on 2 November 2026
+              id: gate
+              run: |
+                  today=$(date -u +%Y-%m-%d)
+                  if [ "$today" = "2026-11-02" ]; then
+                    echo "run=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "run=false" >> "$GITHUB_OUTPUT"
+                    echo "Not publishing: this release is scheduled for 2026-11-02 UTC (today is $today)."
+                  fi
+
+            - uses: actions/checkout@v6
+              if: steps.gate.outputs.run == 'true'
+
+            - name: Use Node.js
+              if: steps.gate.outputs.run == 'true'
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: 'npm'
+
+            - name: Install dependencies
+              if: steps.gate.outputs.run == 'true'
+              run: npm ci
+
+            - name: Lint
+              if: steps.gate.outputs.run == 'true'
+              run: npm run lint
+
+            - name: Test
+              if: steps.gate.outputs.run == 'true'
+              run: npm test
+
+            - name: Build plugin
+              if: steps.gate.outputs.run == 'true'
+              run: npm run build
+
+            - name: Require manifest 0.5.22
+              if: steps.gate.outputs.run == 'true'
+              run: |
+                  manifest=$(node -p "require('./manifest.json').version")
+                  if [ "$manifest" != "0.5.22" ]; then
+                    echo "manifest.json is $manifest, expected 0.5.22. Merge that version to the default branch first." >&2
+                    exit 1
+                  fi
+
+            - name: Publish the community release
+              if: steps.gate.outputs.run == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  if gh release view 0.5.22 >/dev/null 2>&1; then
+                    echo "Release 0.5.22 already exists."
+                    exit 0
+                  fi
+                  node --input-type=module -e "
+                    import { readFileSync, writeFileSync } from 'node:fs';
+                    const notes = readFileSync('CHANGELOG.md', 'utf8');
+                    const section = notes.split(/^## /m).find((part) => part.startsWith('0.5.22'));
+                    if (!section) throw new Error('CHANGELOG has no 0.5.22 section');
+                    writeFileSync('release-notes.md', '## ' + section.trim() + '\n');
+                  "
+                  # A normal release, not a draft: Obsidian ignores drafts.
+                  # gh creates the tag from this commit. The token does not
+                  # retrigger the tag workflow, so this job is the publisher.
+                  gh release create 0.5.22 \
+                    --title "0.5.22" \
+                    --notes-file release-notes.md \
+                    main.js manifest.json styles.css
