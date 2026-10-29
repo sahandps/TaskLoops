@@ -2,7 +2,26 @@ import { applyPlannerTheme } from "../components/planner-theme";
 import type { PlannerTheme } from "../../core/types";
 import type { Modal } from "obsidian";
 
-/** Shared visual structure for task creation and editing. */
+/** Header, scrolling body and pinned footer shared by task dialogs and the editor panel. */
+export function mountTaskDialog(
+	root: HTMLElement,
+	title: string,
+): {
+	header: HTMLElement;
+	heading: HTMLElement;
+	body: HTMLElement;
+	actions: HTMLElement;
+} {
+	root.addClass("tl-task-dialog");
+	const header = root.createDiv("tl-dialog-header");
+	header.createDiv({ cls: "tl-dialog-eyebrow", text: "TaskLoops" });
+	const heading = header.createEl("h2", { text: title });
+	const body = root.createDiv("tl-dialog-body");
+	const actions = root.createDiv("tl-dialog-actions");
+	return { header, heading, body, actions };
+}
+
+/** Shared visual structure for task creation and editing modals. */
 export function taskDialog(
 	modal: Modal,
 	title: string,
@@ -13,13 +32,7 @@ export function taskDialog(
 } {
 	modal.modalEl.addClass("tl-task-modal");
 	applyPlannerTheme(modal.modalEl, theme);
-	const root = modal.contentEl;
-	root.addClass("tl-task-dialog");
-	const header = root.createDiv("tl-dialog-header");
-	header.createDiv({ cls: "tl-dialog-eyebrow", text: "TaskLoops" });
-	header.createEl("h2", { text: title });
-	const body = root.createDiv("tl-dialog-body");
-	const actions = root.createDiv("tl-dialog-actions");
+	const { body, actions } = mountTaskDialog(modal.contentEl, title);
 	return { body, actions };
 }
 

@@ -44,6 +44,21 @@ actions.dailyNotes = {
 redrawDaily = renderDailyCalendar(document.getElementById("daily-calendar"), actions);
 view = new TaskLoopsView({ app }, actions);
 await view.onOpen();
+const previewLayout = document.querySelector(".preview-layout");
+const previewApp = document.getElementById("app");
+const syncPreviewEditor = () => {
+	if (!previewApp || !previewLayout) return;
+	const docked = previewApp.classList.contains("tl-editor-docked");
+	const page = previewApp.classList.contains("tl-editor-page");
+	previewLayout.classList.toggle("preview-editor-open", docked || page);
+	previewLayout.classList.toggle("preview-editor-page", page);
+	document.body.classList.toggle("preview-editor-page", page);
+};
+if (previewApp)
+	new MutationObserver(syncPreviewEditor).observe(previewApp, {
+		attributes: true,
+		attributeFilter: ["class"],
+	});
 actions.refreshViews = () => {
 	view.render();
 	redrawDaily?.();

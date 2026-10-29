@@ -29,8 +29,11 @@ keep actual note access in `infrastructure`.
 - `views/notes-view.ts`: renders the searchable note grid.
 - `components`: renders the header, sidebar, reusable task card and subtask editor.
 - `interactions/task-drag-controller.ts`: owns sidebar drag state and drop wiring.
-- `modals`: one class per task dialog or picker. Shared schedule and project
-  fields are separate functions. `modals/index.ts` provides convenient exports.
+- `modals`: task dialogs and pickers. Creating a task, deferral and note
+  pickers stay centered modals. The task editor is a docked panel
+  (`task-editor-host.ts`): the right side of a wide planner, and a full page
+  on mobile or a narrow view. Shared schedule and project fields are separate
+  functions. `modals/index.ts` provides convenient exports.
 - `calendar/planner.ts`: dispatches to the Calendar or Gantt renderer.
 - `calendar/event-calendar-view.ts`: owns EventCalendar and its callbacks.
 - `calendar/gantt-view.ts`: owns the Frappe Gantt integration.
