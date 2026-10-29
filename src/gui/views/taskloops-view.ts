@@ -13,7 +13,7 @@ import { ItemView, Platform, WorkspaceLeaf } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { CalendarScale, ScannedTask } from "../../core/types";
 import { todayISO } from "../../core/dates";
-import { TaskEditorModal } from "../modals/index";
+import { closeTaskEditor, detachTaskEditor, openTaskEditor, syncTaskEditor } from "../modals/index";
 import { renderCalendar } from "../calendar/calendar-view";
 import { addPanelDivider } from "../interactions/panel-resize";
 
@@ -69,7 +69,12 @@ export class TaskLoopsView extends ItemView {
 		this.contentEl.addClass("tl-view");
 		this.render();
 	}
+	edit(task: ScannedTask): void {
+		openTaskEditor(this.app, this.plugin, task, undefined, this.contentEl);
+	}
+
 	async onClose(): Promise<void> {
+		closeTaskEditor(this.contentEl);
 		this.pending = false;
 		this.disposeToday?.();
 		this.disposeToday = null;
@@ -110,6 +115,7 @@ export class TaskLoopsView extends ItemView {
 		this.pending = false;
 		const root = this.contentEl;
 		applyPlannerTheme(root, this.plugin.settings.theme);
+		syncTaskEditor(root, this.plugin.settings.theme);
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
 		const todayScroll = root.querySelector(".tl-today-pane")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
@@ -131,6 +137,9 @@ export class TaskLoopsView extends ItemView {
 			? (root.querySelector(".tl-calendar-content")?.scrollLeft ?? 0)
 			: 0;
 		const active = root.ownerDocument.activeElement;
+		const editorHost = detachTaskEditor(root);
+		const editorFocus =
+			editorHost && active instanceof HTMLElement && editorHost.contains(active) ? active : null;
 		const searchFocused = active instanceof HTMLInputElement && active.classList.contains("tl-search");
 		const selection = searchFocused ? active.selectionStart : null;
 		const todayFocus = root.contains(active) ? active?.getAttribute("data-today-focus") : null;
@@ -141,12 +150,17 @@ export class TaskLoopsView extends ItemView {
 		this.disposeCalendar?.();
 		this.disposeCalendar = null;
 		root.empty();
+		const restoreEditor = () => {
+			if (editorHost) root.append(editorHost);
+			syncTaskEditor(root, this.plugin.settings.theme);
+			editorFocus?.focus({ preventScroll: true });
+		};
 		renderViewHeader(root, this.plugin, this.state, () => this.render());
 		if (this.state.mode === "today") {
 			renderTodayView(
 				root,
 				this.plugin,
-				(task) => new TaskEditorModal(this.app, this.plugin, task).open(),
+				(task) => this.edit(task),
 				new Date(),
 				(this.state.todayExpanded ??= new Set()),
 			);
@@ -159,6 +173,7 @@ export class TaskLoopsView extends ItemView {
 						control.focus({ preventScroll: true });
 			}
 			this.disposeToday = attachTodayClock(root, () => this.render());
+			restoreEditor();
 			return;
 		}
 		if (this.state.mode === "notes") {
@@ -176,6 +191,7 @@ export class TaskLoopsView extends ItemView {
 				input?.focus();
 				if (selection !== null) input?.setSelectionRange(selection, selection);
 			}
+			restoreEditor();
 			return;
 		}
 		const layout = root.createDiv("tl-planner");
@@ -220,6 +236,7 @@ export class TaskLoopsView extends ItemView {
 			search.focus();
 			if (selection !== null) search.setSelectionRange(selection, selection);
 		}
+		restoreEditor();
 	}
 
 	card(parent: HTMLElement, task: ScannedTask, compact = false): HTMLElement {
@@ -228,7 +245,7 @@ export class TaskLoopsView extends ItemView {
 			task,
 			compact,
 			this.plugin,
-			(task) => new TaskEditorModal(this.app, this.plugin, task).open(),
+			(task) => this.edit(task),
 			(card, task) => this.dragController.makeDraggable(card, task),
 			(task) => new TaskDeferralModal(this.app, this.plugin, task).open(),
 		);

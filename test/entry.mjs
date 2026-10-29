@@ -66,4 +66,6 @@ export { DailyNotes } from "../src/infrastructure/obsidian/daily-notes.ts";
 
 export { renderDailyCalendar } from "../src/gui/components/daily-calendar.ts";
 
+export { taskEditorPresentation, taskEditorMeasure, TASK_EDITOR_DOCK_MIN_WIDTH } from "../src/gui/modals/task-editor-host.ts";
+
 export * from "../src/core/repeat.ts";

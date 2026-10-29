@@ -9,7 +9,6 @@ import {
 	moveTaskToDay,
 	hasDeadlineSpan,
 } from "../../core/planner-schedule";
-import { TaskEditorModal } from "../modals/index";
 import {
 	monthGrid,
 	monthKey,
@@ -127,7 +126,7 @@ export function renderCalendar(
 			},
 			schedule: (task, schedule) => view.plugin.schedule(task, schedule),
 			complete: (task) => view.plugin.complete(task),
-			edit: (task) => new TaskEditorModal(view.app, view.plugin, task).open(),
+			edit: (task) => view.edit(task),
 			create: (schedule, path) => view.plugin.newTask(schedule, path),
 			dropTarget: (element, scheduleAt) =>
 				view.dropTarget(element, (task, event) => {

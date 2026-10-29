@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Open **Edit task** in a panel docked on the right of a wide planner. The calendar stays visible and usable; choosing another task switches the panel. **×**, **Cancel** and Escape close it. Completion and deletion still save immediately, and other edits still use **Save changes**.
+- On Obsidian mobile, and whenever the planner is narrow, open the same editor as a full page instead of a centered popup.
+- Keep task creation, deferral and note pickers as centered modals above the editor. Opening a subtask still returns to the parent when that editor closes.
+
+Validation: production build, ESLint, TypeScript in both module configurations, and 1,160 checks across 41 suites pass. Presentation checks cover the wide-planner dock, the narrow and mobile full page, and the view-width measurement.
+
 ## 0.5.21 — 2026-10-27
 
 - Add repeating tasks. In the task dialog, Repeat offers daily, weekly, monthly and yearly patterns with Every N, specific weekdays, days of the month (including the last day), the nth or last weekday of a month, chosen months for yearly tasks, and an end date or number of times.

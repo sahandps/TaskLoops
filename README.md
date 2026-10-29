@@ -329,13 +329,16 @@ mobile, open the task editor and select **Save changes**.
 ## Edit tasks and add subtasks
 
 Click a task title, its card, schedule details or **⋯** to open **Edit task**.
-The popup lets you change its wording, choose its project note, edit its
+On a wide screen the editor docks on the right and the planner stays visible.
+On a phone or a narrow window it opens as a full page. Close it with **×**,
+**Cancel** or Escape. Clicking another task switches the open editor.
+The editor lets you change its wording, choose its project note, edit its
 schedule, and add subtasks. Changes are applied only when you select
 **Save changes**; **Cancel** discards the draft. **Delete task** immediately removes only that
 task’s checkbox line from its source note; subtasks and other note content remain. **Clear schedule** clears the
 form's scheduling fields and is applied when you save.
 
-Existing direct subtasks are clickable rows in the popup: select one to open
+Existing direct subtasks are clickable rows in the editor: select one to open
 its own editor, then return to the parent. Add new ones with the subtask field
 and **Add subtask** or Enter. An unfinished entry is also included when
 you save. New subtasks are ordinary indented Markdown checkboxes beneath their
@@ -345,7 +348,7 @@ does not complete its subtasks.
 
 ### Choose an existing task as a subtask
 
-Use **Choose existing task…** in the parent's popup to browse tasks already in
+Use **Choose existing task…** in the parent's editor to browse tasks already in
 your notes:
 
 1. Search for a note that contains available open tasks.
@@ -361,7 +364,7 @@ your notes:
 
 Selecting a task makes no note changes until you save. Cancel discards the
 selection. Existing descendants, ancestors and overlapping selections are
-excluded to prevent loops. Open an added subtask's popup by clicking its row.
+excluded to prevent loops. Open an added subtask's editor by clicking its row.
 
 ![Searchable existing tasks with their schedules in the selected note](docs/images/existing-subtask-picker.jpg)
 

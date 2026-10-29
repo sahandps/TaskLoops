@@ -223,6 +223,24 @@ dialog pre {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 300px;
 }
+.preview-layout.preview-editor-open {
+	grid-template-columns: minmax(0, 1fr);
+}
+.preview-layout.preview-editor-open #daily-calendar {
+	display: none;
+}
+#app.tl-view.tl-editor-docked {
+	padding-right: calc(var(--tl-editor-width, 440px) + 22px);
+}
+#app.tl-view.tl-editor-page {
+	padding: 0;
+}
+body.preview-editor-page .preview-banner {
+	display: none;
+}
+body.preview-editor-page #app.tl-view {
+	height: 100dvh;
+}
 #daily-calendar {
 	border-left: 1px solid var(--background-modifier-border);
 }

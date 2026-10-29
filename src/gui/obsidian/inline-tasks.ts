@@ -2,7 +2,7 @@ import { editorInfoField, MarkdownRenderChild, MarkdownView, Notice, setIcon, TF
 import type { MarkdownPostProcessorContext } from "obsidian";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import type TaskLoopsPlugin from "../../main";
-import { TaskEditorModal } from "../modals/index";
+import { openTaskEditor } from "../modals/index";
 import { locateNoteTask, noteTaskRows } from "../../core/inline-task-data";
 import { inScanFolder } from "../../core/note-grid";
 
@@ -24,7 +24,7 @@ async function openTask(
 			return;
 		}
 		await plugin.refreshFile(file);
-		new TaskEditorModal(plugin.app, plugin, task).open();
+		openTaskEditor(plugin.app, plugin, task);
 	} catch (error) {
 		console.error("TaskLoops: could not open inline task", error);
 		new Notice("Could not open this task. Save the note and try again.");

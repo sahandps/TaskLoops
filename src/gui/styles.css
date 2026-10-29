@@ -1,4 +1,4 @@
-.tl-view.tl-view { container-type: inline-size; display: flex; flex-direction: column; padding: 12px; gap: 12px; height: 100%; overflow: hidden; }
+.tl-view.tl-view { container-type: inline-size; display: flex; flex-direction: column; padding: 12px; gap: 12px; height: 100%; overflow: hidden; position: relative; --tl-editor-width: 440px; }
 .tl-view button { cursor: pointer; }
 .tl-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .tl-header h2 { margin: 0; margin-right: auto; font-size: 18px; }
@@ -485,9 +485,9 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-view .tl-task-progress progress::-moz-progress-bar { background: var(--interactive-accent); border-radius: 4px; }
 
 /* Optional local palettes leave Obsidian's theme and note properties untouched. */
-:is(.tl-view, .tl-task-modal)[data-tl-theme="light"] { color-scheme: light; --background-primary: #ffffff; --background-secondary: #f3f5f2; --background-secondary-alt: #e9ede7; --background-modifier-border: #d8dfd5; --background-modifier-hover: #e8eee5; --background-modifier-form-field: #f3f5f2; --input-background: #f3f5f2; --text-normal: #243129; --text-muted: #59685b; --text-faint: #728073; --interactive-normal: #edf1ea; --interactive-hover: #e0e8dc; --interactive-accent: #47705a; --interactive-accent-hover: #365b47; --text-on-accent: #ffffff; }
-:is(.tl-view, .tl-task-modal)[data-tl-theme="dark"] { color-scheme: dark; --background-primary: #1c211e; --background-secondary: #252c27; --background-secondary-alt: #2b342d; --background-modifier-border: #414c43; --background-modifier-hover: #343f36; --background-modifier-form-field: #252c27; --input-background: #252c27; --text-normal: #e6ece5; --text-muted: #b0bfb1; --text-faint: #8b9d8d; --interactive-normal: #303b32; --interactive-hover: #3d4d40; --interactive-accent: #91b89b; --interactive-accent-hover: #aacdb2; --text-on-accent: #17251a; }
-:is(.tl-view, .tl-task-modal)[data-tl-theme] { background: var(--background-primary); color: var(--text-normal); }
+:is(.tl-view, .tl-task-modal, .tl-task-editor-host)[data-tl-theme="light"] { color-scheme: light; --background-primary: #ffffff; --background-secondary: #f3f5f2; --background-secondary-alt: #e9ede7; --background-modifier-border: #d8dfd5; --background-modifier-hover: #e8eee5; --background-modifier-form-field: #f3f5f2; --input-background: #f3f5f2; --text-normal: #243129; --text-muted: #59685b; --text-faint: #728073; --interactive-normal: #edf1ea; --interactive-hover: #e0e8dc; --interactive-accent: #47705a; --interactive-accent-hover: #365b47; --text-on-accent: #ffffff; }
+:is(.tl-view, .tl-task-modal, .tl-task-editor-host)[data-tl-theme="dark"] { color-scheme: dark; --background-primary: #1c211e; --background-secondary: #252c27; --background-secondary-alt: #2b342d; --background-modifier-border: #414c43; --background-modifier-hover: #343f36; --background-modifier-form-field: #252c27; --input-background: #252c27; --text-normal: #e6ece5; --text-muted: #b0bfb1; --text-faint: #8b9d8d; --interactive-normal: #303b32; --interactive-hover: #3d4d40; --interactive-accent: #91b89b; --interactive-accent-hover: #aacdb2; --text-on-accent: #17251a; }
+:is(.tl-view, .tl-task-modal, .tl-task-editor-host)[data-tl-theme] { background: var(--background-primary); color: var(--text-normal); }
 
 .tl-view .tl-library-planner .ec-time-grid .ec-body > .ec-sidebar { cursor: ns-resize; touch-action: auto; user-select: none; }
 .tl-view .tl-library-planner .ec-time-grid .ec-body > .ec-sidebar:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
@@ -626,3 +626,29 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-task-modal .tl-repeat-summary { color: var(--text-normal); font-size: 12px; }
 .tl-task-modal .tl-repeat-hint { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
 .tl-view .tl-task-repeat { color: var(--text-muted); }
+
+/* Edit task: right dock on a wide planner, full page on mobile and narrow views. */
+.tl-view.tl-view.tl-editor-docked { padding-right: calc(var(--tl-editor-width) + 12px); }
+.tl-view.tl-editor-docked > :not(.tl-task-editor-host),
+.tl-view.tl-editor-page > :not(.tl-task-editor-host) { isolation: isolate; }
+.tl-view > .tl-task-editor-host { position: absolute; top: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; width: var(--tl-editor-width); min-height: 0; overflow: hidden; background: var(--background-primary); color: var(--text-normal); border-left: 1px solid var(--background-modifier-border); }
+.tl-view > .tl-task-editor-host.is-page,
+.tl-task-editor-host.is-window.is-page { top: 0; right: 0; bottom: 0; left: 0; width: auto; border-left: 0; }
+.tl-task-editor-host.is-window { position: fixed; top: 0; right: 0; bottom: 0; z-index: 30; display: flex; flex-direction: column; width: min(var(--tl-editor-width), 100vw); min-height: 0; overflow: hidden; background: var(--background-primary); color: var(--text-normal); border-left: 1px solid var(--background-modifier-border); box-shadow: -12px 0 40px rgba(0, 0, 0, 0.18); }
+.tl-task-editor-host.is-window.is-page { box-shadow: none; }
+.tl-task-editor-host > .tl-task-editor { display: flex; flex: 1 1 auto; flex-direction: column; width: 100%; max-width: none; height: auto; min-height: 0; border: 0; border-radius: 0; }
+.tl-task-editor.tl-task-modal[hidden] { display: none; }
+.tl-task-editor.tl-task-modal { container-type: inline-size; }
+.tl-task-editor .tl-task-dialog { flex: 1 1 auto; max-height: none; height: 100%; }
+.tl-task-modal .tl-dialog-header { position: relative; }
+.tl-task-modal button.tl-editor-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; min-height: 32px; margin: 0; padding: 0; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: var(--text-muted); font-size: 22px; line-height: 1; }
+.tl-task-modal button.tl-editor-close:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+@container (max-width: 520px) {
+ .tl-task-editor .tl-dialog-header { padding: 22px 52px 18px 22px; }
+ .tl-task-editor .tl-dialog-body { padding: 0 22px; }
+ .tl-task-editor .tl-dialog-actions { padding: 14px 16px; }
+ .tl-task-editor .tl-dialog-section { padding: 22px 0; }
+ .tl-task-editor .tl-duration-fields { grid-template-columns: 1fr 1fr; gap: 12px; }
+ .tl-task-editor .tl-duration-fields label:first-child { grid-column: 1 / -1; }
+ .tl-task-editor .tl-repeat-head { grid-template-columns: 1fr; }
+}
