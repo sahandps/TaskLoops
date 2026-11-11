@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.25 — 2026-11-11
+
+- Scroll vertically within each Kanban column. Column headers and neighboring cards stay visible while you browse long lists; horizontal scrolling still reaches the other columns.
+- Default Kanban to **Open tasks**, independently of Planner. The **Show** menu remembers your choice of open, completed, or all tasks.
+
+Validation: production build and 1,180 checks across 42 suites pass. Browser
+checks reproduce a 224-card backlog and verify independent scrolling, drag and
+drop, and saved task visibility.
+
 ## 0.5.24 — 2026-11-11
 
 - Rename **Canvas** to **Kanban**. If Canvas was your default view, Kanban stays your default.

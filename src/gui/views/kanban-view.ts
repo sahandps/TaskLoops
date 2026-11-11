@@ -7,8 +7,22 @@ import { renderTaskCard } from "../components/task-card";
 import type { TaskDragController } from "../interactions/task-drag-controller";
 import { attachBoardDragScroll } from "../interactions/board-drag-scroll";
 
-export interface KanbanViewState extends KanbanFilters {
+export interface KanbanViewState extends Omit<KanbanFilters, "status"> {
 	start?: string;
+}
+
+export function captureKanbanScroll(board: HTMLElement) {
+	const columns = new Map<string, number>();
+	for (const cards of board.querySelectorAll<HTMLElement>("[data-kanban-scroll]"))
+		if (cards.scrollTop && cards.dataset.kanbanScroll !== undefined)
+			columns.set(cards.dataset.kanbanScroll, cards.scrollTop);
+	return { left: board.scrollLeft, columns };
+}
+
+export function restoreKanbanScroll(board: HTMLElement, scroll: ReturnType<typeof captureKanbanScroll>) {
+	board.scrollLeft = scroll.left;
+	for (const cards of board.querySelectorAll<HTMLElement>("[data-kanban-scroll]"))
+		cards.scrollTop = scroll.columns.get(cards.dataset.kanbanScroll ?? "") ?? 0;
 }
 
 export function renderKanbanView(
@@ -44,7 +58,7 @@ export function renderKanbanView(
 			["completed", "Completed tasks"],
 			["all", "All tasks"],
 		],
-		state.status,
+		actions.settings.kanbanStatus,
 	);
 	const search = toolbar.createEl("input", {
 		cls: "tl-kanban-search",
@@ -92,13 +106,15 @@ export function renderKanbanView(
 	attachBoardDragScroll(board, () => drag.active);
 
 	function draw(resetScroll = false) {
-		const left = resetScroll ? 0 : board.scrollLeft;
-		const top = resetScroll ? 0 : board.scrollTop;
+		const scroll = resetScroll ? undefined : captureKanbanScroll(board);
 		board.empty();
 		const bySchedule = state.group === "schedule";
 		nav.hidden = !bySchedule;
 		if (priority.parentElement) priority.parentElement.hidden = !bySchedule;
-		const { columns, outsideRange } = kanbanBoard(tasks, priorities, date.value, state);
+		const { columns, outsideRange } = kanbanBoard(tasks, priorities, date.value, {
+			...state,
+			status: actions.settings.kanbanStatus,
+		});
 		const key = (schedule: Schedule) => (bySchedule ? schedule.due : schedule.priority) ?? "";
 		const move = (task: ScannedTask, target: Schedule) => {
 			if (key(task) === key(target)) return;
@@ -109,7 +125,7 @@ export function renderKanbanView(
 		summary.setText(
 			outsideRange === 1 ? "1 task outside these dates" : `${outsideRange} tasks outside these dates`,
 		);
-		for (const { label, schedule, color, archived, tasks } of columns) {
+		for (const { id, label, schedule, color, archived, tasks } of columns) {
 			const column = board.createEl("section", {
 				cls: "tl-kanban-column",
 				attr: { "aria-label": label },
@@ -128,7 +144,15 @@ export function renderKanbanView(
 						...schedule,
 						...(bySchedule && state.priority ? { priority: state.priority } : {}),
 					});
-			const cards = column.createDiv("tl-kanban-cards");
+			const cards = column.createDiv({
+				cls: "tl-kanban-cards",
+				attr: {
+					"data-kanban-scroll": id,
+					role: "group",
+					"aria-label": label + " tasks",
+					tabindex: tasks.length ? "0" : "-1",
+				},
+			});
 			for (const task of tasks) {
 				const card = renderTaskCard(cards, task, true, actions, edit, () => {}, defer);
 				drag.makeDraggable(card, task);
@@ -151,8 +175,8 @@ export function renderKanbanView(
 			}
 			if (!tasks.length) cards.createDiv({ cls: "tl-empty", text: "No tasks" });
 		}
-		board.scrollLeft = left;
-		board.scrollTop = top;
+		if (scroll) restoreKanbanScroll(board, scroll);
+		else board.scrollLeft = 0;
 	}
 
 	group.onchange = () => {
@@ -160,8 +184,10 @@ export function renderKanbanView(
 		draw(true);
 	};
 	status.onchange = () => {
-		state.status = status.value === "completed" || status.value === "all" ? status.value : "open";
+		actions.settings.kanbanStatus =
+			status.value === "completed" || status.value === "all" ? status.value : "open";
 		draw();
+		void actions.saveSettings();
 	};
 	search.oninput = () => {
 		state.query = search.value;

@@ -1,11 +1,11 @@
 import { longDayLabel, shiftISO } from "./dates";
-import type { PriorityDefinition, ScannedTask, Schedule } from "./types";
+import type { KanbanStatus, PriorityDefinition, ScannedTask, Schedule } from "./types";
 
 export const KANBAN_DAYS = 7;
 
 export interface KanbanFilters {
 	group: "schedule" | "priority";
-	status: "open" | "completed" | "all";
+	status: KanbanStatus;
 	query: string;
 	/** Undefined shows all priorities; an empty string shows unprioritized tasks. */
 	priority?: string;
@@ -65,5 +65,5 @@ export function kanbanBoard(
 	if (filters.group === "schedule")
 		for (const [due, column] of columns)
 			if (due) column.tasks.sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
-	return { columns: [...columns.values()], outsideRange };
+	return { columns: [...columns].map(([id, column]) => ({ id, ...column })), outsideRange };
 }

@@ -987,21 +987,27 @@
 .tl-view .tl-kanban-summary { color: var(--text-muted); font-size: var(--font-ui-small); }
 .tl-view .tl-kanban-board {
 	display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr);
-	gap: 10px; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 3px;
+	grid-template-rows: minmax(0, 1fr);
+	gap: 10px; flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden;
+	overscroll-behavior: contain; padding: 3px;
 }
 .tl-view .tl-kanban-column {
-	min-width: 0; min-height: min-content; border: 1px solid var(--background-modifier-border);
+	display: flex; flex-direction: column; min-width: 0; min-height: 0;
+	border: 1px solid var(--background-modifier-border);
 	border-radius: 9px; background: var(--background-secondary);
 }
 .tl-view .tl-kanban-column-header {
-	position: sticky; top: 0; z-index: 1; display: flex; gap: 8px; align-items: center;
+	display: flex; flex: 0 0 auto; gap: 8px; align-items: center;
 	padding: 8px; min-height: 44px; border-radius: 8px 8px 0 0; background: var(--background-secondary);
 	border-top: 3px solid var(--tl-kanban-color, var(--background-modifier-border));
 	border-bottom: 1px solid var(--background-modifier-border);
 }
 .tl-view .tl-kanban-column-header h3 { flex: 1; margin: 0; font-size: var(--font-ui-small); overflow-wrap: anywhere; }
 .tl-view .tl-kanban-count { color: var(--text-muted); font-size: var(--font-ui-smaller); }
-.tl-view .tl-kanban-cards { padding: 8px; }
+.tl-view .tl-kanban-cards {
+	flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
+	padding: 8px; border-radius: 0 0 8px 8px;
+}
 .tl-view .tl-kanban-cards .tl-task { margin-inline-start: 0; }
 .tl-view .tl-kanban-move { max-width: 100%; margin-top: 6px; font-size: var(--font-ui-smaller); cursor: pointer; }
 .tl-view .tl-kanban-column.is-drop-target { outline-offset: -2px; }

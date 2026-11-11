@@ -35,9 +35,13 @@ Tasks with a date outside the displayed week are counted below the filters.
 Choose **Group by → Priority** for Low, Medium, High, and No priority columns.
 Add another level, such as Urgent, under **Settings → TaskLoops → Tasks → Task
 priorities**. Set a task's priority in its editor. Both board layouts let you
-search by task or note and show open, completed, or all tasks. In Schedule you
+search by task or note. The **Show** menu defaults to **Open tasks** and remembers
+your choice if you switch to **Completed tasks** or **All tasks**. In Schedule you
 can also filter by priority. Use a column's **+** to start a task with that date
 or priority filled in.
+
+Scroll down within a column to see more cards without moving its header or
+neighboring columns. Scroll sideways to reach more columns.
 
 Drag a card to another column, or use **Move to…** on the card with touch or
 keyboard. In Schedule, moving to another day keeps the start time, duration,
@@ -480,7 +484,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.24 — Kanban with drag and drop.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.25 — independent Kanban scrolling.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 

@@ -64,6 +64,7 @@ export interface ScannedTask extends Schedule {
 
 export type PlannerTheme = "inherit" | "light" | "dark";
 export type TaskViewMode = "planner" | "notes" | "today" | "kanban";
+export type KanbanStatus = "open" | "completed" | "all";
 
 export interface TaskLoopsSettings {
 	priorities: PriorityDefinition[];
@@ -73,6 +74,7 @@ export interface TaskLoopsSettings {
 	showProgressBars: boolean;
 	timeSlotHeight: number;
 	defaultView: TaskViewMode;
+	kanbanStatus: KanbanStatus;
 	timeFormat: "24h" | "12h";
 	weekStart: number;
 	dailyCalendarWeekStart: number;
@@ -105,6 +107,7 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	showProgressBars: true,
 	timeSlotHeight: 24,
 	defaultView: "planner",
+	kanbanStatus: "open",
 	timeFormat: "24h",
 	weekStart: 1,
 	dailyCalendarWeekStart: 1,

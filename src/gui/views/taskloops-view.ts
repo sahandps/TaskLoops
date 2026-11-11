@@ -1,6 +1,11 @@
 import { captureTimeGridViewport } from "../interactions/calendar-viewport";
 import { renderTodayView } from "./today-view";
-import { renderKanbanView, type KanbanViewState } from "./kanban-view";
+import {
+	captureKanbanScroll,
+	renderKanbanView,
+	restoreKanbanScroll,
+	type KanbanViewState,
+} from "./kanban-view";
 import { attachTodayClock } from "../interactions/today-clock";
 import { applyPlannerTheme } from "../components/planner-theme";
 import { TaskDeferralModal } from "../modals/task-deferral";
@@ -31,7 +36,7 @@ export class TaskLoopsView extends ItemView {
 		expandedNotes: new Set(),
 		collapsedNotes: new Set(),
 	};
-	private kanbanState: KanbanViewState = { group: "schedule", status: "open", query: "" };
+	private kanbanState: KanbanViewState = { group: "schedule", query: "" };
 	scale: CalendarScale;
 	anchor = todayISO();
 	private dragController = new TaskDragController(
@@ -57,7 +62,6 @@ export class TaskLoopsView extends ItemView {
 			Platform.isMobile && plugin.settings.lastScale === "week" ? "day" : plugin.settings.lastScale;
 		this.state.mode = plugin.settings.defaultView ?? "planner";
 		this.state.showDone = plugin.settings.showCompleted ?? false;
-		this.kanbanState.status = this.state.showDone ? "all" : "open";
 	}
 	getViewType(): string {
 		return VIEW_TYPE_TASKLOOPS;
@@ -122,8 +126,8 @@ export class TaskLoopsView extends ItemView {
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
 		const todayScroll = root.querySelector(".tl-today-pane")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
-		const kanban = root.querySelector(".tl-kanban-board");
-		const kanbanScroll = [kanban?.scrollLeft ?? 0, kanban?.scrollTop ?? 0] as const;
+		const kanban = root.querySelector<HTMLElement>(".tl-kanban-board");
+		const kanbanScroll = kanban ? captureKanbanScroll(kanban) : undefined;
 		const nextCalendarKey =
 			this.scale +
 			":" +
@@ -172,7 +176,7 @@ export class TaskLoopsView extends ItemView {
 				(task) => new TaskDeferralModal(this.app, this.plugin, task).open(),
 				this.dragController,
 			);
-			[board.scrollLeft, board.scrollTop] = kanbanScroll;
+			if (kanbanScroll) restoreKanbanScroll(board, kanbanScroll);
 			if (kanbanSearchFocused) search.focus({ preventScroll: true });
 			restoreEditor();
 			return;

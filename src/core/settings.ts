@@ -47,6 +47,7 @@ export function normalizeSettings(
 		settings.lastScale = "week";
 	if (!["planner", "notes", "today", "kanban"].includes(settings.defaultView))
 		settings.defaultView = "planner";
+	if (!["open", "completed", "all"].includes(settings.kanbanStatus)) settings.kanbanStatus = "open";
 	if (![3, 5, 10].includes(settings.notePreviewLimit)) settings.notePreviewLimit = 5;
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";
 	if (!Number.isFinite(settings.panelWidth)) settings.panelWidth = 260;

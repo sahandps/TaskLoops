@@ -20,6 +20,21 @@ export default function run({ kanbanBoard, normalizeSettings, parseSchedule, wri
 	const scheduled = board(filters);
 	eq(settings.defaultView, "kanban", "Kanban can be saved as the default view");
 	eq(
+		normalizeSettings({ showCompleted: true }).kanbanStatus,
+		"open",
+		"Kanban hides completed tasks by default, even when Planner shows them",
+	);
+	eq(
+		normalizeSettings({ kanbanStatus: "all" }).kanbanStatus,
+		"all",
+		"Kanban remembers an explicit choice to show all tasks",
+	);
+	eq(
+		normalizeSettings({ kanbanStatus: "invalid" }).kanbanStatus,
+		"open",
+		"invalid Kanban filters fall back to open tasks",
+	);
+	eq(
 		normalizeSettings({ defaultView: "canvas" }).defaultView,
 		"kanban",
 		"the old Canvas default migrates to Kanban",
