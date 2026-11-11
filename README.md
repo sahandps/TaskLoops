@@ -34,7 +34,7 @@ jumps to today's Day calendar, where you can schedule or resize time blocks.
 
 Use **+ Add project** to choose a note to track, even if it has no tasks yet.
 **Active projects** shows progress for the selected notes. Open a project to see
-its tasks, add a task to that note, or open the note itself. Use **Manage
+its tasks, use **+ Add task** with that note preselected, or open the note itself. Use **Manage
 projects → Remove project** to stop tracking a note without changing its content.
 **Inbox** shows open tasks with no scheduled date. **Plan today** puts one on
 today's schedule without moving it to another note.
@@ -501,7 +501,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.27 — Choose which notes appear as projects.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.28 — Schedule tasks from notes and add tasks to projects.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 

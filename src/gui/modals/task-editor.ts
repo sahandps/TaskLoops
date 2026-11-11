@@ -23,10 +23,14 @@ export function renderTaskEditor(
 	task: ScannedTask,
 	close: () => void,
 	openChild: (task: ScannedTask, onUpdated: () => void) => void,
+	startAtSchedule = false,
 ): HTMLElement {
 	panel.addClass("tl-task-editor", "tl-task-modal");
 	const dialog = panel.createDiv();
-	const { header, heading, body, actions } = mountTaskDialog(dialog, "Edit task");
+	const { header, heading, body, actions } = mountTaskDialog(
+		dialog,
+		startAtSchedule ? "Schedule task" : "Edit task",
+	);
 	heading.id = "tl-editor-title-" + String(++titleSequence);
 	const dismiss = header.createEl("button", {
 		text: "×",
@@ -39,7 +43,7 @@ export function renderTaskEditor(
 	const text = details.createEl("input", {
 		type: "text",
 		cls: "tl-task-input",
-		attr: { "aria-label": "Task", autofocus: "" },
+		attr: { "aria-label": "Task", ...(startAtSchedule ? {} : { autofocus: "" }) },
 	});
 	text.value = taskWording(task.raw);
 	attachNoteLinkSuggest(text, app, () => path);
@@ -182,6 +186,11 @@ export function renderTaskEditor(
 			})
 			.catch(() => setBusy(false));
 	};
-	text.focus();
+	if (startAtSchedule) {
+		body.prepend(scheduleSection);
+		const due = scheduleSection.querySelector<HTMLInputElement>('input[type="date"]');
+		due?.setAttribute("autofocus", "");
+		due?.focus();
+	} else text.focus();
 	return heading;
 }

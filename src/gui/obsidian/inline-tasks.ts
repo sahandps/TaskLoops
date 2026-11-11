@@ -2,7 +2,7 @@ import { editorInfoField, MarkdownRenderChild, MarkdownView, Notice, setIcon, TF
 import type { MarkdownPostProcessorContext } from "obsidian";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import type TaskLoopsPlugin from "../../main";
-import { openTaskEditor } from "../modals/index";
+import { InlineTaskEditorModal } from "../modals/inline-task-editor";
 import { locateNoteTask, noteTaskRows } from "../../core/inline-task-data";
 import { inScanFolder } from "../../core/note-grid";
 
@@ -24,7 +24,7 @@ async function openTask(
 			return;
 		}
 		await plugin.refreshFile(file);
-		openTaskEditor(plugin.app, plugin, task);
+		new InlineTaskEditorModal(plugin.app, plugin, task).open();
 	} catch (error) {
 		console.error("TaskLoops: could not open inline task", error);
 		new Notice("Could not open this task. Save the note and try again.");
@@ -38,6 +38,8 @@ function button(doc: Document, action: () => void): HTMLButtonElement {
 	control.setAttribute("aria-label", "Edit task schedule in TaskLoops");
 	control.title = "Edit task schedule in TaskLoops";
 	setIcon(control, "calendar-plus");
+	// Keep CodeMirror from moving the selection and replacing the widget before click.
+	control.onmousedown = (event) => event.preventDefault();
 	control.onclick = (event) => {
 		event.preventDefault();
 		event.stopPropagation();

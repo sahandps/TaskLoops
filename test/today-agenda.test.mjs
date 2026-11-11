@@ -64,6 +64,10 @@ export default async function run(mod) {
  const done=render({allTasks:()=>[t('done',{checked:true})]});eq(done.some(n=>n.text==="Today's tasks are complete."),true,'completed-only day shows a useful finish state');
  const header=new Node();mod.renderViewHeader(header,actions,{mode:'today'},()=>{});all(header).find(n=>n.text==='+ Task').onclick();eq(created.length,2,'header Add task also targets today');
  eq(all(header).filter(n=>n.attrs['aria-pressed']).map(n=>n.text),['Dashboard','Today','Planner','Kanban','Notes'],'Dashboard is added without removing the existing views');
+ const projectHeader=new Node(),projectCaptures=[];
+ mod.renderViewHeader(projectHeader,{...actions,settings:{...actions.settings,projectNotes:['Work/Project.md']},newTask:(schedule,path)=>projectCaptures.push({schedule,path})},{mode:'dashboard',dashboardPage:{kind:'project',path:'Work/Project.md'}},()=>{});
+ all(projectHeader).find(n=>n.text==='+ Task').onclick();
+ eq(projectCaptures,[{schedule:undefined,path:'Work/Project.md'}],'toolbar capture from a project preselects its note');
  const doc=new EventTarget(),win=new EventTarget();doc.defaultView=win;doc.visibilityState='visible';let tick,cleared=0,refresh=0;win.setTimeout=fn=>{tick=fn;return 7;};win.clearTimeout=id=>{if(id===7)cleared++;};
  const dispose=mod.attachTodayClock({ownerDocument:doc},()=>refresh++);tick();eq(refresh,1,'minute clock refreshes current day and time phases');doc.dispatchEvent(new Event('visibilitychange'));win.dispatchEvent(new Event('focus'));eq(refresh,3,'wake and window focus re-evaluate the actual current day');
  doc.visibilityState='hidden';doc.dispatchEvent(new Event('visibilitychange'));eq(refresh,3,'background visibility event does not render');dispose();tick();win.dispatchEvent(new Event('focus'));eq(refresh,3,'closed view removes the clock and listeners');eq(cleared,1,'view cleanup cancels pending timeout');

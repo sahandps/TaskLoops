@@ -676,6 +676,9 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-task-modal .tl-dialog-header { position: relative; }
 .tl-task-modal button.tl-editor-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; min-height: 32px; margin: 0; padding: 0; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: var(--text-muted); font-size: 22px; line-height: 1; }
 .tl-task-modal button.tl-editor-close:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+.tl-inline-task-modal > .modal-close-button { display: none; }
+.tl-inline-task-modal .tl-task-editor { width: 100%; max-width: none; border: 0; border-radius: 0; }
+.tl-inline-task-modal .tl-task-editor .tl-task-dialog { height: auto; max-height: min(88dvh, 900px); }
 @container (max-width: 520px) {
  .tl-task-editor .tl-dialog-header { padding: 22px 52px 18px 22px; }
  .tl-task-editor .tl-dialog-body { padding: 0 22px; }

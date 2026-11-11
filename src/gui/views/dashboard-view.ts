@@ -168,7 +168,7 @@ export function renderDashboardView(
 	if (project) {
 		const name = actions.noteName(project.path);
 		headline(name, project.path);
-		button(hero, "+ Add to project", () => actions.newTask(undefined, project.path), "mod-cta");
+		button(hero, "+ Add task", () => actions.newTask(undefined, project.path), "mod-cta");
 		const panel = body.createEl("section", {
 			cls: "tl-dash-panel",
 			attr: { "aria-label": "Project tasks" },

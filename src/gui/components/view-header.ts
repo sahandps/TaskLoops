@@ -29,7 +29,11 @@ export function renderViewHeader(
 			root.querySelector<HTMLElement>(`[data-tl-view="${value}"]`)?.focus();
 		};
 	}
-	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () =>
-		actions.newTask(state.mode === "today" ? { due: todayISO() } : undefined);
+	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () => {
+		const project = state.mode === "dashboard" ? state.dashboardPage : undefined;
+		if (project?.kind === "project" && actions.settings.projectNotes.includes(project.path))
+			actions.newTask(undefined, project.path);
+		else actions.newTask(state.mode === "today" ? { due: todayISO() } : undefined);
+	};
 	header.createEl("button", { text: "Refresh" }).onclick = () => void actions.rescan();
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.28 — 2026-11-11
+
+- The calendar-plus button in a note opens **Schedule task** over that note and focuses the due date.
+- Use **+ Add task** inside a dashboard project to create a task with its note already selected. The toolbar's **+ Task** also uses the open project.
+
+Validation: production build and 1,194 checks across 43 suites pass. Browser
+checks cover project task creation, the schedule dialog, due date focus, and saving.
+
 ## 0.5.27 — 2026-11-11
 
 - Projects now starts empty. Use **+ Add project** on the dashboard to choose an existing note, even if it has no tasks yet.
