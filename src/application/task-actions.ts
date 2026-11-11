@@ -18,6 +18,7 @@ export interface TaskActions {
 	rescan(): Promise<void>;
 	newTask(schedule?: Schedule, path?: string): void;
 	schedule(task: ScannedTask, schedule: Schedule): Promise<void>;
+	setTaskPriority(task: ScannedTask, priority: string): Promise<void>;
 	complete(task: ScannedTask): Promise<boolean>;
 	deleteTask(task: ScannedTask): Promise<boolean>;
 	reveal(task: ScannedTask): Promise<void>;

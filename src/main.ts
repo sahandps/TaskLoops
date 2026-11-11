@@ -222,6 +222,10 @@ export default class TaskLoopsPlugin extends Plugin {
 		return this.taskService.schedule(task, schedule);
 	}
 
+	setTaskPriority(task: ScannedTask, priority: string): Promise<void> {
+		return this.taskService.setTaskPriority(task, priority);
+	}
+
 	complete(task: ScannedTask): Promise<boolean> {
 		return this.taskService.complete(task);
 	}

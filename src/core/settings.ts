@@ -1,10 +1,18 @@
 import { slotHeight } from "./calendar-zoom";
-import { DEFAULT_SETTINGS, type TaskLoopsSettings } from "./types";
+import { DEFAULT_SETTINGS, type TaskLoopsSettings, type TaskViewMode } from "./types";
 import { DATE_FORMATS } from "./schedule";
 
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
-export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoopsSettings {
-	const settings = { ...DEFAULT_SETTINGS, ...saved };
+export function normalizeSettings(
+	saved?: Partial<Omit<TaskLoopsSettings, "defaultView">> & { defaultView?: TaskViewMode | "canvas" },
+): TaskLoopsSettings {
+	const { defaultView, ...rest } = saved ?? {};
+	const settings = {
+		...DEFAULT_SETTINGS,
+		...rest,
+		defaultView:
+			defaultView === "canvas" ? ("kanban" as const) : (defaultView ?? DEFAULT_SETTINGS.defaultView),
+	};
 	if (settings.standaloneDestination !== "daily") settings.standaloneDestination = "note";
 	const validColor = (color: unknown): color is string =>
 		typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color);
@@ -37,7 +45,7 @@ export function normalizeSettings(saved?: Partial<TaskLoopsSettings>): TaskLoops
 	if (!DATE_FORMATS.includes(settings.dateFormat)) settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
 	if (!["day", "week", "month", "year", "timeline", "gantt"].includes(settings.lastScale))
 		settings.lastScale = "week";
-	if (!["planner", "notes", "today", "canvas"].includes(settings.defaultView))
+	if (!["planner", "notes", "today", "kanban"].includes(settings.defaultView))
 		settings.defaultView = "planner";
 	if (![3, 5, 10].includes(settings.notePreviewLimit)) settings.notePreviewLimit = 5;
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";

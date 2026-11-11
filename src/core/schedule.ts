@@ -108,26 +108,46 @@ export function formatDuration(minutes: number): string {
 		.join(" ");
 }
 
-/** Read only a complete, valid scheduling suffix, before an optional block id. */
-export function parseSchedule(raw: string): ReturnType<typeof parseScheduleBody> {
-	const metadata: Schedule = {};
-	let body = raw;
+function splitTaskMetadata(raw: string) {
+	const markers: { key: "priority" | "color" | "repeat"; value: string; raw: string }[] = [];
+	const tail = raw.match(/(?:[ \t]*\^[\w-]+)?[ \t]*\r?$/)?.[0] ?? "";
+	let body = raw.slice(0, raw.length - tail.length);
 	let match: RegExpMatchArray | null;
 	while (
 		(match = body.match(
-			/ <!-- taskloops-(priority:[a-zA-Z0-9_-]+|color:#[0-9a-fA-F]{6}|repeat:[A-Za-z0-9=;,_-]+) -->(?=\s*(?:\^[\w-]+\s*)?\r?$)/,
+			/ <!-- taskloops-(priority:[a-zA-Z0-9_-]+|color:#[0-9a-fA-F]{6}|repeat:[A-Za-z0-9=;,_-]+) -->$/,
 		))
 	) {
 		const [key, value] = match[1].split(":");
 		if (key === "repeat" && !validRepeat(value)) break;
-		metadata[key as "priority" | "color" | "repeat"] = value;
-		body = body.replace(match[0], "");
+		markers.push({ key: key as "priority" | "color" | "repeat", value, raw: match[0] });
+		body = body.slice(0, match.index);
 	}
-	const parsed = parseScheduleBody(body);
+	return { body, markers, tail };
+}
+
+/** Read only a complete, valid scheduling suffix, before an optional block id. */
+export function parseSchedule(raw: string): ReturnType<typeof parseScheduleBody> {
+	const { body, markers, tail } = splitTaskMetadata(raw);
+	const metadata: Schedule = {};
+	for (const { key, value } of markers) metadata[key] = value;
+	const parsed = parseScheduleBody(body + tail);
 	if (metadata.priority) parsed.schedule.priority = metadata.priority;
 	if (metadata.color) parsed.schedule.color = metadata.color;
 	if (metadata.repeat && parsed.schedule.due) parsed.schedule.repeat = metadata.repeat;
 	return parsed;
+}
+
+/** Change only priority metadata, keeping the exact wording and schedule syntax. */
+export function writeTaskPriority(raw: string, priority: string): string {
+	if (priority && !/^[a-zA-Z0-9_-]+$/.test(priority)) throw new Error("Choose a valid task priority.");
+	const { body, markers, tail } = splitTaskMetadata(raw);
+	const otherMarkers = markers
+		.reverse()
+		.filter(({ key }) => key !== "priority")
+		.map(({ raw }) => raw);
+	const marker = priority ? ` <!-- taskloops-priority:${priority} -->` : "";
+	return body + marker + otherMarkers.join("") + tail;
 }
 
 function parseScheduleBody(raw: string): {

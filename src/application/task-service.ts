@@ -2,7 +2,7 @@ import { deferBlock, resolveDeferral, validateDeferralReason } from "../core/tas
 import { todayISO } from "../core/dates";
 import { App, TFile, normalizePath } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
-import { parseSchedule, validSchedule, writeSchedule } from "../core/schedule";
+import { parseSchedule, validSchedule, writeSchedule, writeTaskPriority } from "../core/schedule";
 import { setCheckboxDone } from "../infrastructure/obsidian/task-repository";
 import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/note-transaction";
 import { existingSubtaskCandidates, existingSubtaskDestination } from "../core/existing-tasks";
@@ -73,6 +73,21 @@ export class TaskService {
 				delete this.items[current.id].due;
 				await this.host.saveSettings();
 			}
+			await this.host.reloadWrittenFile(current.path);
+		});
+	}
+
+	async setTaskPriority(task: ScannedTask, priority: string): Promise<void> {
+		await this.enqueue(async () => {
+			const current = this.current(task);
+			if ((current.priority ?? "") === priority) return;
+			const file = this.app.vault.getAbstractFileByPath(current.path);
+			if (!(file instanceof TFile)) throw new Error("The source note no longer exists.");
+			await this.app.vault.process(file, (content) => {
+				const block = taskBlock(content, current).lines;
+				block[0] = writeTaskPriority(block[0], priority);
+				return replaceTaskBlock(content, current, block);
+			});
 			await this.host.reloadWrittenFile(current.path);
 		});
 	}

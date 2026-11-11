@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.24 — 2026-11-11
+
+- Rename **Canvas** to **Kanban**. If Canvas was your default view, Kanban stays your default.
+- Drag cards between date or priority columns. Use **Move to…** on a card to make the same changes with touch or keyboard.
+- Moving a card to another day keeps its time, duration, deadline span, and repeat rule. Dropping in Unscheduled clears the schedule and repeat rule.
+- Moving between priority columns changes only the priority in the source note. Drop in No priority to clear it.
+
+Validation: production build and 1,177 checks across 42 suites pass. Browser
+checks cover dragging between dates and priorities, scrolling during a drag,
+cancelling a drag, and moving a card on a narrow screen.
+
 ## 0.5.23 — 2026-11-11
 
 - Add the **Canvas** task board beside Today and Planner. Schedule grouping shows Unscheduled and seven dated columns, with week navigation and a date picker.

@@ -63,7 +63,7 @@ export interface ScannedTask extends Schedule {
 }
 
 export type PlannerTheme = "inherit" | "light" | "dark";
-export type TaskViewMode = "planner" | "notes" | "today" | "canvas";
+export type TaskViewMode = "planner" | "notes" | "today" | "kanban";
 
 export interface TaskLoopsSettings {
 	priorities: PriorityDefinition[];

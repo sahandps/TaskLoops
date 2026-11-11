@@ -1,9 +1,9 @@
 import { longDayLabel, shiftISO } from "./dates";
 import type { PriorityDefinition, ScannedTask, Schedule } from "./types";
 
-export const CANVAS_DAYS = 7;
+export const KANBAN_DAYS = 7;
 
-export interface CanvasFilters {
+export interface KanbanFilters {
 	group: "schedule" | "priority";
 	status: "open" | "completed" | "all";
 	query: string;
@@ -11,7 +11,7 @@ export interface CanvasFilters {
 	priority?: string;
 }
 
-interface CanvasColumn {
+interface KanbanColumn {
 	label: string;
 	schedule: Schedule;
 	color?: string;
@@ -19,16 +19,16 @@ interface CanvasColumn {
 	tasks: ScannedTask[];
 }
 
-export function canvasBoard(
+export function kanbanBoard(
 	tasks: ScannedTask[],
 	priorities: PriorityDefinition[],
 	start: string,
-	filters: CanvasFilters,
+	filters: KanbanFilters,
 ) {
-	const columns = new Map<string, CanvasColumn>();
+	const columns = new Map<string, KanbanColumn>();
 	if (filters.group === "schedule") {
 		columns.set("", { label: "Unscheduled", schedule: {}, tasks: [] });
-		for (let offset = 0; offset < CANVAS_DAYS; offset++) {
+		for (let offset = 0; offset < KANBAN_DAYS; offset++) {
 			const due = shiftISO(start, offset);
 			columns.set(due, { label: longDayLabel(due), schedule: { due }, tasks: [] });
 		}

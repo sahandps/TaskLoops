@@ -1,27 +1,31 @@
 import type { TaskActions } from "../../application/task-actions";
-import { CANVAS_DAYS, canvasBoard, type CanvasFilters } from "../../core/canvas-board";
+import { KANBAN_DAYS, kanbanBoard, type KanbanFilters } from "../../core/kanban-board";
 import { shiftISO, todayISO } from "../../core/dates";
-import type { ScannedTask } from "../../core/types";
+import { moveTaskToDay } from "../../core/planner-schedule";
+import type { ScannedTask, Schedule } from "../../core/types";
 import { renderTaskCard } from "../components/task-card";
+import type { TaskDragController } from "../interactions/task-drag-controller";
+import { attachBoardDragScroll } from "../interactions/board-drag-scroll";
 
-export interface CanvasViewState extends CanvasFilters {
+export interface KanbanViewState extends KanbanFilters {
 	start?: string;
 }
 
-export function renderCanvasView(
+export function renderKanbanView(
 	root: HTMLElement,
 	actions: TaskActions,
-	state: CanvasViewState,
+	state: KanbanViewState,
 	edit: (task: ScannedTask) => void,
 	defer: (task: ScannedTask) => void,
+	drag: TaskDragController,
 ) {
-	const pane = root.createEl("main", { cls: "tl-canvas-pane", attr: { "aria-label": "Task canvas" } });
-	const toolbar = pane.createDiv("tl-canvas-toolbar");
+	const pane = root.createEl("main", { cls: "tl-kanban-pane", attr: { "aria-label": "Task kanban" } });
+	const toolbar = pane.createDiv("tl-kanban-toolbar");
 	function select(label: string, options: [string, string][], value: string) {
 		const field = toolbar.createEl("label");
 		field.createSpan({ text: label });
 		const control = field.createEl("select", { attr: { "aria-label": label } });
-		for (const [value, text] of options) control.createEl("option", { value, text });
+		for (const [value, text] of options) control.createEl("option", { attr: { value }, text });
 		control.value = value;
 		return control;
 	}
@@ -43,10 +47,10 @@ export function renderCanvasView(
 		state.status,
 	);
 	const search = toolbar.createEl("input", {
-		cls: "tl-canvas-search",
+		cls: "tl-kanban-search",
 		type: "search",
 		placeholder: "Search tasks or notes",
-		attr: { "aria-label": "Search canvas tasks or notes" },
+		attr: { "aria-label": "Search kanban tasks or notes" },
 	});
 	search.value = state.query;
 
@@ -74,17 +78,18 @@ export function renderCanvasView(
 		priority.value = ":all";
 	}
 
-	const nav = toolbar.createDiv("tl-canvas-nav");
+	const nav = toolbar.createDiv("tl-kanban-nav");
 	const previous = nav.createEl("button", { text: "←", attr: { "aria-label": "Previous seven days" } });
 	const today = nav.createEl("button", { text: "Today" });
 	const date = nav.createEl("input", { type: "date", attr: { "aria-label": "First day shown" } });
 	date.value = state.start ?? todayISO();
 	const next = nav.createEl("button", { text: "→", attr: { "aria-label": "Next seven days" } });
-	const summary = pane.createDiv({ cls: "tl-canvas-summary", attr: { role: "status" } });
+	const summary = pane.createDiv({ cls: "tl-kanban-summary", attr: { role: "status" } });
 	const board = pane.createDiv({
-		cls: "tl-canvas-board",
+		cls: "tl-kanban-board",
 		attr: { tabindex: "0", "aria-label": "Task columns" },
 	});
+	attachBoardDragScroll(board, () => drag.active);
 
 	function draw(resetScroll = false) {
 		const left = resetScroll ? 0 : board.scrollLeft;
@@ -93,20 +98,27 @@ export function renderCanvasView(
 		const bySchedule = state.group === "schedule";
 		nav.hidden = !bySchedule;
 		if (priority.parentElement) priority.parentElement.hidden = !bySchedule;
-		const { columns, outsideRange } = canvasBoard(tasks, priorities, date.value, state);
+		const { columns, outsideRange } = kanbanBoard(tasks, priorities, date.value, state);
+		const key = (schedule: Schedule) => (bySchedule ? schedule.due : schedule.priority) ?? "";
+		const move = (task: ScannedTask, target: Schedule) => {
+			if (key(task) === key(target)) return;
+			if (bySchedule) void actions.schedule(task, target.due ? moveTaskToDay(task, target.due) : {});
+			else void actions.setTaskPriority(task, target.priority ?? "");
+		};
 		summary.hidden = outsideRange === 0;
 		summary.setText(
 			outsideRange === 1 ? "1 task outside these dates" : `${outsideRange} tasks outside these dates`,
 		);
 		for (const { label, schedule, color, archived, tasks } of columns) {
 			const column = board.createEl("section", {
-				cls: "tl-canvas-column",
+				cls: "tl-kanban-column",
 				attr: { "aria-label": label },
 			});
-			const header = column.createDiv("tl-canvas-column-header");
-			if (color) header.style.setProperty("--tl-canvas-color", color);
+			if (!archived) drag.dropTarget(column, (task) => move(task, schedule));
+			const header = column.createDiv("tl-kanban-column-header");
+			if (color) header.style.setProperty("--tl-kanban-color", color);
 			header.createEl("h3", { text: label });
-			header.createSpan({ cls: "tl-canvas-count", text: String(tasks.length) });
+			header.createSpan({ cls: "tl-kanban-count", text: String(tasks.length) });
 			if (!archived)
 				header.createEl("button", {
 					text: "+",
@@ -116,8 +128,27 @@ export function renderCanvasView(
 						...schedule,
 						...(bySchedule && state.priority ? { priority: state.priority } : {}),
 					});
-			const cards = column.createDiv("tl-canvas-cards");
-			for (const task of tasks) renderTaskCard(cards, task, true, actions, edit, () => {}, defer);
+			const cards = column.createDiv("tl-kanban-cards");
+			for (const task of tasks) {
+				const card = renderTaskCard(cards, task, true, actions, edit, () => {}, defer);
+				drag.makeDraggable(card, task);
+				const targets = columns.filter(
+					({ archived, schedule }) => !archived && key(schedule) !== key(task),
+				);
+				if (!targets.length) continue;
+				const picker = card.createEl("select", {
+					cls: "tl-kanban-move",
+					attr: { "aria-label": "Move " + task.text },
+				});
+				picker.createEl("option", { text: "Move to…", value: ":pick" });
+				for (const { label, schedule } of targets)
+					picker.createEl("option", { text: label, attr: { value: key(schedule) } });
+				picker.onchange = () => {
+					const target = targets.find(({ schedule }) => key(schedule) === picker.value);
+					picker.value = ":pick";
+					if (target) move(task, target.schedule);
+				};
+			}
 			if (!tasks.length) cards.createDiv({ cls: "tl-empty", text: "No tasks" });
 		}
 		board.scrollLeft = left;
@@ -145,8 +176,8 @@ export function renderCanvasView(
 		date.value = start ?? todayISO();
 		draw(true);
 	}
-	previous.onclick = () => setStart(shiftISO(state.start ?? todayISO(), -CANVAS_DAYS));
-	next.onclick = () => setStart(shiftISO(state.start ?? todayISO(), CANVAS_DAYS));
+	previous.onclick = () => setStart(shiftISO(state.start ?? todayISO(), -KANBAN_DAYS));
+	next.onclick = () => setStart(shiftISO(state.start ?? todayISO(), KANBAN_DAYS));
 	today.onclick = () => setStart();
 	date.onchange = () => setStart(/^\d{4}-\d{2}-\d{2}$/.test(date.value) ? date.value : undefined);
 	draw();

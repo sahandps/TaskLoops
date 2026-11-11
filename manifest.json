@@ -1,9 +1,9 @@
 {
 	"id": "taskloops",
 	"name": "TaskLoops",
-	"version": "0.5.23",
+	"version": "0.5.24",
 	"minAppVersion": "1.7.2",
-	"description": "Plan Markdown tasks with a Canvas board, calendars, timelines and Gantt charts. Set priorities, track deadlines, and find overdue tasks.",
+	"description": "Plan Markdown tasks with a Kanban board, calendars, timelines and Gantt charts. Set priorities, track deadlines, and find overdue tasks.",
 	"author": "Sahand Poursadeghi Khiavi",
 	"authorUrl": "https://github.com/sahandps",
 	"fundingUrl": "https://buymeacoffee.com/sahandprs",

@@ -1,6 +1,6 @@
 import { captureTimeGridViewport } from "../interactions/calendar-viewport";
 import { renderTodayView } from "./today-view";
-import { renderCanvasView, type CanvasViewState } from "./canvas-view";
+import { renderKanbanView, type KanbanViewState } from "./kanban-view";
 import { attachTodayClock } from "../interactions/today-clock";
 import { applyPlannerTheme } from "../components/planner-theme";
 import { TaskDeferralModal } from "../modals/task-deferral";
@@ -31,7 +31,7 @@ export class TaskLoopsView extends ItemView {
 		expandedNotes: new Set(),
 		collapsedNotes: new Set(),
 	};
-	private canvasState: CanvasViewState = { group: "schedule", status: "open", query: "" };
+	private kanbanState: KanbanViewState = { group: "schedule", status: "open", query: "" };
 	scale: CalendarScale;
 	anchor = todayISO();
 	private dragController = new TaskDragController(
@@ -57,7 +57,7 @@ export class TaskLoopsView extends ItemView {
 			Platform.isMobile && plugin.settings.lastScale === "week" ? "day" : plugin.settings.lastScale;
 		this.state.mode = plugin.settings.defaultView ?? "planner";
 		this.state.showDone = plugin.settings.showCompleted ?? false;
-		this.canvasState.status = this.state.showDone ? "all" : "open";
+		this.kanbanState.status = this.state.showDone ? "all" : "open";
 	}
 	getViewType(): string {
 		return VIEW_TYPE_TASKLOOPS;
@@ -122,8 +122,8 @@ export class TaskLoopsView extends ItemView {
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
 		const todayScroll = root.querySelector(".tl-today-pane")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
-		const canvas = root.querySelector(".tl-canvas-board");
-		const canvasScroll = [canvas?.scrollLeft ?? 0, canvas?.scrollTop ?? 0] as const;
+		const kanban = root.querySelector(".tl-kanban-board");
+		const kanbanScroll = [kanban?.scrollLeft ?? 0, kanban?.scrollTop ?? 0] as const;
 		const nextCalendarKey =
 			this.scale +
 			":" +
@@ -147,8 +147,8 @@ export class TaskLoopsView extends ItemView {
 			editorHost && active instanceof HTMLElement && editorHost.contains(active) ? active : null;
 		const searchFocused = active instanceof HTMLInputElement && active.classList.contains("tl-search");
 		const selection = searchFocused ? active.selectionStart : null;
-		const canvasSearchFocused =
-			active instanceof HTMLInputElement && active.classList.contains("tl-canvas-search");
+		const kanbanSearchFocused =
+			active instanceof HTMLInputElement && active.classList.contains("tl-kanban-search");
 		const todayFocus = root.contains(active) ? active?.getAttribute("data-today-focus") : null;
 		this.disposeToday?.();
 		this.disposeToday = null;
@@ -163,16 +163,17 @@ export class TaskLoopsView extends ItemView {
 			editorFocus?.focus({ preventScroll: true });
 		};
 		renderViewHeader(root, this.plugin, this.state, () => this.render());
-		if (this.state.mode === "canvas") {
-			const { board, search } = renderCanvasView(
+		if (this.state.mode === "kanban") {
+			const { board, search } = renderKanbanView(
 				root,
 				this.plugin,
-				this.canvasState,
+				this.kanbanState,
 				(task) => this.edit(task),
 				(task) => new TaskDeferralModal(this.app, this.plugin, task).open(),
+				this.dragController,
 			);
-			[board.scrollLeft, board.scrollTop] = canvasScroll;
-			if (canvasSearchFocused) search.focus({ preventScroll: true });
+			[board.scrollLeft, board.scrollTop] = kanbanScroll;
+			if (kanbanSearchFocused) search.focus({ preventScroll: true });
 			restoreEditor();
 			return;
 		}

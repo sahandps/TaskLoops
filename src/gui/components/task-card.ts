@@ -37,7 +37,7 @@ export function renderTaskCard(
 		attr: { "aria-label": "Edit " + task.text },
 	}).onclick = open;
 	card.onclick = (event) => {
-		if (event.target instanceof Element && !event.target.closest("button, input, a")) open();
+		if (event.target instanceof Element && !event.target.closest("button, input, select, a")) open();
 	};
 	priorityBadge(row, task, actions.settings);
 	const schedule = row.createEl("button", {

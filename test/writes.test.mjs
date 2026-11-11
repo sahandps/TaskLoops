@@ -50,6 +50,13 @@ export default async function run(mod) {
 	const existing = plugin.allTasks().find((task) => task.text === "Existing");
 	plugin.items = { [existing.id]: { id: existing.id, path: existing.path, text: existing.text, due: "2026-10-20", bucket: "waiting" } };
 	eq(plugin.allTasks().find((task) => task.id === existing.id).due, "2026-10-20", "legacy date remains visible");
+	const beforePriority = content;
+	await plugin.setTaskPriority(existing, "high");
+	eq(content, beforePriority.replace("- [ ] Existing", "- [ ] Existing <!-- taskloops-priority:high -->"), "priority move changes just the task marker");
+	eq(plugin.allTasks().find((task) => task.id === existing.id).due, "2026-10-20", "priority move preserves the legacy schedule");
+	eq(plugin.allTasks().find((task) => task.id === existing.id).priority, "high", "the board can regroup using the rescanned priority");
+	await plugin.setTaskPriority(existing, "");
+	eq(content, beforePriority, "moving to No priority removes the marker without a date rewrite");
 	await plugin.schedule(existing, {});
 	eq(plugin.allTasks().find((task) => task.id === existing.id).due, undefined, "clearing schedule clears legacy fallback");
 	eq(data.items[existing.id].bucket, "waiting", "legacy GTD data retained as backup");

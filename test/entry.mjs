@@ -69,4 +69,4 @@ export { renderDailyCalendar } from "../src/gui/components/daily-calendar.ts";
 export { taskEditorPresentation, taskEditorMeasure, TASK_EDITOR_DOCK_MIN_WIDTH } from "../src/gui/modals/task-editor-host.ts";
 
 export * from "../src/core/repeat.ts";
-export { canvasBoard } from "../src/core/canvas-board.ts";
+export { kanbanBoard } from "../src/core/kanban-board.ts";

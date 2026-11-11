@@ -9,7 +9,7 @@ import {
 import { todayISO } from "../src/core/dates.ts";
 import { TaskModal } from "../src/gui/modals/task-create.ts";
 import { DEFAULT_SETTINGS } from "../src/core/types.ts";
-import { parseSchedule, writeSchedule } from "../src/core/schedule.ts";
+import { parseSchedule, writeSchedule, writeTaskPriority } from "../src/core/schedule.ts";
 import { nextRepeatSchedule } from "../src/core/repeat.ts";
 import { makeTask } from "./sample-data.mjs";
 import { showNotePreview } from "./note-preview.mjs";
@@ -54,6 +54,13 @@ export function createPreviewActions(app, store, onChange) {
 			};
 			store.tasks[index].repeat = parseSchedule(store.tasks[index].raw).schedule.repeat;
 			updateHistory(store.tasks[index], schedule.due);
+			persist();
+		},
+		setTaskPriority: async (task, priority) => {
+			const current = store.tasks.find((item) => item.id === task.id);
+			if (!current) return;
+			current.raw = writeTaskPriority(current.raw, priority);
+			current.priority = priority || undefined;
 			persist();
 		},
 		complete: async (task) => {

@@ -11,7 +11,7 @@ lets you schedule, resize and edit them without managing note properties.
 
 - Open **Today** for a mobile daily agenda with clear time sections and direct task actions.
 - Plan in **Day, Week, Month and Year** views, plus a resource **Timeline** and **Gantt**.
-- Open **Canvas** for a task board grouped by schedule or priority.
+- Open **Kanban** for a task board grouped by schedule or priority.
 - Set a **Deadline** to stretch a task from its due date through its last day.
   Multi-day tasks appear in Calendar’s all-day row, even when they have a time.
 - Switch to **Notes**, a searchable task grid grouped by source note.
@@ -25,9 +25,9 @@ lets you schedule, resize and edit them without managing note properties.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
 
-## Canvas board
+## Kanban board
 
-Choose **Canvas** beside **Today** and **Planner**. **Group by → Schedule** shows
+Choose **Kanban** beside **Today** and **Planner**. **Group by → Schedule** shows
 an **Unscheduled** column and seven dated columns starting today. Use the arrows
 to move a week at a time, pick a start date to jump, or click **Today** to return.
 Tasks with a date outside the displayed week are counted below the filters.
@@ -38,6 +38,12 @@ priorities**. Set a task's priority in its editor. Both board layouts let you
 search by task or note and show open, completed, or all tasks. In Schedule you
 can also filter by priority. Use a column's **+** to start a task with that date
 or priority filled in.
+
+Drag a card to another column, or use **Move to…** on the card with touch or
+keyboard. In Schedule, moving to another day keeps the start time, duration,
+and deadline span. Moving to **Unscheduled** clears the schedule and any
+repeat rule. In Priority, moving a card changes only its priority; **No
+priority** clears it.
 
 ## Daily notes
 
@@ -474,7 +480,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.23 — Canvas task board.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.24 — Kanban with drag and drop.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
