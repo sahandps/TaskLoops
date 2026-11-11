@@ -86,6 +86,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 				render: (setting) => {
 					setting.addDropdown((dropdown) =>
 						dropdown
+							.addOption("dashboard", "Dashboard")
 							.addOption("today", "Today · daily agenda")
 							.addOption("planner", "Planner")
 							.addOption("kanban", "Kanban · task board")
@@ -93,7 +94,10 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 							.setValue(this.plugin.settings.defaultView)
 							.onChange(async (value) => {
 								this.plugin.settings.defaultView =
-									value === "today" || value === "notes" || value === "kanban"
+									value === "dashboard" ||
+									value === "today" ||
+									value === "notes" ||
+									value === "kanban"
 										? value
 										: "planner";
 								await save();

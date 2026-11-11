@@ -103,6 +103,7 @@ export class PlannerSettingsModal extends Modal {
 			"Shown when TaskLoops starts.",
 			draft.defaultView,
 			[
+				["dashboard", "Dashboard"],
 				["today", "Today"],
 				["planner", "Planner"],
 				["kanban", "Kanban"],

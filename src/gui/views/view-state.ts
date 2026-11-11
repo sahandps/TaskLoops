@@ -3,11 +3,14 @@ import type { PlannerTaskFilter } from "../../core/task-review";
 import type { NoteFilter } from "../../core/note-grid";
 import type { TaskViewMode } from "../../core/types";
 
+export type DashboardPage = { kind: "overview" | "inbox" | "projects" } | { kind: "project"; path: string };
+
 export interface TaskViewState {
 	query: string;
 	showDone: boolean;
 	completionTab?: CompletionTab;
 	todayExpanded?: Set<string>;
+	dashboardPage?: DashboardPage;
 	taskFilter: PlannerTaskFilter;
 	mode: TaskViewMode;
 	noteFilter: NoteFilter;

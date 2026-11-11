@@ -1,5 +1,6 @@
 import { captureTimeGridViewport } from "../interactions/calendar-viewport";
 import { renderTodayView } from "./today-view";
+import { renderDashboardView } from "./dashboard-view";
 import {
 	captureKanbanScroll,
 	renderKanbanView,
@@ -10,7 +11,7 @@ import { attachTodayClock } from "../interactions/today-clock";
 import { applyPlannerTheme } from "../components/planner-theme";
 import { TaskDeferralModal } from "../modals/task-deferral";
 import { TaskDragController } from "../interactions/task-drag-controller";
-import type { TaskViewState } from "./view-state";
+import type { DashboardPage, TaskViewState } from "./view-state";
 import { renderNotesView } from "./notes-view";
 import { renderPlannerSidebar } from "../components/planner-sidebar";
 import { renderTaskCard } from "../components/task-card";
@@ -30,7 +31,7 @@ export class TaskLoopsView extends ItemView {
 		query: "",
 		showDone: false,
 		taskFilter: "undated",
-		mode: "planner",
+		mode: "dashboard",
 		noteFilter: "open",
 		folder: null,
 		expandedNotes: new Set(),
@@ -60,7 +61,7 @@ export class TaskLoopsView extends ItemView {
 		super(leaf);
 		this.scale =
 			Platform.isMobile && plugin.settings.lastScale === "week" ? "day" : plugin.settings.lastScale;
-		this.state.mode = plugin.settings.defaultView ?? "planner";
+		this.state.mode = plugin.settings.defaultView ?? "dashboard";
 		this.state.showDone = plugin.settings.showCompleted ?? false;
 	}
 	getViewType(): string {
@@ -114,6 +115,26 @@ export class TaskLoopsView extends ItemView {
 		this.render();
 	}
 
+	private showDashboardPage(page: DashboardPage): void {
+		this.state.dashboardPage = page;
+		this.render();
+		const pane = this.contentEl.querySelector<HTMLElement>(".tl-dashboard-pane");
+		if (pane) {
+			pane.scrollTop = 0;
+			pane.querySelector<HTMLElement>("[data-dash-focus=heading]")?.focus({ preventScroll: true });
+		}
+	}
+
+	private openDashboardView(mode: "today" | "planner", day?: string): void {
+		if (day) {
+			this.anchor = day;
+			this.scale = "day";
+		}
+		this.state.mode = mode;
+		this.render();
+		this.contentEl.querySelector<HTMLElement>(`[data-tl-view="${mode}"]`)?.focus();
+	}
+
 	render(): void {
 		if (this.dragController.active || this.resizing) {
 			this.pending = true;
@@ -125,6 +146,7 @@ export class TaskLoopsView extends ItemView {
 		syncTaskEditor(root, this.plugin.settings.theme);
 		const sideScroll = root.querySelector(".tl-task-list")?.scrollTop ?? 0;
 		const todayScroll = root.querySelector(".tl-today-pane")?.scrollTop ?? 0;
+		const dashboardScroll = root.querySelector(".tl-dashboard-pane")?.scrollTop ?? 0;
 		const notesScroll = root.querySelector(".tl-notes-pane")?.scrollTop ?? 0;
 		const kanban = root.querySelector<HTMLElement>(".tl-kanban-board");
 		const kanbanScroll = kanban ? captureKanbanScroll(kanban) : undefined;
@@ -154,6 +176,7 @@ export class TaskLoopsView extends ItemView {
 		const kanbanSearchFocused =
 			active instanceof HTMLInputElement && active.classList.contains("tl-kanban-search");
 		const todayFocus = root.contains(active) ? active?.getAttribute("data-today-focus") : null;
+		const dashFocus = root.contains(active) ? active?.getAttribute("data-dash-focus") : null;
 		this.disposeToday?.();
 		this.disposeToday = null;
 		this.disposeDivider?.();
@@ -167,6 +190,32 @@ export class TaskLoopsView extends ItemView {
 			editorFocus?.focus({ preventScroll: true });
 		};
 		renderViewHeader(root, this.plugin, this.state, () => this.render());
+		if (this.state.mode === "dashboard") {
+			const page = this.state.dashboardPage ?? { kind: "overview" };
+			const pane = renderDashboardView(root, this.plugin, {
+				page,
+				show: (next) => this.showDashboardPage(next),
+				openToday: () => this.openDashboardView("today"),
+				openPlanner: (day) => this.openDashboardView("planner", day),
+				edit: (task) => this.edit(task),
+			});
+			pane.scrollTop = dashboardScroll;
+			if (dashFocus) {
+				const controls = Array.from(
+					pane.querySelectorAll<HTMLElement>("[data-dash-focus]:not(:disabled)"),
+				);
+				const control =
+					controls.find((element) => element.dataset.dashFocus === dashFocus) ??
+					controls.find(
+						(element) => element.dataset.dashFocus === dashFocus.replace(/^complete:/, "edit:"),
+					) ??
+					controls[0];
+				control?.focus({ preventScroll: true });
+			}
+			if (page.kind === "overview") this.disposeToday = attachTodayClock(root, () => this.render());
+			restoreEditor();
+			return;
+		}
 		if (this.state.mode === "kanban") {
 			const { board, search } = renderKanbanView(
 				root,

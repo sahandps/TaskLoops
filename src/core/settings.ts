@@ -45,7 +45,7 @@ export function normalizeSettings(
 	if (!DATE_FORMATS.includes(settings.dateFormat)) settings.dateFormat = DEFAULT_SETTINGS.dateFormat;
 	if (!["day", "week", "month", "year", "timeline", "gantt"].includes(settings.lastScale))
 		settings.lastScale = "week";
-	if (!["planner", "notes", "today", "kanban"].includes(settings.defaultView))
+	if (!["dashboard", "planner", "notes", "today", "kanban"].includes(settings.defaultView))
 		settings.defaultView = "planner";
 	if (!["open", "completed", "all"].includes(settings.kanbanStatus)) settings.kanbanStatus = "open";
 	if (![3, 5, 10].includes(settings.notePreviewLimit)) settings.notePreviewLimit = 5;

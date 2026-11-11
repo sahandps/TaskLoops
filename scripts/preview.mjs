@@ -14,5 +14,9 @@ const context = await esbuild.context({
 	logLevel: "info",
 });
 await context.watch();
-await context.serve({ servedir: ".", host: "127.0.0.1", port: 5173 });
-console.log("TaskLoops preview: http://127.0.0.1:5173/preview/");
+const { host, port } = await context.serve({
+	servedir: ".",
+	host: "127.0.0.1",
+	port: Number(process.env.TASKLOOPS_PREVIEW_PORT ?? 5173),
+});
+console.log(`TaskLoops preview: http://${host}:${port}/preview/`);

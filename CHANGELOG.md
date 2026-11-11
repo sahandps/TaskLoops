@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.26 — 2026-11-11
+
+- Add **Dashboard** for today's tasks, time blocks, project progress by note, and an inbox for open tasks without a date. Check off tasks or open their existing editor from the dashboard.
+- Use **Plan today** to schedule an inbox task without moving it to another note. **Open planner** jumps to today's Day calendar.
+- Keep **Today**, **Planner**, **Kanban**, and **Notes** in the view switcher. New setups open Dashboard; existing default-view preferences are preserved.
+
+Validation: production build and 1,187 checks across 43 suites pass. Browser
+checks cover shared completion and scheduling, calendar navigation, Kanban
+moves, and the narrow dashboard layout.
+
 ## 0.5.25 — 2026-11-11
 
 - Scroll vertically within each Kanban column. Column headers and neighboring cards stay visible while you browse long lists; horizontal scrolling still reaches the other columns.

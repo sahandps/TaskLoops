@@ -12,6 +12,7 @@ export function renderViewHeader(
 	header.createEl("h2", { text: "TaskLoops" });
 	const views = header.createDiv({ cls: "tl-view-switch", attr: { "aria-label": "TaskLoops views" } });
 	for (const [value, label] of [
+		["dashboard", "Dashboard"],
 		["today", "Today"],
 		["planner", "Planner"],
 		["kanban", "Kanban"],
@@ -19,11 +20,13 @@ export function renderViewHeader(
 	] as const) {
 		const button = views.createEl("button", {
 			text: label,
-			attr: { "aria-pressed": String(state.mode === value) },
+			attr: { "aria-pressed": String(state.mode === value), "data-tl-view": value },
 		});
 		button.onclick = () => {
 			state.mode = value;
+			if (value === "dashboard") state.dashboardPage = undefined;
 			onChange();
+			root.querySelector<HTMLElement>(`[data-tl-view="${value}"]`)?.focus();
 		};
 	}
 	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () =>

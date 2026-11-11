@@ -9,6 +9,7 @@ lets you schedule, resize and edit them without managing note properties.
 
 ![TaskLoops planner with note-grouped tasks and a daily calendar](docs/images/day-planner.jpg)
 
+- Open **Dashboard** for today's tasks, time blocks, project progress, and an inbox for unscheduled tasks.
 - Open **Today** for a mobile daily agenda with clear time sections and direct task actions.
 - Plan in **Day, Week, Month and Year** views, plus a resource **Timeline** and **Gantt**.
 - Open **Kanban** for a task board grouped by schedule or priority.
@@ -25,9 +26,23 @@ lets you schedule, resize and edit them without managing note properties.
 - Keep standalone tasks in one configurable note and project tasks under a `Tasks` heading.
 
 
+## Dashboard
+
+**Dashboard** uses the same tasks as **Today**, **Planner**, **Kanban**, and
+**Notes**. Check off a task or click it to edit it in place. **Open planner**
+jumps to today's Day calendar, where you can schedule or resize time blocks.
+
+**Active projects** groups tasks by source note and shows how many checkboxes
+are complete. Open a project to see its tasks, add a task to that note, or open
+the note itself. **Inbox** shows open tasks with no scheduled date. **Plan today**
+puts one on today's schedule without moving it to another note.
+
+Dashboard is the starting view for new setups. Change **Default view** in
+TaskLoops settings if you prefer to open another view.
+
 ## Kanban board
 
-Choose **Kanban** beside **Today** and **Planner**. **Group by → Schedule** shows
+Choose **Kanban** in the view switcher. **Group by → Schedule** shows
 an **Unscheduled** column and seven dated columns starting today. Use the arrows
 to move a week at a time, pick a start date to jump, or click **Today** to return.
 Tasks with a date outside the displayed week are counted below the filters.
@@ -484,7 +499,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.25 — independent Kanban scrolling.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.26 — Dashboard, project progress, and inbox.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
