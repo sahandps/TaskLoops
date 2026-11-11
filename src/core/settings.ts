@@ -38,6 +38,13 @@ export function normalizeSettings(
 			saved?.projectColors && typeof saved.projectColors === "object" ? saved.projectColors : {},
 		).filter(([, color]) => validColor(color)),
 	);
+	settings.projectNotes = [
+		...new Set(
+			(Array.isArray(saved?.projectNotes) ? saved.projectNotes : []).filter(
+				(path): path is string => typeof path === "string" && /\.md$/i.test(path),
+			),
+		),
+	];
 	settings.timeSlotHeight = slotHeight(settings.timeSlotHeight);
 	if (!["inherit", "light", "dark"].includes(settings.theme)) settings.theme = "inherit";
 	if (typeof settings.showWeekNumbers !== "boolean") settings.showWeekNumbers = true;

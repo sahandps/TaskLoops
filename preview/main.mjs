@@ -14,7 +14,9 @@ const app = {
 	metadataCache: { fileToLinktext: (file) => file.path.replace(/\.md$/, "") },
 	vault: {
 		getMarkdownFiles: () =>
-			[...new Set(store.tasks.map((task) => task.path))].map((path) => new TFile(path)),
+			[...new Set(["Projects/Reading list.md", ...store.tasks.map((task) => task.path)])].map(
+				(path) => new TFile(path),
+			),
 		getAbstractFileByPath: (path) => new TFile(path),
 	},
 };

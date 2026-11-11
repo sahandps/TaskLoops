@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.27 — 2026-11-11
+
+- Projects now starts empty. Use **+ Add project** on the dashboard to choose an existing note, even if it has no tasks yet.
+- Use **Manage projects → Remove project** to stop tracking a note. The note and its tasks stay intact, and the tasks remain available in the other views.
+- Project selections survive reloads and follow notes when they are moved or renamed.
+
+Validation: production build and 1,193 checks across 43 suites pass. Browser
+checks cover adding notes with and without tasks, persisting selections, and
+removing a project without changing its tasks.
+
 ## 0.5.26 — 2026-11-11
 
 - Add **Dashboard** for today's tasks, time blocks, project progress by note, and an inbox for open tasks without a date. Check off tasks or open their existing editor from the dashboard.

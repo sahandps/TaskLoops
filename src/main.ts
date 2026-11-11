@@ -3,7 +3,8 @@ import { DailyNotes } from "./infrastructure/obsidian/daily-notes";
 import { DailyCalendarView, VIEW_TYPE_DAILY_CALENDAR } from "./gui/views/daily-calendar-view";
 import { TaskService } from "./application/task-service";
 import { normalizeSettings } from "./core/settings";
-import { Notice, Platform, Plugin, TFile } from "obsidian";
+import { movedProjectNotes } from "./core/dashboard";
+import { Notice, Platform, Plugin, TFile, type TAbstractFile } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsData, TaskLoopsSettings } from "./core/types";
 import { DEFAULT_SETTINGS } from "./core/types";
 import { scanFile, scanVault } from "./infrastructure/obsidian/task-repository";
@@ -131,8 +132,20 @@ export default class TaskLoopsPlugin extends Plugin {
 				);
 			}),
 		);
-		this.registerEvent(this.app.vault.on("delete", () => void this.rescan()));
-		this.registerEvent(this.app.vault.on("rename", () => void this.rescan()));
+		this.registerEvent(this.app.vault.on("delete", (file) => this.onVaultPathChange(file, file.path)));
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => this.onVaultPathChange(file, oldPath, file.path)),
+		);
+	}
+
+	private onVaultPathChange(file: TAbstractFile, oldPath: string, newPath?: string): void {
+		const previous = this.settings.projectNotes;
+		const next = movedProjectNotes(previous, oldPath, newPath, !(file instanceof TFile));
+		if (next.length !== previous.length || next.some((path, index) => path !== previous[index])) {
+			this.settings.projectNotes = next;
+			void this.saveSettings().catch((error) => this.report(error, "Could not save project notes."));
+		}
+		void this.rescan();
 	}
 
 	onunload(): void {

@@ -6,9 +6,10 @@ export class NotePicker extends FuzzySuggestModal<string> {
 		private standalone: string,
 		private onPick: (path: string) => void,
 		private choices?: string[],
+		placeholder = choices ? "Search notes with available tasks…" : "Search project notes…",
 	) {
 		super(app);
-		this.setPlaceholder(choices ? "Search notes with available tasks…" : "Search project notes…");
+		this.setPlaceholder(placeholder);
 		this.setInstructions([
 			{ command: "↑ ↓", purpose: "navigate notes" },
 			{ command: "↵", purpose: "pick project" },

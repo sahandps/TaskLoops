@@ -16,11 +16,17 @@ import { renderNotesView } from "./notes-view";
 import { renderPlannerSidebar } from "../components/planner-sidebar";
 import { renderTaskCard } from "../components/task-card";
 import { renderViewHeader } from "../components/view-header";
-import { ItemView, Platform, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, Platform, WorkspaceLeaf } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { CalendarScale, ScannedTask } from "../../core/types";
 import { todayISO } from "../../core/dates";
-import { closeTaskEditor, detachTaskEditor, openTaskEditor, syncTaskEditor } from "../modals/index";
+import {
+	closeTaskEditor,
+	detachTaskEditor,
+	NotePicker,
+	openTaskEditor,
+	syncTaskEditor,
+} from "../modals/index";
 import { renderCalendar } from "../calendar/calendar-view";
 import { addPanelDivider } from "../interactions/panel-resize";
 
@@ -135,6 +141,40 @@ export class TaskLoopsView extends ItemView {
 		this.contentEl.querySelector<HTMLElement>(`[data-tl-view="${mode}"]`)?.focus();
 	}
 
+	private addDashboardProject(): void {
+		const { standaloneNote, projectNotes } = this.plugin.settings;
+		const available = this.app.vault
+			.getMarkdownFiles()
+			.map((file) => file.path)
+			.filter((path) => path !== standaloneNote && !projectNotes.includes(path));
+		if (!available.length) {
+			new Notice("TaskLoops: No more notes to add as projects.");
+			return;
+		}
+		new NotePicker(
+			this.app,
+			standaloneNote,
+			(path) => void this.updateDashboardProject(path, true),
+			available,
+			"Search notes to add as a project…",
+		).open();
+	}
+
+	private async updateDashboardProject(path: string, selected: boolean): Promise<void> {
+		const settings = this.plugin.settings;
+		const previous = settings.projectNotes;
+		if (previous.includes(path) === selected) return;
+		const next = selected ? [...previous, path] : previous.filter((item) => item !== path);
+		settings.projectNotes = next;
+		try {
+			await this.plugin.saveSettings();
+			this.plugin.refreshViews();
+		} catch {
+			if (settings.projectNotes === next) settings.projectNotes = previous;
+			new Notice("TaskLoops: Could not save project notes.");
+		}
+	}
+
 	render(): void {
 		if (this.dragController.active || this.resizing) {
 			this.pending = true;
@@ -198,6 +238,8 @@ export class TaskLoopsView extends ItemView {
 				openToday: () => this.openDashboardView("today"),
 				openPlanner: (day) => this.openDashboardView("planner", day),
 				edit: (task) => this.edit(task),
+				addProject: () => this.addDashboardProject(),
+				removeProject: (path) => this.updateDashboardProject(path, false),
 			});
 			pane.scrollTop = dashboardScroll;
 			if (dashFocus) {

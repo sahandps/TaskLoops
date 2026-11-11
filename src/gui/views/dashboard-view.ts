@@ -17,6 +17,8 @@ interface DashboardNavigation {
 	openToday: () => void;
 	openPlanner: (day: string) => void;
 	edit: (task: ScannedTask) => void;
+	addProject: () => void;
+	removeProject: (path: string) => Promise<void>;
 }
 
 function button(parent: HTMLElement, text: string, click: () => void, cls = "tl-dash-link") {
@@ -36,7 +38,7 @@ export function renderDashboardView(
 	now = new Date(),
 ): HTMLElement {
 	const day = localDay(now);
-	const data = dashboardData(actions.allTasks(), day, actions.settings.standaloneNote);
+	const data = dashboardData(actions.allTasks(), day, actions.settings.projectNotes);
 	const pane = root.createEl("main", {
 		cls: "tl-dashboard-pane",
 		attr: { "aria-label": "TaskLoops dashboard" },
@@ -95,11 +97,7 @@ export function renderDashboardView(
 			control.setAttribute("data-dash-focus", "plan:" + task.id);
 		}
 	};
-	const projectGrid = (parent: HTMLElement, projects: Project[]) => {
-		if (!projects.length) {
-			empty(parent, "No project notes to show. Add a task to a note to start tracking it here.");
-			return;
-		}
+	const projectGrid = (parent: HTMLElement, projects: Project[], manage = false) => {
 		const grid = parent.createDiv("tl-dash-projects");
 		for (const item of projects) {
 			const name = actions.noteName(item.path);
@@ -118,8 +116,18 @@ export function renderDashboardView(
 			progress(card, item.completed, item.tasks.length, name + " progress");
 			card.createDiv({
 				cls: "tl-dash-meta",
-				text: `${item.completed} of ${item.tasks.length} complete`,
+				text: item.tasks.length ? `${item.completed} of ${item.tasks.length} complete` : "No tasks",
 			});
+			if (manage) {
+				const remove = button(card, "Remove project", () => {
+					remove.disabled = true;
+					void nav.removeProject(item.path).finally(() => {
+						remove.disabled = false;
+					});
+				});
+				remove.setAttribute("aria-label", "Remove project " + item.path);
+				remove.setAttribute("data-dash-focus", "remove:" + item.path);
+			}
 		}
 	};
 
@@ -148,8 +156,13 @@ export function renderDashboardView(
 		return pane;
 	}
 	if (nav.page.kind === "projects" || (nav.page.kind === "project" && !project)) {
-		headline("Projects", "Track the tasks in each source note.");
-		projectGrid(body, data.projects);
+		headline(
+			"Projects",
+			"Choose which notes to track. Removing a project leaves its note and tasks in place.",
+		);
+		button(hero, "+ Add project", nav.addProject, "mod-cta");
+		if (data.projects.length) projectGrid(body, data.projects, true);
+		else empty(body, "No projects yet. Add an existing note to get started.");
 		return pane;
 	}
 	if (project) {
@@ -167,6 +180,7 @@ export function renderDashboardView(
 		);
 		button(summary, "Open note ↗", () => void actions.openNote(project.path));
 		progress(panel, project.completed, project.tasks.length, name + " progress");
+		if (!project.tasks.length) empty(panel, "No tasks found in this project note.");
 		for (const task of project.tasks) taskRow(panel, task);
 		return pane;
 	}
@@ -231,7 +245,14 @@ export function renderDashboardView(
 		button(time, `See all ${data.timeBlocks.length} in Planner →`, () => nav.openPlanner(day));
 
 	const projects = body.createEl("section", { attr: { "aria-label": "Active projects" } });
-	button(heading(projects, "Active projects"), "All projects →", () => nav.show({ kind: "projects" }));
-	projectGrid(projects, data.activeProjects.slice(0, 3));
+	const projectHead = heading(projects, "Active projects");
+	button(projectHead, "+ Add project", nav.addProject, "tl-dash-small-button");
+	button(projectHead, "Manage projects →", () => nav.show({ kind: "projects" }));
+	if (data.activeProjects.length) projectGrid(projects, data.activeProjects.slice(0, 3));
+	else
+		empty(
+			projects,
+			data.projects.length ? "No active projects." : "Add a note to track it as a project.",
+		);
 	return pane;
 }

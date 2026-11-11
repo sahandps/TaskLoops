@@ -1,6 +1,6 @@
 {
   "name": "taskloops",
-  "version": "0.5.26",
+  "version": "0.5.27",
   "description": "Plan Markdown tasks with a Kanban board, calendars, timelines and Gantt charts. Set priorities, track deadlines, and find overdue tasks.",
   "main": "main.js",
   "scripts": {

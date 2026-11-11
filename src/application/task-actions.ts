@@ -15,6 +15,7 @@ export interface TaskActions {
 	allTasks(): ScannedTask[];
 	noteName(path: string): string;
 	saveSettings(): Promise<void>;
+	refreshViews(): void;
 	rescan(): Promise<void>;
 	newTask(schedule?: Schedule, path?: string): void;
 	schedule(task: ScannedTask, schedule: Schedule): Promise<void>;

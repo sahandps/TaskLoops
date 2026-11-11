@@ -69,6 +69,7 @@ export type KanbanStatus = "open" | "completed" | "all";
 export interface TaskLoopsSettings {
 	priorities: PriorityDefinition[];
 	projectColors: Record<string, string>;
+	projectNotes: string[];
 	theme: PlannerTheme;
 	showWeekNumbers: boolean;
 	showProgressBars: boolean;
@@ -102,6 +103,7 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 		{ id: "high", name: "High", color: "#bf4545" },
 	],
 	projectColors: {},
+	projectNotes: [],
 	theme: "inherit",
 	showWeekNumbers: true,
 	showProgressBars: true,

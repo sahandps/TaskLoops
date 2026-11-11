@@ -50,7 +50,7 @@ export {renderTaskCompletionTabs} from "../src/gui/components/task-completion-ta
 export {renderPlannerSidebar} from "../src/gui/components/planner-sidebar.ts";
 export {renderNotesView} from "../src/gui/views/notes-view.ts";
 export {todayAgenda} from "../src/core/today-agenda.ts";
-export { dashboardData } from "../src/core/dashboard.ts";
+export { dashboardData, movedProjectNotes } from "../src/core/dashboard.ts";
 export {renderTodayView} from "../src/gui/views/today-view.ts";
 export {attachTodayClock} from "../src/gui/interactions/today-clock.ts";
 export {renderViewHeader} from "../src/gui/components/view-header.ts";
