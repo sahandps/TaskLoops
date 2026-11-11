@@ -63,6 +63,7 @@ export interface ScannedTask extends Schedule {
 }
 
 export type PlannerTheme = "inherit" | "light" | "dark";
+export type TaskViewMode = "planner" | "notes" | "today" | "canvas";
 
 export interface TaskLoopsSettings {
 	priorities: PriorityDefinition[];
@@ -71,7 +72,7 @@ export interface TaskLoopsSettings {
 	showWeekNumbers: boolean;
 	showProgressBars: boolean;
 	timeSlotHeight: number;
-	defaultView: "planner" | "notes" | "today";
+	defaultView: TaskViewMode;
 	timeFormat: "24h" | "12h";
 	weekStart: number;
 	dailyCalendarWeekStart: number;

@@ -14,6 +14,7 @@ export function renderViewHeader(
 	for (const [value, label] of [
 		["today", "Today"],
 		["planner", "Planner"],
+		["canvas", "Canvas"],
 		["notes", "Notes"],
 	] as const) {
 		const button = views.createEl("button", {

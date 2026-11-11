@@ -978,6 +978,31 @@
 .tl-view .tl-view-switch button { box-shadow: none; border: 0; background: transparent; padding: 6px 12px; }
 .tl-view .tl-view-switch button[aria-pressed=true], .tl-view .tl-note-filters button[aria-pressed=true] { background: var(--interactive-accent); color: var(--text-on-accent); }
 .tl-view .tl-notes-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 3px 18px; }
+.tl-view .tl-canvas-pane { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 8px; }
+.tl-view .tl-canvas-toolbar, .tl-view .tl-canvas-nav {
+	display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.tl-view .tl-canvas-toolbar label { display: flex; align-items: center; gap: 5px; font-size: var(--font-ui-small); }
+.tl-view .tl-canvas-toolbar [hidden], .tl-view .tl-canvas-summary[hidden] { display: none; }
+.tl-view .tl-canvas-summary { color: var(--text-muted); font-size: var(--font-ui-small); }
+.tl-view .tl-canvas-board {
+	display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr);
+	gap: 10px; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 3px;
+}
+.tl-view .tl-canvas-column {
+	min-width: 0; min-height: min-content; border: 1px solid var(--background-modifier-border);
+	border-radius: 9px; background: var(--background-secondary);
+}
+.tl-view .tl-canvas-column-header {
+	position: sticky; top: 0; z-index: 1; display: flex; gap: 8px; align-items: center;
+	padding: 8px; min-height: 44px; border-radius: 8px 8px 0 0; background: var(--background-secondary);
+	border-top: 3px solid var(--tl-canvas-color, var(--background-modifier-border));
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.tl-view .tl-canvas-column-header h3 { flex: 1; margin: 0; font-size: var(--font-ui-small); overflow-wrap: anywhere; }
+.tl-view .tl-canvas-count { color: var(--text-muted); font-size: var(--font-ui-smaller); }
+.tl-view .tl-canvas-cards { padding: 8px; }
+.tl-view .tl-canvas-cards .tl-task { margin-inline-start: 0; }
 .tl-view .tl-notes-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .tl-view .tl-notes-controls .tl-search { flex: 1; width: auto; min-width: 160px; }
 .tl-view .tl-notes-controls select { max-width: 100%; height: 36px; border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; background: var(--background-primary); color: var(--text-normal); }

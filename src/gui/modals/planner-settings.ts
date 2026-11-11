@@ -105,6 +105,7 @@ export class PlannerSettingsModal extends Modal {
 			[
 				["today", "Today"],
 				["planner", "Planner"],
+				["canvas", "Canvas"],
 				["notes", "Notes"],
 			],
 			(v) => {

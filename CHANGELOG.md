@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.23 — 2026-11-11
+
+- Add the **Canvas** task board beside Today and Planner. Schedule grouping shows Unscheduled and seven dated columns, with week navigation and a date picker.
+- Group by priority to see Low, Medium, High, custom levels, and tasks without a priority. Use the existing priority field in the task editor to move a card between priority columns.
+- Search the board by task or note, filter by completion status, and filter by priority in the schedule layout. Create a task from a column to prefill its date or priority.
+- Make Canvas available as a default view in settings.
+
+Validation: production build and 1,169 checks across 42 suites pass. The browser
+preview covers date navigation, priority edits, filtering, task creation defaults,
+and horizontal scrolling on a narrow screen.
+
 ## 0.5.22 — 2026-10-29
 
 - Open **Edit task** in a panel docked on the right of a wide planner. The calendar stays visible and usable; choosing another task switches the panel. **×**, **Cancel** and Escape close it. Completion and deletion still save immediately, and other edits still use **Save changes**.
