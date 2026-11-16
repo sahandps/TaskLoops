@@ -67,6 +67,10 @@ export function renderCalendar(
 ): void {
 	const toolbar = root.createDiv("tl-calendar-toolbar");
 	const scales = toolbar.createDiv("tl-scales");
+	const scalePicker = toolbar.createEl("select", {
+		cls: "tl-scale-picker",
+		attr: { "aria-label": "Calendar view" },
+	});
 	for (const [scale, label] of [
 		["day", "Day"],
 		["week", "Week"],
@@ -75,12 +79,18 @@ export function renderCalendar(
 		["timeline", "Timeline"],
 		["gantt", "Gantt"],
 	] as const) {
+		scalePicker.createEl("option", { text: label, value: scale });
 		scales.createEl("button", {
 			text: label,
 			cls: view.scale === scale ? "is-active" : "",
 			attr: { "aria-pressed": String(view.scale === scale) },
 		}).onclick = () => view.setScale(scale);
 	}
+	scalePicker.value = view.scale;
+	scalePicker.onchange = () => {
+		view.setScale(scalePicker.value as TaskLoopsView["scale"]);
+		view.contentEl.querySelector<HTMLElement>(".tl-scale-picker")?.focus({ preventScroll: true });
+	};
 	const navigation = toolbar.createDiv("tl-calendar-nav");
 	navigation.createEl("button", { text: "←", attr: { "aria-label": "Previous " + view.scale } }).onclick =
 		() => step(-1);

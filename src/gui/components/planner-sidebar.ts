@@ -20,7 +20,7 @@ export function renderPlannerSidebar(
 	dropTarget: (el: HTMLElement, onDrop: (task: ScannedTask, event: DragEvent) => void) => void,
 ): { matching: ScannedTask[]; list: HTMLElement; search: HTMLInputElement } {
 	const side = layout.createEl("aside", {
-		cls: "tl-sidebar" + (state.taskFilter === "deferred" ? " tl-showing-deferred" : ""),
+		cls: "tl-sidebar",
 		attr: { "aria-label": "Tasks by note" },
 	});
 	const tasks = actions.allTasks();

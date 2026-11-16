@@ -30,5 +30,11 @@ export function attachBoardDragScroll(board: HTMLElement, isDragging: () => bool
 		if (!(event.relatedTarget instanceof Node) || !board.contains(event.relatedTarget)) stop();
 	});
 	board.addEventListener("drop", stop, true);
-	board.addEventListener("dragend", stop);
+	board.addEventListener("dragstart", () => {
+		if (isDragging()) board.addClass("is-dragging-card");
+	});
+	board.addEventListener("dragend", () => {
+		board.removeClass("is-dragging-card");
+		stop();
+	});
 }

@@ -44,6 +44,7 @@ export class TaskLoopsView extends ItemView {
 		collapsedNotes: new Set(),
 	};
 	private kanbanState: KanbanViewState = { group: "schedule", query: "" };
+	private plannerPanel: "calendar" | "tasks" = "calendar";
 	scale: CalendarScale;
 	anchor = todayISO();
 	private dragController = new TaskDragController(
@@ -136,6 +137,7 @@ export class TaskLoopsView extends ItemView {
 			this.anchor = day;
 			this.scale = "day";
 		}
+		if (mode === "planner") this.plannerPanel = "calendar";
 		this.state.mode = mode;
 		this.render();
 		this.contentEl.querySelector<HTMLElement>(`[data-tl-view="${mode}"]`)?.focus();
@@ -310,7 +312,25 @@ export class TaskLoopsView extends ItemView {
 			restoreEditor();
 			return;
 		}
-		const layout = root.createDiv("tl-planner");
+		const panels = root.createDiv({
+			cls: "tl-planner-panels",
+			attr: { role: "group", "aria-label": "Planner panels" },
+		});
+		const layout = root.createDiv({ cls: "tl-planner", attr: { "data-panel": this.plannerPanel } });
+		for (const [panel, label] of [
+			["calendar", "Calendar"],
+			["tasks", "Task list"],
+		] as const) {
+			panels.createEl("button", {
+				text: label,
+				attr: { "aria-pressed": String(this.plannerPanel === panel) },
+			}).onclick = (event) => {
+				this.plannerPanel = panel;
+				layout.dataset.panel = panel;
+				for (const button of panels.querySelectorAll("button"))
+					button.setAttribute("aria-pressed", String(button === event.currentTarget));
+			};
+		}
 		const { matching, list, search } = renderPlannerSidebar(
 			layout,
 			this.plugin,

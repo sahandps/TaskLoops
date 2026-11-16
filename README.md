@@ -59,6 +59,9 @@ or priority filled in.
 
 Scroll down within a column to see more cards without moving its header or
 neighboring columns. Scroll sideways to reach more columns.
+When the Obsidian pane is too narrow for two readable columns, swipe between
+full-width columns or use the column picker to jump directly. Open **Filters**
+to change grouping, search, or filter.
 
 Drag a card to another column, or use **Move to…** on the card with touch or
 keyboard. In Schedule, moving to another day keeps the start time, duration,
@@ -166,13 +169,12 @@ Dots mark dates containing tasks. Select a date to open its daily timeline.
 
 ## The planner
 
-The task sidebar and calendar appear together. In a main tab they sit side by
-side; in a narrow Obsidian sidebar the task list sits above the calendar. Use
-the command palette's **Open planner in a main tab** command for more room.
-Drag the divider between the task list and calendar to resize them. At narrow
-widths, drag it vertically instead. Panel sizes are remembered independently
-for desktop and stacked layouts. Focus the divider and use arrow keys (Shift
-for larger steps), Home/End for its limits, or double-click to reset.
+The task list and calendar sit side by side when the pane has room. In a
+narrower pane, use **Calendar** and **Task list** to switch between them.
+Use the command palette's **Open planner in a main tab** command for more room.
+When both panels are visible, drag the divider to resize them. Planner remembers
+the width. Focus the divider and use arrow keys (Shift for larger steps),
+Home/End for its limits, or double-click to reset.
 
 - **Day:** a 24-hour timeline with five-minute drag-and-drop scheduling.
 - **Week:** seven daily timelines, with simultaneous tasks shown alongside each other.
@@ -228,8 +230,8 @@ Click a task to edit it, or **+ Task** on a note card to add to that note's
 `Tasks:` section. The arrow or note title opens the source in a new tab. Cards
 preview a configurable number of tasks; **Show all** expands longer lists.
 
-On narrow screens the grid becomes one column and the Planner task list stacks
-above the calendar. Week and month calendars scroll horizontally to keep dates
+On narrow screens the Notes grid becomes one column. In Planner,
+week and month calendars scroll horizontally to keep dates
 readable. On mobile, tap a task to schedule it through the editor. Short timed
 events show a compact title; click or tap to see scheduling details and edit the task.
 Use the task editor when a narrow screen makes dragging difficult.
@@ -515,7 +517,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.29 — Detect tasks from checkboxes, custom tags, or both.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.30 — Planner and Kanban adapt to narrow panes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 

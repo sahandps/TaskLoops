@@ -9,6 +9,7 @@ import { attachBoardDragScroll } from "../interactions/board-drag-scroll";
 
 export interface KanbanViewState extends Omit<KanbanFilters, "status"> {
 	start?: string;
+	filtersOpen?: boolean;
 }
 
 export function captureKanbanScroll(board: HTMLElement) {
@@ -35,8 +36,25 @@ export function renderKanbanView(
 ) {
 	const pane = root.createEl("main", { cls: "tl-kanban-pane", attr: { "aria-label": "Task kanban" } });
 	const toolbar = pane.createDiv("tl-kanban-toolbar");
+	const controls = toolbar.createDiv("tl-kanban-controls");
+	const columnPicker = controls.createEl("select", {
+		cls: "tl-kanban-column-picker",
+		attr: { "aria-label": "Jump to Kanban column" },
+	});
+	const filterToggle = controls.createEl("button", { cls: "tl-kanban-filter-toggle", text: "Filters" });
+	const filters = toolbar.createDiv("tl-kanban-filters");
+	function syncFilters() {
+		const open = Boolean(state.filtersOpen);
+		filters.classList.toggle("is-open", open);
+		filterToggle.setAttribute("aria-expanded", String(open));
+	}
+	filterToggle.onclick = () => {
+		state.filtersOpen = !state.filtersOpen;
+		syncFilters();
+	};
+	syncFilters();
 	function select(label: string, options: [string, string][], value: string) {
-		const field = toolbar.createEl("label");
+		const field = filters.createEl("label");
 		field.createSpan({ text: label });
 		const control = field.createEl("select", { attr: { "aria-label": label } });
 		for (const [value, text] of options) control.createEl("option", { attr: { value }, text });
@@ -60,14 +78,6 @@ export function renderKanbanView(
 		],
 		actions.settings.kanbanStatus,
 	);
-	const search = toolbar.createEl("input", {
-		cls: "tl-kanban-search",
-		type: "search",
-		placeholder: "Search tasks or notes",
-		attr: { "aria-label": "Search kanban tasks or notes" },
-	});
-	search.value = state.query;
-
 	const priorities = actions.settings.priorities;
 	const tasks = actions.allTasks();
 	const archived = [
@@ -91,6 +101,13 @@ export function renderKanbanView(
 		state.priority = undefined;
 		priority.value = ":all";
 	}
+	const search = filters.createEl("input", {
+		cls: "tl-kanban-search",
+		type: "search",
+		placeholder: "Search tasks",
+		attr: { "aria-label": "Search kanban tasks or notes" },
+	});
+	search.value = state.query;
 
 	const nav = toolbar.createDiv("tl-kanban-nav");
 	const previous = nav.createEl("button", { text: "←", attr: { "aria-label": "Previous seven days" } });
@@ -104,10 +121,31 @@ export function renderKanbanView(
 		attr: { tabindex: "0", "aria-label": "Task columns" },
 	});
 	attachBoardDragScroll(board, () => drag.active);
+	const center = (element: HTMLElement) => {
+		const { left, width } = element.getBoundingClientRect();
+		return left + width / 2;
+	};
+	columnPicker.onchange = () => {
+		const column = board.children.item(columnPicker.selectedIndex) as HTMLElement | null;
+		if (column) board.scrollLeft += center(column) - center(board);
+	};
+	function syncColumnPicker() {
+		if (!columnPicker.offsetWidth) return;
+		const midpoint = center(board);
+		let closest = Infinity;
+		for (let i = 0; i < board.children.length; i++) {
+			const distance = Math.abs(center(board.children[i] as HTMLElement) - midpoint);
+			if (distance >= closest) break;
+			closest = distance;
+			columnPicker.selectedIndex = i;
+		}
+	}
+	board.onscroll = syncColumnPicker;
 
 	function draw(resetScroll = false) {
 		const scroll = resetScroll ? undefined : captureKanbanScroll(board);
 		board.empty();
+		columnPicker.empty();
 		const bySchedule = state.group === "schedule";
 		nav.hidden = !bySchedule;
 		if (priority.parentElement) priority.parentElement.hidden = !bySchedule;
@@ -126,6 +164,7 @@ export function renderKanbanView(
 			outsideRange === 1 ? "1 task outside these dates" : `${outsideRange} tasks outside these dates`,
 		);
 		for (const { id, label, schedule, color, archived, tasks } of columns) {
+			columnPicker.createEl("option", { text: `${label} (${tasks.length})` });
 			const column = board.createEl("section", {
 				cls: "tl-kanban-column",
 				attr: { "aria-label": label },
@@ -177,6 +216,7 @@ export function renderKanbanView(
 		}
 		if (scroll) restoreKanbanScroll(board, scroll);
 		else board.scrollLeft = 0;
+		syncColumnPicker();
 	}
 
 	group.onchange = () => {

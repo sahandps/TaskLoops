@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.30 — 2026-11-16
+
+- Planner adapts to the width of its Obsidian pane. On narrow panes, switch between **Calendar** and **Task list** to give either more room.
+- Kanban shows full-width columns when space is tight. Swipe between columns or jump to a date or priority, and open **Filters** when needed.
+
+Validation: production build and 1,214 checks across 44 suites pass. The browser
+preview covers live pane resizing, larger text, and touch navigation.
+
 ## 0.5.29 — 2026-11-16
 
 - Use **Settings → TaskLoops → Tasks → Task detection** to find checkboxes, tagged lines like `Call the supplier #task`, or both. Checkboxes remain the default.

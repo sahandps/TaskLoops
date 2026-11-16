@@ -866,7 +866,7 @@
 .tl-month-day.is-outside { background: var(--background-secondary); }
 .tl-month-day.is-outside .tl-day-number { color: var(--text-faint); }
 .is-today > .tl-day-heading .tl-day-number, .tl-all-day.is-today > .tl-day-heading button:first-child { background: var(--interactive-accent); color: var(--text-on-accent); border-radius: 5px; }
-.tl-year { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); gap: 16px; padding: 12px; }
+.tl-year { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 16px; padding: 12px; }
 .tl-month-grid.is-mini { min-width: 0; }
 .is-mini .tl-month-day { min-height: 32px; }
 .is-mini .tl-day-heading { justify-content: center; position: relative; }
@@ -898,16 +898,6 @@
 .tl-destination { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 16px; }
 .tl-destination button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; height: auto; min-height: 30px; }
 .tl-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-@container (max-width: 680px) {
-	.tl-planner { display: flex; flex-direction: column; gap: 12px; }
-	.tl-sidebar { flex: 0 0 34%; min-height: 160px; max-height: 40%; border-right: 0; border-bottom: 1px solid var(--background-modifier-border); padding: 0 0 8px; gap: 6px; }
-	.tl-calendar { flex: 1; }
-	.tl-unschedule { padding: 5px; }
-	.tl-header button { font-size: 11px; padding: 4px 6px; }
-	.tl-header h2 { font-size: 16px; }
-	.tl-scales button, .tl-calendar-nav button { font-size: 11px; padding: 4px 7px; }
-	.tl-calendar-heading { font-size: 14px; }
-}
 @media (pointer: coarse) {
 	.tl-schedule-button, .tl-task-meta, .tl-note-heading button { min-height: 30px; }
 }
@@ -979,14 +969,14 @@
 .tl-view .tl-view-switch button[aria-pressed=true], .tl-view .tl-note-filters button[aria-pressed=true] { background: var(--interactive-accent); color: var(--text-on-accent); }
 .tl-view .tl-notes-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 3px 18px; }
 .tl-view .tl-kanban-pane { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 8px; }
-.tl-view .tl-kanban-toolbar, .tl-view .tl-kanban-nav {
+.tl-view .tl-kanban-toolbar, .tl-view .tl-kanban-nav, .tl-view .tl-kanban-filters {
 	display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
 }
 .tl-view .tl-kanban-toolbar label { display: flex; align-items: center; gap: 5px; font-size: var(--font-ui-small); }
 .tl-view .tl-kanban-toolbar [hidden], .tl-view .tl-kanban-summary[hidden] { display: none; }
 .tl-view .tl-kanban-summary { color: var(--text-muted); font-size: var(--font-ui-small); }
 .tl-view .tl-kanban-board {
-	display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr);
+	display: grid; grid-auto-flow: column; grid-auto-columns: minmax(min(100%, 15rem), 1fr);
 	grid-template-rows: minmax(0, 1fr);
 	gap: 10px; flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden;
 	overscroll-behavior: contain; padding: 3px;
@@ -1011,6 +1001,7 @@
 .tl-view .tl-kanban-cards .tl-task { margin-inline-start: 0; }
 .tl-view .tl-kanban-move { max-width: 100%; margin-top: 6px; font-size: var(--font-ui-smaller); cursor: pointer; }
 .tl-view .tl-kanban-column.is-drop-target { outline-offset: -2px; }
+.tl-view .tl-planner-panels, .tl-view .tl-scale-picker, .tl-view .tl-kanban-controls { display: none; }
 .tl-view .tl-notes-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .tl-view .tl-notes-controls .tl-search { flex: 1; width: auto; min-width: 160px; }
 .tl-view .tl-notes-controls select { max-width: 100%; height: 36px; border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 6px 10px; background: var(--background-primary); color: var(--text-normal); }
@@ -1043,13 +1034,9 @@
 .tl-view .tl-timed-task.is-tiny-event .tl-task-title { display: block; white-space: nowrap; text-overflow: ellipsis; line-height: 16px; }
 .tl-view .tl-timed-task.is-tiny-event > .tl-task-content { padding-bottom: 5px; }
 .tl-view .tl-timed-task.is-tiny-event .tl-resize-handle { height: 6px; }
-@container (max-width: 680px) {
-	.tl-view .tl-planner { display: flex; }
-	.tl-view .tl-header { gap: 6px; }
-	.tl-view .tl-header h2 { width: 100%; }
+@container (inline-size < 42rem) {
 	.tl-view .tl-notes-grid { gap: 12px; }
 	.tl-view .tl-notes-controls select { flex: 1; }
-	.tl-view .tl-task-list { overscroll-behavior: contain; }
 }
 @container (max-width: 420px) {
 	.tl-view .tl-notes-controls .tl-search { flex-basis: 100%; }
@@ -1081,12 +1068,6 @@
 .tl-view .is-panel-resizing { user-select: none; }
 .tl-note-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .tl-note-links button, .tl-destination .tl-open-project { white-space: normal; height: auto; min-height: 32px; }
-@container (max-width: 680px) {
-	.tl-view .tl-sidebar { flex: 0 0 var(--tl-panel-size, 220px); max-height: none; min-height: 0; padding: 0 0 6px; border-bottom: 0; }
-	.tl-view .tl-panel-divider { cursor: row-resize; width: 100%; min-height: 12px; flex: 0 0 12px; }
-	.tl-view .tl-panel-divider::after { top: 5px; bottom: auto; left: 0; right: 0; height: 2px; width: auto; }
-	.tl-view .tl-calendar { min-height: 0; }
-}
 @media (pointer: coarse) {
 	.tl-note-links button, .tl-destination .tl-open-project { min-height: 44px; }
 }
@@ -1269,8 +1250,8 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-view .tl-overdue-label { display: block; margin: 3px 0; color: var(--text-error, var(--text-accent)); font-size: 11px; font-weight: 500; }
 
 /* Bound event content to its bar; narrow weeks scroll instead of crushing text. */
-.tl-view .tl-library-planner.tl-week-view .ec { min-width: 680px; }
-.tl-view .tl-library-planner.tl-month-view .ec { min-width: 560px; }
+.tl-view .tl-library-planner.tl-week-view .ec { min-width: 42.5rem; }
+.tl-view .tl-library-planner.tl-month-view .ec { min-width: 35rem; }
 .tl-view .tl-library-planner .ec-event { overflow: hidden; min-width: 0; }
 .tl-view .tl-library-planner .ec-event-body { min-width: 0; max-width: 100%; max-height: 100%; overflow: hidden; }
 .tl-view .tl-library-planner .tl-calendar-event-content { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
@@ -1291,9 +1272,6 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-task-modal .tl-deferral-mode button { font-size: 12px; }
 .tl-task-modal .tl-deferral-mode button[aria-pressed="true"] { border: 1px solid var(--interactive-accent); }
 .tl-task-modal textarea.tl-deferral-reason-input { box-sizing: border-box; width: 100%; resize: vertical; min-height: 90px; padding: 10px; font: inherit; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 5px; }
-@container (max-width: 680px) {
- .tl-view .tl-sidebar.tl-showing-deferred { flex-basis: max(var(--tl-panel-size, 220px), min(55vh, 480px)); }
-}
 .tl-view .tl-library-planner .tl-calendar-event-content { display: flex; flex-direction: column; align-items: stretch; container: tl-event-label / inline-size; }
 .tl-view .tl-library-planner .tl-calendar-event-content .ec-event-title { position: static; min-block-size: 0; flex-shrink: 0; }
 .tl-view .tl-library-planner .tl-calendar-event-content .ec-event-time { position: static; }
@@ -1359,13 +1337,6 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 .tl-view .tl-completion-tabs button { border: 1px solid var(--background-modifier-border); border-radius: 6px; padding: 6px 12px; height: auto; box-shadow: none; background: transparent; color: var(--text-muted); font-size: 12px; }
 .tl-view .tl-completion-tabs button[aria-pressed="true"] { background: var(--background-secondary); color: var(--text-normal); border-color: var(--interactive-accent); }
 .tl-view .tl-completion-tabs button:disabled { opacity: 0.45; }
-
-/* Extra list controls must not squeeze all task rows out of a short stacked panel. */
-@container (max-width: 680px) {
-	.tl-view .tl-sidebar { overflow-y: auto; }
-	.tl-view .tl-sidebar > :not(.tl-task-list) { flex-shrink: 0; }
-	.tl-view .tl-sidebar .tl-task-list { flex: 1 0 140px; }
-}
 
 /* Today: quiet spacing, a steady time rail, and a single column on small screens. */
 .tl-view .tl-today-pane { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
@@ -1564,4 +1535,60 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 }
 @media (pointer: coarse) {
 	.tl-view .tl-dash-link, .tl-view .tl-dash-title, .tl-view .tl-dash-project-open, .tl-view .tl-dash-small-button { min-height: 32px; }
+}
+
+/* Switch panels when there isn't room for both a task list and a useful calendar. */
+@container (inline-size < 42rem) {
+	.tl-view .tl-header h2 { display: none; }
+	.tl-view .tl-view-switch { flex: 0 0 100%; }
+	.tl-view .tl-view-switch button { flex: 1 0 auto; font-size: .75rem; padding-inline: .2em; }
+	.tl-view .tl-planner-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+	.tl-view .tl-planner-panels button[aria-pressed="true"] { background: var(--interactive-accent); color: var(--text-on-accent); }
+	.tl-view .tl-planner { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+	.tl-view .tl-planner > :is(.tl-sidebar, .tl-calendar) { grid-area: 1 / 1; }
+	/* Keep the inactive panel laid out so the calendar and task list retain their scroll positions. */
+	.tl-view .tl-planner[data-panel="calendar"] > .tl-sidebar,
+	.tl-view .tl-planner[data-panel="tasks"] > .tl-calendar { visibility: hidden; }
+	.tl-view .tl-planner > .tl-sidebar { overflow-y: auto; padding: 0; }
+	.tl-view .tl-sidebar > :not(.tl-task-list) { flex-shrink: 0; }
+	.tl-view .tl-sidebar .tl-task-list { flex: 1 0 8rem; overscroll-behavior: contain; }
+	.tl-view .tl-planner > .tl-panel-divider, .tl-view .tl-calendar-toolbar .tl-scales { display: none; }
+	.tl-view .tl-scale-picker { display: block; flex: 1 1 6em; min-width: 0; }
+	.tl-view .tl-calendar-heading { margin: 8px 0; }
+	.tl-view .tl-calendar-content { overscroll-behavior: contain; }
+
+	@media (pointer: coarse) {
+		.tl-view :is(.tl-planner-panels button, .tl-scale-picker, .tl-sidebar .tl-search) { min-height: 2.75rem; }
+		.tl-view .tl-calendar-nav button { min-width: 2.75rem; }
+		.tl-view :is(.tl-scale-picker, .tl-sidebar .tl-search) { font-size: max(1rem, 16px); }
+		.tl-view .tl-sidebar .tl-unschedule { display: none; }
+		.tl-view .tl-planner .tl-review-filter { min-height: 2.25rem; }
+	}
+}
+
+/* Show one column when two readable columns and their gap no longer fit. */
+@container (inline-size < 32rem) {
+	.tl-view .tl-kanban-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+	.tl-view .tl-kanban-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+	.tl-view .tl-kanban-filters:not(.is-open) { display: none; }
+	.tl-view .tl-kanban-filters.is-open { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: 6px; }
+	.tl-view .tl-kanban-filters label { display: grid; gap: 2px; min-width: 0; }
+	.tl-view .tl-kanban-filters .tl-kanban-search { align-self: end; min-width: 0; width: 100%; }
+	.tl-view .tl-kanban-toolbar select { width: 100%; min-width: 0; text-overflow: ellipsis; }
+	.tl-view .tl-kanban-nav { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 6px; }
+	.tl-view .tl-kanban-nav button, .tl-view .tl-kanban-nav input { padding-inline: .25em; }
+	.tl-view .tl-kanban-nav input { min-width: 0; width: 100%; }
+	.tl-view .tl-kanban-board { grid-auto-columns: 100%; scroll-snap-type: x mandatory; }
+	.tl-view .tl-kanban-board.is-dragging-card { scroll-snap-type: none; }
+	.tl-view .tl-kanban-column { scroll-snap-align: center; }
+
+	@media (pointer: coarse) {
+		.tl-view :is(.tl-kanban-toolbar, .tl-kanban-column-header) button,
+		.tl-view :is(.tl-kanban-toolbar select, .tl-kanban-toolbar input, .tl-kanban-move) { min-height: 2.75rem; }
+		.tl-view :is(.tl-kanban-nav, .tl-kanban-column-header) button { min-width: 2.75rem; }
+		.tl-view :is(.tl-kanban-toolbar select, .tl-kanban-toolbar input, .tl-kanban-move) { font-size: max(1rem, 16px); }
+	}
+}
+@media (pointer: coarse) {
+	.tl-view :is(.tl-sidebar, .tl-kanban-cards) .tl-task-title { min-height: 2rem; font-size: .875rem; }
 }
