@@ -25,8 +25,8 @@ export default function run({ dashboardData, movedProjectNotes, normalizeSetting
 	const data = dashboardData(tasks, day, selected);
 	eq(
 		data.agenda.progress,
-		{ total: 3, completed: 1, percent: 33 },
-		"uses Today’s checkbox and overlap rules",
+		{ total: 4, completed: 1, percent: 25 },
+		"uses Today’s overlap rules and counts tagged tasks",
 	);
 	eq(
 		data.timeBlocks.map(({ task }) => task.id),
@@ -36,13 +36,13 @@ export default function run({ dashboardData, movedProjectNotes, normalizeSetting
 	eq(
 		data.inbox.map(({ id }) => id),
 		["inbox"],
-		"only open, unscheduled checkboxes enter the inbox",
+		"only open, unscheduled tasks enter the inbox",
 	);
 	eq(
 		data.projects.map(({ path, completed, open }) => [path, completed, open]),
 		[
 			["Personal/Launch.md", 1, 0],
-			["Work/Launch.md", 1, 2],
+			["Work/Launch.md", 1, 3],
 			["Work/Reading.md", 0, 0],
 		],
 		"only selected notes appear, including empty notes and distinct notes with the same name",

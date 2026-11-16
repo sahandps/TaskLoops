@@ -2,9 +2,30 @@ import { slotHeight } from "./calendar-zoom";
 import { DEFAULT_SETTINGS, type TaskLoopsSettings, type TaskViewMode } from "./types";
 import { DATE_FORMATS } from "./schedule";
 
+/** Obsidian tags support Unicode, hyphens, underscores and slash-separated paths. */
+export function normalizeTaskTags(values: readonly unknown[]): string[] {
+	return [
+		...new Set(
+			values.flatMap((value) => {
+				if (typeof value !== "string") return [];
+				const tag = value.trim().replace(/^#/, "").toLowerCase();
+				if (
+					!/^[\p{L}\p{M}\p{N}_-]+(?:\/[\p{L}\p{M}\p{N}_-]+)*$/u.test(tag) ||
+					!/[\p{L}_/-]/u.test(tag)
+				)
+					return [];
+				return ["#" + tag];
+			}),
+		),
+	];
+}
+
 /** Validate persisted settings without involving plugin lifecycle or GUI code. */
 export function normalizeSettings(
-	saved?: Partial<Omit<TaskLoopsSettings, "defaultView">> & { defaultView?: TaskViewMode | "canvas" },
+	saved?: Partial<Omit<TaskLoopsSettings, "defaultView">> & {
+		defaultView?: TaskViewMode | "canvas";
+		tag?: unknown;
+	},
 ): TaskLoopsSettings {
 	const { defaultView, ...rest } = saved ?? {};
 	const settings = {
@@ -56,6 +77,10 @@ export function normalizeSettings(
 		settings.defaultView = "planner";
 	if (!["open", "completed", "all"].includes(settings.kanbanStatus)) settings.kanbanStatus = "open";
 	if (![3, 5, 10].includes(settings.notePreviewLimit)) settings.notePreviewLimit = 5;
+	if (settings.taskSource !== "tagged" && settings.taskSource !== "both")
+		settings.taskSource = "checkboxes";
+	const tags = normalizeTaskTags(Array.isArray(saved?.taskTags) ? saved.taskTags : [saved?.tag]);
+	settings.taskTags = tags.length ? tags : [...DEFAULT_SETTINGS.taskTags];
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";
 	if (!Number.isFinite(settings.panelWidth)) settings.panelWidth = 260;
 	if (!Number.isFinite(settings.panelHeight)) settings.panelHeight = 220;

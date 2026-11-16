@@ -3,7 +3,7 @@
 [![Obsidian plugin](https://img.shields.io/badge/Obsidian-TaskLoops-7c3aed?logo=obsidian&logoColor=white)](https://obsidian.md/plugins?id=taskloops)
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-Turn the Markdown checkboxes in your Obsidian vault into a calendar you can plan
+Turn the Markdown tasks in your Obsidian vault into a calendar you can plan
 with. TaskLoops gathers tasks from your notes, groups them by note name, and
 lets you schedule, resize and edit them without managing note properties.
 
@@ -189,8 +189,20 @@ Weeks begin on Monday by default; settings also offer Sunday and Saturday. Dates
 
 ## Tasks grouped by note
 
-All Markdown checkbox tasks are discovered automatically, using Obsidian's
-metadata cache so frontmatter and fenced code examples do not become tasks.
+TaskLoops detects Markdown checkboxes by default. Under **Settings → TaskLoops → Tasks**,
+set **Task detection** to **Checkboxes only**, **Tagged lines only**, or **Checkboxes and tagged lines**.
+Use **Task tags** to enter a comma-separated list, such as `#task, #todo, #follow-up`.
+
+```markdown
+- [ ] Renew the library card
+Call the supplier #task
+Send the updated quote #follow-up
+```
+
+Tag matching ignores case and includes nested tags, so `#task` also matches
+`#task/work`. A checkbox with a matching tag appears once and keeps its native
+checkbox state. A tag on its own, a tag in frontmatter, or an example inside
+a code block does not create a task.
 The sidebar groups them by note name, alphabetically, and preserves source-line
 order within each note. Full paths distinguish notes with the same name.
 
@@ -254,9 +266,10 @@ or certify a malware scan.
 
 ## Schedule from a note
 
-A small calendar-plus button appears after checkbox tasks in the note editor
-(including Live Preview) and Reading view. Click or tap it to open the existing
-task editor for dates, time, duration, projects and subtasks. The button is a
+A small calendar-plus button appears after detected tasks in the note editor
+(including Live Preview). Reading view shows the button on detected checkboxes.
+Click or tap it to open the task editor for dates, time, duration and projects.
+Checkbox tasks can also have subtasks. The button is a
 visual control: it is never written into your Markdown or note properties.
 The editor saves pending note edits before opening the task, and verifies the
 source row again before offering edits. Code examples and frontmatter are
@@ -321,8 +334,8 @@ The originally supported bare ISO date also works:
 New schedules use ` - ` between the task wording and its details. You can also
 type `- [ ] Task - date: 2026-10-19` manually; it is discovered on the calendar
 without opening the task editor. `date:` and `Due date:` are case-insensitive.
-Only Markdown checkbox tasks are gathered; ordinary `- Text` bullets are not.
-Undated checkbox tasks stay in the sidebar. Older schedules without the separator
+An ordinary `- Text` bullet needs a matching tag and tag detection enabled.
+Undated tasks stay in the sidebar. Older schedules without the separator
 remain readable and are converted only when you explicitly edit their schedule.
 
 Scheduling fields must be at the end of a task, before an optional Obsidian block
@@ -377,7 +390,7 @@ On a phone or a narrow window it opens as a full page. Close it with **×**,
 The editor lets you change its wording, choose its project note, edit its
 schedule, and add subtasks. Changes are applied only when you select
 **Save changes**; **Cancel** discards the draft. **Delete task** immediately removes only that
-task’s checkbox line from its source note; subtasks and other note content remain. **Clear schedule** clears the
+task’s line from its source note; subtasks and other note content remain. **Clear schedule** clears the
 form's scheduling fields and is applied when you save.
 
 Existing direct subtasks are clickable rows in the editor: select one to open
@@ -445,14 +458,15 @@ not move earlier tasks.
 
 TaskLoops makes these deliberate edits:
 
-1. Completing a task changes its checkbox from `[ ]` to `[x]`. Reopen it in the source note.
+1. Completing a checkbox changes `[ ]` to `[x]`. Completing a tagged line without a checkbox adds `*(Handled)*`. Undo either change in the source note to reopen the task.
 2. Scheduling adds, updates or clears the scheduling suffix on that task line.
 3. Adding a task inserts a new checkbox under `Tasks:` in the selected note,
-   creating that heading or the standalone note when needed.
+   creating that heading or the standalone note when needed. In tagged-only mode,
+   new tasks without a matching tag get the first configured task tag.
 4. Saving edited wording changes that task's text while preserving its checkbox,
    Markdown list prefix and block id. New subtasks are added as indented checkboxes.
-5. Choosing another project in the editor moves that task's subtree into the
-   destination note's `Tasks:` section.
+5. Choosing another project in the editor moves the task into the destination
+   note's `Tasks:` section. Moving a checkbox also moves its subtree.
 
 Frontmatter, note properties and unrelated lines are preserved. Task wording
 and task locations change only when you explicitly edit or move a task.
@@ -501,7 +515,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.28 — Schedule tasks from notes and add tasks to projects.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.29 — Detect tasks from checkboxes, custom tags, or both.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 
@@ -526,7 +540,7 @@ Obsidian's Community plugins, or download the plugin files from
 
 ## What’s new in 0.5.20
 
-- **Delete task** in the Edit task popup removes the task’s checkbox line from
+- **Delete task** in the Edit task popup removes the task’s source line from
   its source note. Subtasks and other note content remain.
 - Deletion checks the current source before writing, preserves line endings,
   and refreshes the planner after saving.
@@ -565,7 +579,7 @@ Obsidian's Community plugins, or download the plugin files from
 - Tick tasks complete, tap a title to edit, open its original note, or add a task
   with today’s date already filled in. **Overdue** and **Completed** stay separate
   in collapsible sections. Overdue tasks offer **Plan for today**.
-- Daily progress counts today’s scheduled checkbox tasks and subtasks once each.
+- Daily progress counts today’s scheduled tasks and subtasks once each.
   It follows the progress visibility setting; time display, week numbers and
   TaskLoops themes apply here too. The view updates with the clock and on wake,
   retaining scroll and open sections while it remains open.
@@ -596,10 +610,10 @@ Obsidian's Community plugins, or download the plugin files from
 
 ## What’s new in 0.5.10
 
-- **Progress per note:** Planner and Notes show completed / total checkbox tasks
+- **Progress per note:** Planner and Notes show completed / total detected tasks
   and a percentage. Every parent and subtask counts once, at every depth.
   Completing a parent does not complete its unfinished children.
-- Progress uses the full note’s tasks, including hidden completed checkboxes.
+- Progress uses the full note’s tasks, including hidden completed tasks.
   Search, list filters and collapsed groups do not change its denominator.
   The bar remains visible when a group is folded.
 - **Settings → TaskLoops:** choose Planner theme (Follow Obsidian, Light or Dark),
@@ -664,7 +678,7 @@ Nothing moves until you save. The same rule applies when saving through
 - Release downloads contain only `main.js`, `manifest.json` and `styles.css`.
   Matching source remains available through GitHub’s automatic Source code archives.
 
-TaskLoops enumerates Markdown note paths to discover checkboxes across the vault.
+TaskLoops enumerates Markdown note paths to discover tasks across the vault.
 The scan-folder setting limits which notes are read. Vault enumeration is an
 expected capability disclosure. “Malware scan unavailable” and “Network requests
 scan unavailable” report the community scanner’s availability, not a successful

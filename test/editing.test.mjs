@@ -4,7 +4,7 @@ export default async function run(mod) {
 	const { TestFile, TaskLoopsPlugin, taskWording, taskBlock, editedBlock, replaceTaskBlock, appendTaskBlock, resizedDuration } = mod;
 	const { eq, results } = createSuite("task editor, subtasks, project moves and resizing");
 	const raw = "  1. [ ] **Plan launch** #work Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour ^launch\r";
-	const task = { path: "Source.md", raw, line: 2 };
+	const task = { path: "Source.md", raw, line: 2, checkbox: true };
 	const content = "## Tasks:\r\n\r\n" + raw + "\n      - [ ] Prepare assets\r\n        Details stay here.\r\n\r\n  - [ ] Unrelated sibling\r\n## Notes\r\nLeave this here.\r\n";
 	eq(taskWording(raw), "**Plan launch** #work", "editor preserves formatting and tags, protects block id");
 	eq(taskBlock(content, task).lines.length, 3, "task block includes child and continuation, excludes sibling and trailing blanks");
@@ -18,7 +18,7 @@ export default async function run(mod) {
 	let staleRejected = false;
 	try { replaceTaskBlock(content.replace("Prepare assets", "Updated assets"), task, [], taskBlock(content, task).lines); } catch { staleRejected = true; }
 	eq(staleRejected, true, "changed child blocks a stale move");
-	const quoted = { raw: "> - [ ] Parent", line: 0 };
+	const quoted = { raw: "> - [ ] Parent", line: 0, checkbox: true };
 	eq(editedBlock("> - [ ] Parent\n>     - [ ] Existing\n> Other text\n", quoted, "Parent", {}, "YYYY-MM-DD", ["New"]), ["> - [ ] Parent", ">     - [ ] Existing", ">     - [ ] New"], "quoted subtasks keep quote container");
 	for (const [initial, pixels, expected] of [[60, 64, 120], [60, -32, 30], [65, 0, 65], [60, 6, 65], [30, -1000, 5]]) eq(resizedDuration(initial, pixels), expected, "duration resize " + initial + "/" + pixels);
 

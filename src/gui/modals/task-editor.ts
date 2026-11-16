@@ -91,30 +91,32 @@ export function renderTaskEditor(
 	}).onclick = () => fields.clear();
 	let previousPath = path;
 	let followingSubtasks = false;
-	const subtasks = renderSubtaskEditor(
-		taskSection(body, "Subtasks"),
-		app,
-		plugin,
-		task,
-		(child, onUpdated) => openChild(child, onUpdated),
-		() => path,
-		(selected) => {
-			if (task.path !== normalizePath(plugin.settings.standaloneNote)) return;
-			const target = selected[0]?.path;
-			if (target) {
-				if (!followingSubtasks) previousPath = path;
-				path = target;
-				destination.update(
-					target,
-					"This parent moves here when you save. Existing subtasks stay in this note. Remove the selections to choose another destination.",
-				);
-			} else if (followingSubtasks) {
-				path = previousPath;
-				destination.update(path);
-			}
-			followingSubtasks = !!target;
-		},
-	);
+	const subtasks = task.checkbox
+		? renderSubtaskEditor(
+				taskSection(body, "Subtasks"),
+				app,
+				plugin,
+				task,
+				(child, onUpdated) => openChild(child, onUpdated),
+				() => path,
+				(selected) => {
+					if (task.path !== normalizePath(plugin.settings.standaloneNote)) return;
+					const target = selected[0]?.path;
+					if (target) {
+						if (!followingSubtasks) previousPath = path;
+						path = target;
+						destination.update(
+							target,
+							"This parent moves here when you save. Existing subtasks stay in this note. Remove the selections to choose another destination.",
+						);
+					} else if (followingSubtasks) {
+						path = previousPath;
+						destination.update(path);
+					}
+					followingSubtasks = !!target;
+				},
+			)
+		: { drafts: [], selected: [], flushDraft: () => {} };
 	const defer = actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
 	defer.disabled = task.checked;
 	defer.onclick = () => {

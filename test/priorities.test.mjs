@@ -12,7 +12,7 @@ export default async function run(mod) {
  eq(mod.writeSchedule(marked,{due:'2026-10-23',deadline:'2026-10-25',priority:''},'YYYY-MM-DD'),raw,'priority can be explicitly removed without losing dates or block ID');
  const unscheduled=mod.writeSchedule('- [ ] Read',{priority:'low'},'YYYY-MM-DD');
  eq(mod.parseSchedule(unscheduled).schedule,{priority:'low'},'undated tasks can have a priority');
- const task={raw:marked,line:0,path:'Project.md'};
+ const task={raw:marked,line:0,path:'Project.md',checkbox:true};
  const edited=mod.editedBlock(marked,task,'Updated',{due:'2026-10-23',deadline:'2026-10-25'},'YYYY-MM-DD',[]);
  eq(mod.parseSchedule(edited[0]).schedule.priority,'high','title edits retain priority when omitted by caller');
  const priorityOnly=mod.editedBlock(marked,task,'Release',{due:'2026-10-23',deadline:'2026-10-25',priority:'low'},'YYYY-MM-DD',[]);

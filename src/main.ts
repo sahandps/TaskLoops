@@ -4,7 +4,7 @@ import { DailyCalendarView, VIEW_TYPE_DAILY_CALENDAR } from "./gui/views/daily-c
 import { TaskService } from "./application/task-service";
 import { normalizeSettings } from "./core/settings";
 import { movedProjectNotes } from "./core/dashboard";
-import { Notice, Platform, Plugin, TFile, type TAbstractFile } from "obsidian";
+import { MarkdownView, Notice, Platform, Plugin, TFile, type TAbstractFile } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsData, TaskLoopsSettings } from "./core/types";
 import { DEFAULT_SETTINGS } from "./core/types";
 import { scanFile, scanVault } from "./infrastructure/obsidian/task-repository";
@@ -164,11 +164,22 @@ export default class TaskLoopsPlugin extends Plugin {
 		});
 	}
 
+	async refreshTaskDiscovery(): Promise<void> {
+		await this.saveSettings();
+		await this.rescan();
+		this.app.workspace.updateOptions();
+		for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+			if (leaf.view instanceof MarkdownView && leaf.view.getMode() === "preview")
+				leaf.view.previewMode.rerender(true);
+		}
+	}
+
 	async rescan(): Promise<void> {
 		const version = ++this.scanVersion;
 		const fullScan = ++this.fullScanVersion;
 		try {
-			const tasks = await scanVault(this.app, "#task", "checkboxes", this.settings.scanFolder);
+			const { taskTags, taskSource, scanFolder } = this.settings;
+			const tasks = await scanVault(this.app, taskTags, taskSource, scanFolder);
 			if (fullScan !== this.fullScanVersion) return;
 			// Keep per-file refreshes that finished after this scan started.
 			for (const [path, revision] of this.fileVersions) {
@@ -193,10 +204,12 @@ export default class TaskLoopsPlugin extends Plugin {
 			return;
 		}
 		const version = ++this.scanVersion;
+		const fullScan = this.fullScanVersion;
 		this.fileVersions.set(file.path, version);
 		try {
-			const tasks = await scanFile(this.app, file, "#task", "checkboxes");
-			if (this.fileVersions.get(file.path) !== version) return;
+			const { taskTags, taskSource } = this.settings;
+			const tasks = await scanFile(this.app, file, taskTags, taskSource);
+			if (this.fileVersions.get(file.path) !== version || fullScan !== this.fullScanVersion) return;
 			this.tasks.set(file.path, tasks);
 			this.refreshViews();
 		} catch (error) {
@@ -207,7 +220,7 @@ export default class TaskLoopsPlugin extends Plugin {
 	allTasks(): ScannedTask[] {
 		return [...this.tasks.values()]
 			.flat()
-			.filter((task) => task.checkbox && inScanFolder(task.path, this.settings.scanFolder))
+			.filter((task) => inScanFolder(task.path, this.settings.scanFolder))
 			.map((task) => {
 				const old = this.items[task.id];
 				return !task.hasSchedule && old?.due ? { ...task, due: old.due } : task;

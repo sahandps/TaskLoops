@@ -3,7 +3,7 @@ import { todayISO } from "../core/dates";
 import { App, TFile, normalizePath } from "obsidian";
 import type { LegacyItem, ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
 import { parseSchedule, validSchedule, writeSchedule, writeTaskPriority } from "../core/schedule";
-import { setCheckboxDone } from "../infrastructure/obsidian/task-repository";
+import { setTaskDone } from "../infrastructure/obsidian/task-repository";
 import { applyNoteChanges, type NoteChange } from "../infrastructure/obsidian/note-transaction";
 import { existingSubtaskCandidates, existingSubtaskDestination } from "../core/existing-tasks";
 import {
@@ -15,6 +15,7 @@ import {
 	taskBlock,
 	nestTaskBlock,
 	validateWording,
+	ensureTaskTag,
 } from "../core/task-edits";
 
 interface TaskServiceHost {
@@ -40,6 +41,9 @@ export class TaskService {
 	}
 	private get items(): Record<string, LegacyItem> {
 		return this.host.legacyItems();
+	}
+	private get requiredTags(): readonly string[] {
+		return this.settings.taskSource === "tagged" ? this.settings.taskTags : [];
 	}
 	private async enqueue(action: () => Promise<void>): Promise<void> {
 		const next = this.mutations
@@ -106,7 +110,7 @@ export class TaskService {
 				await this.app.vault.process(file, (content) =>
 					completeTaskBlock(content, current, todayISO(), this.settings.dateFormat),
 				);
-			} else if (!(await setCheckboxDone(this.app, current)))
+			} else if (!(await setTaskDone(this.app, current)))
 				throw new Error("The task changed or moved ambiguously. Refresh and try again.");
 			await this.host.reloadWrittenFile(current.path);
 			completed = true;
@@ -178,7 +182,7 @@ export class TaskService {
 				if (schedule.due) throw new Error("A deferred task must be unscheduled.");
 			}
 			if (prepare) path = normalizePath(await prepare());
-			const raw = "- [ ] " + text.trim();
+			const raw = ensureTaskTag("- [ ] " + text.trim(), this.requiredTags);
 			const base =
 				schedule.due || schedule.priority || schedule.color
 					? writeSchedule(
@@ -241,6 +245,8 @@ export class TaskService {
 							this.settings.dateFormat,
 							subtasks,
 							reason,
+							this.settings.taskTags,
+							this.requiredTags,
 						),
 					),
 				);
@@ -256,6 +262,8 @@ export class TaskService {
 					this.settings.dateFormat,
 					subtasks,
 					reason,
+					this.settings.taskTags,
+					this.requiredTags,
 				);
 				let destination = this.app.vault.getAbstractFileByPath(path);
 				let before = "";
@@ -344,6 +352,7 @@ export class TaskService {
 			validateWording(text);
 			subtasks.forEach(validateWording);
 			const parent = this.current(task);
+			if (!parent.checkbox) throw new Error("Add subtasks under a Markdown checkbox task.");
 			if (reason !== undefined && parent.checked)
 				throw new Error("Completed tasks cannot be deferred.");
 			const children = existing.map((child) => this.current(child));
@@ -390,6 +399,8 @@ export class TaskService {
 				this.settings.dateFormat,
 				subtasks,
 				reason,
+				this.settings.taskTags,
+				this.requiredTags,
 			);
 			const ranges = [{ path: parent.path, start: parentBlock.start, end: parentBlock.end }];
 			for (const child of children) {

@@ -158,7 +158,7 @@ export function renderPlannerSidebar(
 							? "No unscheduled tasks. Scheduled tasks are on the calendar."
 							: q
 								? "No matching tasks."
-								: "No tasks yet. Add a task or write a checkbox in any note.",
+								: "No tasks yet. Add a task or check your task detection settings.",
 		});
 	return { matching, list, search };
 }

@@ -1,10 +1,23 @@
-import type { ScannedTask } from "./types";
-import { assignParents, checkboxState, cleanTaskText, indentOf, taskId } from "./task-parsing";
+import type { ScannedTask, TaskSource } from "./types";
+import {
+	assignParents,
+	checkboxState,
+	cleanTaskText,
+	hasHandledMarker,
+	indentOf,
+	matchingTaskTags,
+	taskId,
+} from "./task-parsing";
 import { parseSchedule } from "./schedule";
 
-/** Locate checkbox rows without touching Markdown. Skip frontmatter and fenced
+/** Locate task rows without touching Markdown. Skip frontmatter and fenced
  * examples; indented code is excluded unless it is inside a list container. */
-export function noteTaskRows(content: string, path: string): ScannedTask[] {
+export function noteTaskRows(
+	content: string,
+	path: string,
+	tags: readonly string[] = ["#task"],
+	source: TaskSource = "checkboxes",
+): ScannedTask[] {
 	const lines = content.split("\n"),
 		tasks: ScannedTask[] = [],
 		occurrences = new Map<string, number>();
@@ -50,14 +63,16 @@ export function noteTaskRows(content: string, path: string): ScannedTask[] {
 		const list = /^\s*(?:[-*+]|\d+[.)])\s+/.test(plain);
 		if (depth >= 4 && listDepth === undefined) continue;
 		if (list && listDepth === undefined) listDepth = depth;
-		const checked = checkboxState(raw);
-		if (checked === null) continue;
-		const text = cleanTaskText(raw, "#task");
-		if (!text) continue;
+		const checkbox = checkboxState(raw);
+		const taskTags = source === "checkboxes" ? [] : matchingTaskTags(raw, tags);
+		if ((checkbox === null || source === "tagged") && !taskTags.length) continue;
+		const text = cleanTaskText(raw, tags);
+		if (!text || (checkbox === null && /^[\p{P}\s]+$/u.test(text))) continue;
 		const key = text.toLowerCase(),
 			occurrence = occurrences.get(key) ?? 0;
 		occurrences.set(key, occurrence + 1);
 		const parsed = parseSchedule(raw);
+		const handled = hasHandledMarker(raw);
 		tasks.push({
 			...parsed.schedule,
 			id: taskId(path, text, occurrence),
@@ -66,9 +81,10 @@ export function noteTaskRows(content: string, path: string): ScannedTask[] {
 			raw,
 			text,
 			indent: depth,
-			checked,
-			checkbox: true,
-			handled: false,
+			checked: checkbox ?? handled,
+			checkbox: checkbox !== null,
+			handled,
+			...(taskTags.length ? { taskTags } : {}),
 			hasSchedule: !!parsed.suffix,
 		});
 	}

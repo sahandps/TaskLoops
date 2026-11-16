@@ -133,6 +133,6 @@ export function renderNotesView(
 			cls: "tl-empty",
 			text: tasks.length
 				? "No notes match these filters."
-				: "No task notes yet. Add a task or write a Markdown checkbox in a note.",
+				: "No task notes yet. Add a task or check your task detection settings.",
 		});
 }

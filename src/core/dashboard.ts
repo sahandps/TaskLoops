@@ -2,12 +2,11 @@ import { noteFolder } from "./note-grid";
 import { todayAgenda } from "./today-agenda";
 import type { ScannedTask } from "./types";
 
-/** The dashboard is a read model over the same scanned checkboxes as Planner. */
+/** The dashboard is a read model over the same tasks as Planner. */
 export function dashboardData(tasks: readonly ScannedTask[], day: string, projectNotes: readonly string[]) {
-	const checkboxes = tasks.filter((task) => task.checkbox);
-	const agenda = todayAgenda(checkboxes, day);
+	const agenda = todayAgenda(tasks, day);
 	const selected = new Map<string, ScannedTask[]>(projectNotes.map((path) => [path, []]));
-	for (const task of checkboxes) selected.get(task.path)?.push(task);
+	for (const task of tasks) selected.get(task.path)?.push(task);
 	const projects = [...selected]
 		.sort(
 			([a], [b]) =>
@@ -20,7 +19,7 @@ export function dashboardData(tasks: readonly ScannedTask[], day: string, projec
 	return {
 		agenda,
 		timeBlocks: agenda.entries.filter((entry) => !entry.allDay),
-		inbox: checkboxes.filter((task) => !task.checked && !task.due),
+		inbox: tasks.filter((task) => !task.checked && !task.due),
 		projects,
 		activeProjects: projects.filter((project) => !project.tasks.length || project.open > 0),
 	};

@@ -1,10 +1,6 @@
 import type { ScannedTask } from "./types";
 import { parseSchedule } from "./schedule";
 
-export function escapeRegex(s: string): string {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 /**
  * Matches the handled marker in any of its plausible spellings, so a marker
  * written by an older setting (or by hand) is still recognised.
@@ -18,6 +14,27 @@ export function hasHandledMarker(line: string): boolean {
 
 export function stripHandledMarker(line: string): string {
 	return line.replace(HANDLED_RE, "");
+}
+
+export function markTaggedTaskDone(line: string): string {
+	// Insert before schedule metadata and any block ID, so both stay readable.
+	const { body } = parseSchedule(line);
+	const end = body.trimEnd().length;
+	return line.slice(0, end) + " *(Handled)*" + line.slice(end);
+}
+
+// Skip code, comments and link destinations when looking for inline tags.
+const INLINE_TAG =
+	/(`+)(?!`)(?:.*?[^\x60])?\1(?!`)|<!--.*?-->|%%.*?%%|\[\[[^\]]+\]\]|\]\((?:\\.|[^)])*\)|(^|[^\p{L}\p{M}\p{N}_/#\\-])(#[\p{L}\p{M}\p{N}_/-]+)/gu;
+
+export function matchingTaskTags(raw: string, configured: readonly string[]): string[] {
+	return [
+		...new Set(
+			[...raw.matchAll(INLINE_TAG)].flatMap((match) =>
+				match[3] && configured.some((tag) => tagMatches(match[3], tag)) ? [match[3]] : [],
+			),
+		),
+	];
 }
 
 /** Stable, order-independent string hash. */
@@ -39,17 +56,18 @@ function hash(s: string): string {
  * bullet, no checkbox, no heading hashes, no blockquote arrow, no tag, no
  * handled marker, no block id.
  */
-export function cleanTaskText(raw: string, tag: string): string {
+export function cleanTaskText(raw: string, tags: string | readonly string[]): string {
 	let t = stripHandledMarker(parseSchedule(raw).body);
 	t = t.replace(/^\s*(?:>\s*)+/, "");
 	t = t.replace(/^\s*#{1,6}\s+/, "");
 	t = t.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "");
-	t = t.replace(/^\s*\[[ xX/-]\]\s*/, "");
+	if (checkboxState(raw) !== null) t = t.replace(/^\s*\[.\]\s*/, "");
 	t = t.replace(/\s+\^[\w-]+\s*$/, "");
 
-	const bare = tag.startsWith("#") ? tag.slice(1) : tag;
-	const tagRe = new RegExp("(^|\\s)#" + escapeRegex(bare) + "(\\/[^\\s#]+)?(?=$|\\s|[.,;:!?)\\]])", "gi");
-	t = t.replace(tagRe, "$1");
+	const configured = typeof tags === "string" ? [tags] : tags;
+	t = t.replace(INLINE_TAG, (match: string, _code: string, prefix: string, tag: string) =>
+		tag && configured.some((value) => tagMatches(tag, value)) ? prefix : match,
+	);
 
 	t = t.replace(/\s+/g, " ").trim();
 	// Removing a mid-sentence tag can strand a space before punctuation.

@@ -15,11 +15,11 @@ export default async function run(mod) {
  eq(a.entries.some(e=>e.task.id==='undated'),false,'unscheduled tasks do not invent a date');
  eq(ids(a.overdue),['old','deadline-old','ends-midnight'],'overdue sorts by oldest final day and omits ongoing spans and completed tasks');
  eq(a.remaining,8,'remaining count includes every parent and child separately');
- eq(a.progress,{total:9,completed:1,percent:11},'daily progress counts only checkbox tasks intersecting today');
+ eq(a.progress,{total:9,completed:1,percent:11},'daily progress counts tasks intersecting today');
  eq(JSON.stringify(tasks),original,'building an agenda has no note/task mutations');
  eq(mod.todayAgenda([],day).progress,{total:0,completed:0,percent:0},'empty day has finite zero progress');
  const tagged=mod.todayAgenda([t('tagged',{checkbox:false,checked:true})],day);
- eq(tagged.progress.total,0,'tagged text is not counted as a checkbox');
+ eq(tagged.progress,{total:1,completed:1,percent:100},'completed tagged text counts toward progress');
  eq(mod.todayAgenda([t('bad',{due:'bad-date'})],day).entries.length,0,'invalid dates cannot crash the view');
  for(const d of ['2026-03-29','2026-10-25']) {
   const x=mod.todayAgenda([task('dst',{due:d}),task('boundary',{due:mod.shiftISO(d,-1),deadline:d})],d);

@@ -40,8 +40,8 @@ export function todayAgenda(tasks: readonly ScannedTask[], day: string) {
 	const timed = active.filter((entry) => !entry.allDay);
 	const period = (entry: AgendaEntry) => (entry.continuing ? 0 : entry.start.getHours());
 	const included = new Set(entries.map((entry) => entry.task));
-	const total = entries.filter((entry) => entry.task.checkbox).length;
-	const completed = entries.filter((entry) => entry.task.checkbox && entry.task.checked).length;
+	const total = entries.length;
+	const completed = entries.filter((entry) => entry.task.checked).length;
 	return {
 		entries,
 		allDay: active.filter((entry) => entry.allDay),

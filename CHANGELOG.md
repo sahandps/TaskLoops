@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.29 — 2026-11-16
+
+- Use **Settings → TaskLoops → Tasks → Task detection** to find checkboxes, tagged lines like `Call the supplier #task`, or both. Checkboxes remain the default.
+- Add your own comma-separated **Task tags**, such as `#task, #todo, #follow-up`. A checkbox with a matching tag appears once. In tagged-only mode, TaskLoops adds the first configured tag to new tasks that need one.
+- Schedule, edit, or complete tagged lines from the planner. Completing a tagged sentence keeps it as prose and adds an `*(Handled)*` marker.
+
 ## 0.5.28 — 2026-11-11
 
 - The calendar-plus button in a note opens **Schedule task** over that note and focuses the due date.

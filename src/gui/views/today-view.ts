@@ -44,7 +44,7 @@ export function renderTodayView(
 				max: String(agenda.progress.total),
 				value: String(agenda.progress.completed),
 				"aria-label": "Today's task progress",
-				"aria-valuetext": `${agenda.progress.completed} of ${agenda.progress.total} checkbox tasks complete (${agenda.progress.percent}%). Includes subtasks.`,
+				"aria-valuetext": `${agenda.progress.completed} of ${agenda.progress.total} tasks complete (${agenda.progress.percent}%). Includes subtasks.`,
 			},
 		});
 	}

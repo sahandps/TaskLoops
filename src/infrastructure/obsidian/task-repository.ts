@@ -12,7 +12,10 @@ import {
 	hasHandledMarker,
 	assignParents,
 	markCheckboxDone,
+	markTaggedTaskDone,
+	matchingTaskTags,
 } from "../../core/task-parsing";
+import { taskBlock } from "../../core/task-edits";
 
 /**
  * Find Markdown checkbox tasks, tagged lines, or both in one file.
@@ -23,21 +26,29 @@ import {
 export async function scanFile(
 	app: App,
 	file: TFile,
-	tag: string,
+	tags: string | readonly string[] = "#task",
 	source: TaskSource = "checkboxes",
 ): Promise<ScannedTask[]> {
 	const cache = app.metadataCache.getFileCache(file);
 	if (!cache) return [];
 
 	const lines = new Set<number>();
-	if (source !== "tagged") {
-		for (const item of cache.listItems ?? []) {
-			if (item.task !== undefined) lines.add(item.position.start.line);
-		}
-	}
+	const configured = typeof tags === "string" ? [tags] : tags;
+	const checkboxLines = new Set(
+		(cache.listItems ?? [])
+			.filter((item) => item.task !== undefined)
+			.map((item) => item.position.start.line),
+	);
+	if (source !== "tagged") for (const line of checkboxLines) lines.add(line);
+	const taggedLines = new Map<number, string[]>();
 	if (source !== "checkboxes") {
 		for (const t of cache.tags ?? []) {
-			if (tagMatches(t.tag, tag)) lines.add(t.position.start.line);
+			if (!configured.some((tag) => tagMatches(t.tag, tag))) continue;
+			const line = t.position.start.line;
+			const matches = taggedLines.get(line);
+			if (matches) matches.push(t.tag);
+			else taggedLines.set(line, [t.tag]);
+			lines.add(line);
 		}
 	}
 	if (lines.size === 0) return [];
@@ -51,15 +62,23 @@ export async function scanFile(
 		const raw = split[line];
 		if (raw === undefined) continue;
 
-		const text = cleanTaskText(raw, tag);
-		if (!text) continue; // a bare tag on its own line is not a task
+		const checkbox = checkboxLines.has(line) ? checkboxState(raw) : null;
+		const recognizedTags = taggedLines.get(line);
+		const taskTags = recognizedTags
+			? matchingTaskTags(raw, configured).filter((tag) =>
+					recognizedTags.some((recognized) => recognized.toLowerCase() === tag.toLowerCase()),
+				)
+			: [];
+		if ((source === "tagged" || checkbox === null) && !taskTags.length) continue;
+		const text = cleanTaskText(raw, configured);
+		if (!text || (checkbox === null && /^[\p{P}\s]+$/u.test(text))) continue;
 
 		const key = text.toLowerCase();
 		const occurrence = seen.get(key) ?? 0;
 		seen.set(key, occurrence + 1);
 
-		const checkbox = checkboxState(raw);
 		const parsed = parseSchedule(raw);
+		const handled = hasHandledMarker(raw);
 		out.push({
 			...parsed.schedule,
 			hasSchedule: !!parsed.suffix,
@@ -69,19 +88,15 @@ export async function scanFile(
 			raw,
 			text,
 			indent: taskIndent(raw),
-			handled: hasHandledMarker(raw),
+			handled,
 			checkbox: checkbox !== null,
-			checked: checkbox ?? false,
+			checked: checkbox ?? handled,
+			...(taskTags.length ? { taskTags } : {}),
 		});
 	}
 
 	for (const task of out) {
-		if (!task.checkbox) continue;
-		const block = [task.raw];
-		for (let index = task.line + 1; index < split.length; index++) {
-			if (split[index].trim() && taskIndent(split[index]) <= task.indent) break;
-			block.push(split[index]);
-		}
+		const block = taskBlock(content, task, split).lines;
 		const deferral = readDeferral(block);
 		if (deferral) task.deferral = deferral;
 	}
@@ -91,14 +106,14 @@ export async function scanFile(
 
 export async function scanVault(
 	app: App,
-	tag: string,
+	tags: string | readonly string[] = "#task",
 	source: TaskSource = "checkboxes",
 	folder = "",
 ): Promise<Map<string, ScannedTask[]>> {
 	const result = new Map<string, ScannedTask[]>();
 	for (const file of app.vault.getMarkdownFiles()) {
 		if (!inScanFolder(file.path, folder)) continue;
-		const tasks = await scanFile(app, file, tag, source);
+		const tasks = await scanFile(app, file, tags, source);
 		if (tasks.length) result.set(file.path, tasks);
 	}
 	return result;
@@ -111,6 +126,11 @@ export async function scanVault(
 export async function setCheckboxDone(app: App, task: ScannedTask): Promise<boolean> {
 	if (!task.checkbox) return false;
 	return rewriteLine(app, task, markCheckboxDone);
+}
+
+export async function setTaskDone(app: App, task: ScannedTask): Promise<boolean> {
+	if (task.checkbox) return setCheckboxDone(app, task);
+	return rewriteLine(app, task, markTaggedTaskDone);
 }
 
 /**

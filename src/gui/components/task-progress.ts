@@ -6,7 +6,7 @@ export function renderTaskProgress(root: HTMLElement, path: string, value?: Task
 	const progress = root.createDiv({
 		cls: "tl-task-progress",
 		attr: {
-			title: "All checkbox tasks in this note, including every subtask. Independent of list filters.",
+			title: "All detected tasks in this note, including every subtask. Independent of list filters.",
 		},
 	});
 	const summary = progress.createDiv("tl-progress-summary");

@@ -1,14 +1,13 @@
 import type { ScannedTask, TaskDeferral } from "./types";
 
-function continuation(raw: string): string {
-	const container = raw.match(/^([ \t]*(?:>[ \t]*)*)(?:[-*+]|\d+[.)])[ \t]+\[.\]/)?.[1];
-	if (container === undefined) throw new Error("Choose a Markdown checkbox task.");
-	return container + "    ";
+export function deferralPrefix(raw: string): string {
+	const container = raw.match(/^[ \t]*(?:>[ \t]*)*/)?.[0] ?? "";
+	return container + "    Can't schedule now: ";
 }
 
 /** Only direct continuations belong to this task, never a child's reason. */
 export function readDeferral(block: string[]): TaskDeferral | undefined {
-	const prefix = continuation(block[0]) + "Can't schedule now: ";
+	const prefix = deferralPrefix(block[0]);
 	let previous: TaskDeferral | undefined;
 	for (const raw of block.slice(1)) {
 		if (!raw.startsWith(prefix)) continue;
@@ -36,7 +35,7 @@ export function validateDeferralReason(reason: string): string {
 export function deferBlock(block: string[], reason: string): string[] {
 	const value = validateDeferralReason(reason);
 	const next = [...block];
-	const prefix = continuation(next[0]) + "Can't schedule now: ";
+	const prefix = deferralPrefix(next[0]);
 	const active = next.findIndex(
 		(line, index) =>
 			index > 0 &&
@@ -55,7 +54,7 @@ export function deferBlock(block: string[], reason: string): string[] {
 export function resolveDeferral(block: string[], due: string | undefined, today: string): string[] {
 	if (!due) return block;
 	const next = [...block];
-	const prefix = continuation(next[0]) + "Can't schedule now: ";
+	const prefix = deferralPrefix(next[0]);
 	for (let i = 1; i < next.length; i++) {
 		const line = next[i];
 		if (

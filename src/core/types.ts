@@ -58,6 +58,8 @@ export interface ScannedTask extends Schedule {
 	handled: boolean;
 	checkbox: boolean;
 	checked: boolean;
+	/** Matching inline tags as written in the note. */
+	taskTags?: string[];
 	/** Explicit fields in Markdown take precedence over legacy saved dates. */
 	hasSchedule?: boolean;
 }
@@ -87,6 +89,8 @@ export interface TaskLoopsSettings {
 	showCompleted: boolean;
 	noteDensity: "comfortable" | "compact";
 	notePreviewLimit: number;
+	taskSource: TaskSource;
+	taskTags: string[];
 	scanFolder: string;
 	panelWidth: number;
 	panelHeight: number;
@@ -121,6 +125,8 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	showCompleted: false,
 	noteDensity: "comfortable",
 	notePreviewLimit: 5,
+	taskSource: "checkboxes",
+	taskTags: ["#task"],
 	scanFolder: "",
 	panelWidth: 260,
 	panelHeight: 220,

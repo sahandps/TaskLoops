@@ -1,10 +1,11 @@
 import { PlannerSettingsModal } from "../modals/planner-settings";
 import { slotHeight } from "../../core/calendar-zoom";
-import { App, normalizePath, PluginSettingTab, Setting } from "obsidian";
+import { App, normalizePath, Notice, PluginSettingTab, Setting } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
 import type TaskLoopsPlugin from "../../main";
 import type { DateFormat } from "../../core/types";
 import { DATE_FORMATS, formatDate } from "../../core/schedule";
+import { normalizeTaskTags } from "../../core/settings";
 
 /** Shared definitions keep settings searchable on 1.13+ and usable on 1.7.2+. */
 export class TaskLoopsSettingTab extends PluginSettingTab {
@@ -283,6 +284,56 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 				},
 			},
 			{
+				name: "Task detection",
+				desc: "Choose which lines appear in TaskLoops. A checkbox with a task tag appears only once.",
+				render: (setting) => {
+					setting.addDropdown((dropdown) =>
+						dropdown
+							.addOption("checkboxes", "Checkboxes only")
+							.addOption("tagged", "Tagged lines only")
+							.addOption("both", "Checkboxes and tagged lines")
+							.setValue(this.plugin.settings.taskSource)
+							.onChange(async (value) => {
+								if (value !== "checkboxes" && value !== "tagged" && value !== "both") return;
+								this.plugin.settings.taskSource = value;
+								await this.plugin.refreshTaskDiscovery();
+							}),
+					);
+				},
+			},
+			{
+				name: "Task tags",
+				desc: "Separate tags with commas, for example #task, #todo, #follow-up. A tag also matches its nested tags. In tagged-only mode, new tasks use the first tag unless they already have a matching one.",
+				render: (setting) => {
+					setting.addText((text) => {
+						text.setPlaceholder("#task, #todo").setValue(
+							this.plugin.settings.taskTags.join(", "),
+						);
+						text.inputEl.onkeydown = (event) => {
+							if (event.key === "Enter" && !event.isComposing) text.inputEl.blur();
+						};
+						text.inputEl.onblur = () => {
+							const entries = text
+								.getValue()
+								.split(",")
+								.map((entry) => entry.trim())
+								.filter(Boolean);
+							const tags = normalizeTaskTags(entries);
+							if (!tags.length || entries.some((entry) => !normalizeTaskTags([entry]).length)) {
+								new Notice("Enter at least one valid task tag, such as #task or #follow-up.");
+								text.setValue(this.plugin.settings.taskTags.join(", "));
+								return;
+							}
+							const formatted = tags.join(", ");
+							text.setValue(formatted);
+							if (formatted === this.plugin.settings.taskTags.join(", ")) return;
+							this.plugin.settings.taskTags = tags;
+							void this.plugin.refreshTaskDiscovery();
+						};
+					});
+				},
+			},
+			{
 				name: "Task scan folder",
 				desc: "Leave blank to gather tasks across your vault. Enter a folder path to read tasks only in that folder and its subfolders. New tasks outside this folder stay in their notes but are hidden here.",
 				render: (setting) => {
@@ -292,7 +343,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 							this.plugin.settings.scanFolder = text.getValue().trim()
 								? normalizePath(text.getValue().trim()).replace(/^\/+|\/+$/g, "")
 								: "";
-							void this.plugin.saveSettings().then(() => this.plugin.rescan());
+							void this.plugin.refreshTaskDiscovery();
 						};
 					});
 				},
@@ -329,7 +380,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			},
 			{
 				name: "Show progress bars",
-				desc: "Show checkbox progress for each note in Planner and Notes, and for tasks scheduled in Today. Includes subtasks. Calculated from existing tasks without saving progress data.",
+				desc: "Show progress for detected tasks in Planner and Notes, and for tasks scheduled in Today. Includes subtasks.",
 				render: (setting) => {
 					setting.addToggle((toggle) =>
 						toggle.setValue(this.plugin.settings.showProgressBars).onChange(async (value) => {
@@ -379,6 +430,8 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 					"Show completed by default",
 					"Standalone task storage",
 					"Standalone tasks note",
+					"Task detection",
+					"Task tags",
 					"Task scan folder",
 					"Show progress bars",
 				],
@@ -463,7 +516,7 @@ export class TaskLoopsSettingTab extends PluginSettingTab {
 			definition.render(setting);
 		}
 		this.containerEl.createEl("p", {
-			text: "TaskLoops reads Markdown checkboxes locally. It does not upload your notes or edit note properties. Vault file paths are listed to discover notes and search project destinations; folder scope limits task content reads.",
+			text: "TaskLoops reads Markdown tasks locally. It does not upload your notes or edit note properties. Vault file paths are listed to discover notes and search project destinations; folder scope limits task content reads.",
 		});
 	}
 }

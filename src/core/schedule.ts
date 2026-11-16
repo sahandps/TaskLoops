@@ -156,7 +156,7 @@ function parseScheduleBody(raw: string): {
 	suffix: string;
 	block: string;
 } {
-	const block = raw.match(/(\s+\^[\w-]+)?(\r?)$/)?.[0] ?? "";
+	const block = raw.match(/(?:[ \t]+\^[\w-]+[ \t]*)?\r?$/)?.[0] ?? "";
 	const body = raw.slice(0, raw.length - block.length);
 	const match = body.match(
 		/\s+(?:- )?(?:Due date|date): ([A-Za-z0-9.,/ -]+?)(?: Time: (\d{2}:\d{2}))?(?: Duration: (?:(\d+) Hours?(?: (\d+) Minutes?)?|(\d+) Minutes?))?(?: Deadline: ([A-Za-z0-9.,/ -]+?))?\s*$/i,

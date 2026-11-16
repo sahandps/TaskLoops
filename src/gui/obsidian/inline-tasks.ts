@@ -5,6 +5,7 @@ import type TaskLoopsPlugin from "../../main";
 import { InlineTaskEditorModal } from "../modals/inline-task-editor";
 import { locateNoteTask, noteTaskRows } from "../../core/inline-task-data";
 import { inScanFolder } from "../../core/note-grid";
+import { matchingTaskTags } from "../../core/task-parsing";
 
 async function openTask(
 	plugin: TaskLoopsPlugin,
@@ -17,13 +18,16 @@ async function openTask(
 		await save?.();
 		const file = plugin.app.vault.getAbstractFileByPath(path);
 		if (!(file instanceof TFile)) return;
-		const content = await plugin.app.vault.read(file);
-		const task = locateNoteTask(noteTaskRows(content, path), line, raw);
+		await plugin.refreshFile(file);
+		const task = locateNoteTask(
+			plugin.allTasks().filter((task) => task.path === path),
+			line,
+			raw,
+		);
 		if (!task) {
 			new Notice("This task changed. Reopen it from the updated note.");
 			return;
 		}
-		await plugin.refreshFile(file);
 		new InlineTaskEditorModal(plugin.app, plugin, task).open();
 	} catch (error) {
 		console.error("TaskLoops: could not open inline task", error);
@@ -107,7 +111,8 @@ export function inlineTaskExtension(
 				const info = view.state.field(editorInfoField, false),
 					path = info?.file?.path;
 				if (!path || !inScanFolder(path, plugin.settings.scanFolder)) return Decoration.none;
-				const rows = noteTaskRows(view.state.doc.toString(), path);
+				const { taskTags, taskSource } = plugin.settings;
+				const rows = noteTaskRows(view.state.doc.toString(), path, taskTags, taskSource);
 				return Decoration.set(
 					rows.flatMap((task) => {
 						const line = view.state.doc.line(task.line + 1);
@@ -150,6 +155,8 @@ export function readingTaskButtons(
 	items.forEach((item, index) => {
 		if (Array.from(item.children).some((child) => child.classList.contains("tl-inline-schedule"))) return;
 		const task = rows[index];
+		const { taskSource, taskTags } = plugin.settings;
+		if (taskSource === "tagged" && !matchingTaskTags(task.raw, taskTags).length) return;
 		const control = button(
 			item.ownerDocument,
 			() => void openTask(plugin, context.sourcePath, task.line, task.raw),
