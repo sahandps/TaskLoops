@@ -1,3 +1,4 @@
+import { filterTasksByTag } from "../core/note-grid";
 import type { ScannedTask, Schedule, TaskLoopsSettings } from "../core/types";
 
 /** UI-facing actions, shared by the Obsidian plugin and browser preview. */
@@ -35,4 +36,9 @@ export interface TaskActions {
 		existing?: ScannedTask[],
 		reason?: string,
 	): Promise<boolean>;
+}
+
+/** Shared task scope for all views; editors and task writes retain the full vault. */
+export function visibleTasks(actions: TaskActions): ScannedTask[] {
+	return filterTasksByTag(actions.allTasks(), actions.settings.noteTagFilter);
 }

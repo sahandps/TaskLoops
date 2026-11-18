@@ -27,6 +27,7 @@ export default function run(mod) {
   replaceChildren(){this.children=[];}
   querySelector(){return null;}
   focus(){this.focused=true;}
+  addEventListener(){}
  }
  const all=n=>[n,...n.children.flatMap(all)];
  const root=new Node();let saves=0,changes=0;
@@ -52,6 +53,36 @@ export default function run(mod) {
  const search=button('Find a task tag');search.value='ALPHA';search.oninput();
  eq(choices().map(n=>n.text),['#project/alpha (1)','#project/alpha/urgent (1)'],'dropdown search is case insensitive');
  eq(saves,4,'favorite changes and selections persist');
+
+ for (const mode of ['checkboxes','tagged','both']) {
+  const scoped={settings:mod.normalizeSettings({taskSource:mode,noteTagFilter:'#project/alpha'}),allTasks:()=>tasks};
+  eq(mod.visibleTasks(scoped).map(t=>t.id),['a'],'shared scope applies in '+mode+' detection mode');
+  for (const view of ['dashboard','today','planner','kanban','notes']) {
+   const header=new Node();mod.renderViewHeader(header,scoped,{mode:view},()=>{});
+   eq(all(header).filter(n=>n.options.cls==='tl-tag-picker').length,1,'shared tag picker is available in '+view+' with '+mode);
+  }
+ }
+ const header=new Node();actions.settings.noteTagFilter='#project/alpha';actions.allTasks=()=>tasks;
+ mod.renderViewHeader(header,actions,{mode:'planner'},()=>changes++);
+ all(header).find(n=>n.attrs['aria-label']==='Clear tag filter').onclick();
+ eq(actions.settings.noteTagFilter,null,'header clears the selection for all pages');
+ eq(mod.visibleTasks(actions).length,tasks.length,'clearing restores the complete task scope');
+ actions.settings.noteTagFilter='#missing';eq(mod.visibleTasks(actions),[],'unmatched tag cannot leak tasks from another project');
+ actions.settings.noteTagFilter='#project/alpha';
+ const sidebar=new Node();let rendered=[];
+ const scopedActions={...actions,noteName:path=>path,settings:{...actions.settings,showProgressBars:false}};
+ const scopedState={query:'',showDone:true,taskFilter:'all',noteFilter:'all',folder:null,collapsedNotes:new Set(),expandedNotes:new Set()};
+ // Extend the tiny DOM stub only with methods used by task-group renderers.
+ Node.prototype.createSpan=function(options){return this.createEl('span',options);};
+ Node.prototype.closest=function(){return null;};
+ const planner=mod.renderPlannerSidebar(sidebar,scopedActions,scopedState,(parent,task)=>{rendered.push(task.id);return parent.createDiv();},()=>{},()=>{},()=>{});
+ eq(planner.matching.map(t=>t.id),['a'],'calendar receives only tasks matching the global tag');
+ eq(rendered,['a'],'Planner list uses the same scope as calendar events');
+ rendered=[];const notes=new Node();mod.renderNotesView(notes,scopedActions,scopedState,(parent,task)=>{rendered.push(task.id);return parent.createDiv();},()=>{});
+ eq(rendered,['a'],'Notes retains task-level filtering in a shared note');
+ const taggedToday=new Node();mod.renderTodayView(taggedToday,scopedActions,()=>{},new Date('2026-11-18T10:00:00'));
+ eq(all(taggedToday).filter(n=>n.attrs['aria-label']==='Complete '+tasks[0].text).length,1,'Today includes the selected project');
+ eq(all(taggedToday).filter(n=>n.attrs['aria-label']==='Complete '+tasks[1].text).length,0,'Today excludes other projects');
  const original=JSON.stringify(tasks);
  const stale=new Node();actions.settings.favoriteTaskTags=['#old/project'];
  mod.renderTaskTagFilter(stale,[],actions,()=>{});

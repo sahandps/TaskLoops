@@ -25,8 +25,7 @@ export function noteGroups(
 	tag: string | null = null,
 ): NoteGroup[] {
 	const groups = new Map<string, ScannedTask[]>();
-	for (const task of tasks) {
-		if (tag && !inlineTaskTags(task.raw ?? "").some((value) => tagMatches(value, tag))) continue;
+	for (const task of filterTasksByTag(tasks, tag)) {
 		const group = groups.get(task.path) ?? [];
 		group.push(task);
 		groups.set(task.path, group);
@@ -76,4 +75,11 @@ export function taskTagCounts(tasks: ScannedTask[]): Map<string, number> {
 		for (const tag of tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
 	}
 	return counts;
+}
+
+/** Scope task lists, counts, and calendar events consistently across views. */
+export function filterTasksByTag(tasks: ScannedTask[], tag?: string | null): ScannedTask[] {
+	return tag
+		? tasks.filter((task) => inlineTaskTags(task.raw ?? "").some((value) => tagMatches(value, tag)))
+		: tasks;
 }

@@ -191,11 +191,14 @@ Weeks begin on Monday by default; settings also offer Sunday and Saturday. Dates
 
 ## Tasks grouped by note
 
-In **Notes**, use **All tags** beside the folder dropdown to search and select a task
-tag. Tags come from task lines automatically, including Markdown checkboxes.
+Use **All tags** in the shared header to search and select a task tag across
+**Dashboard**, **Today**, **Planner**, **Kanban**, and **Notes**. Tags come from task lines automatically, including Markdown checkboxes.
 Selecting `#project` includes nested tags such as `#project/alpha`. Only matching
 tasks appear, so projects can share a single note. Tag, folder, text, and status
-filters work together.
+filters work together in Notes; other views combine the shared tag with their own filters.
+Planner filters both its task list and calendar events. The filter is available in
+all task detection modes, including **Tagged lines only** and **Checkboxes and tagged lines**.
+Use **Clear** beside the selected tag to show all tags again.
 
 Click **☆** beside a tag to add it to **Favorites**, and **★** to remove the shortcut.
 Favorites and the selected tag survive reopening TaskLoops. An unused favorite
@@ -529,7 +532,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.31 — Filter task tags and save favorite tags in Notes.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.32 — Filter by task tags and favorites across all views.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 

@@ -92,6 +92,7 @@ export interface TaskLoopsSettings {
 	taskSource: TaskSource;
 	taskTags: string[];
 	favoriteTaskTags: string[];
+	/** Shared view tag filter; storage key retained for compatibility with 0.5.31. */
 	noteTagFilter: string | null;
 	scanFolder: string;
 	panelWidth: number;

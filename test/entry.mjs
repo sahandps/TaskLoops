@@ -73,3 +73,5 @@ export * from "../src/core/repeat.ts";
 export { kanbanBoard } from "../src/core/kanban-board.ts";
 
 export {renderTaskTagFilter} from "../src/gui/components/task-tag-filter.ts";
+
+export {visibleTasks} from "../src/application/task-actions.ts";

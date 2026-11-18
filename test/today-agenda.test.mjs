@@ -37,6 +37,8 @@ export default async function run(mod) {
   createSpan(options={}){return this.createEl('span',options);}
   addEventListener(){}
   setAttribute(k,v){this.attrs[k]=v;}
+  replaceChildren(){this.children=[];}
+  setText(text){this.text=text;}
  }
  const all=n=>[n,...n.children.flatMap(all)];
  let completed=[],edited=[],revealed=[],scheduled=[],created=[];
@@ -63,7 +65,7 @@ export default async function run(mod) {
  const empty=render({allTasks:()=>[]});eq(empty.some(n=>n.text==='A little room in your day.'),true,'empty day has a clear calm state');empty.find(n=>n.text==='Add a task for today').onclick();eq(created,[{due:mod.todayISO()}],'empty-state creation prefills today');
  const done=render({allTasks:()=>[t('done',{checked:true})]});eq(done.some(n=>n.text==="Today's tasks are complete."),true,'completed-only day shows a useful finish state');
  const header=new Node();mod.renderViewHeader(header,actions,{mode:'today'},()=>{});all(header).find(n=>n.text==='+ Task').onclick();eq(created.length,2,'header Add task also targets today');
- eq(all(header).filter(n=>n.attrs['aria-pressed']).map(n=>n.text),['Dashboard','Today','Planner','Kanban','Notes'],'Dashboard is added without removing the existing views');
+ eq(all(header).filter(n=>n.attrs['data-tl-view']).map(n=>n.text),['Dashboard','Today','Planner','Kanban','Notes'],'Dashboard is added without removing the existing views');
  const projectHeader=new Node(),projectCaptures=[];
  mod.renderViewHeader(projectHeader,{...actions,settings:{...actions.settings,projectNotes:['Work/Project.md']},newTask:(schedule,path)=>projectCaptures.push({schedule,path})},{mode:'dashboard',dashboardPage:{kind:'project',path:'Work/Project.md'}},()=>{});
  all(projectHeader).find(n=>n.text==='+ Task').onclick();

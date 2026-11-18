@@ -1,3 +1,4 @@
+import { visibleTasks } from "../../application/task-actions";
 import { projectAccent } from "./task-appearance";
 import { renderTaskCompletionTabs } from "./task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
@@ -23,7 +24,7 @@ export function renderPlannerSidebar(
 		cls: "tl-sidebar",
 		attr: { "aria-label": "Tasks by note" },
 	});
-	const tasks = actions.allTasks();
+	const tasks = visibleTasks(actions);
 	const progress = actions.settings.showProgressBars !== false ? noteProgress(tasks) : undefined;
 	const {
 		matching,

@@ -1,3 +1,4 @@
+import { visibleTasks } from "../../application/task-actions";
 import { priorityBadge, projectAccent } from "../components/task-appearance";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -17,7 +18,7 @@ export function renderTodayView(
 	expanded = new Set<string>(),
 ): void {
 	const day = localDay(now);
-	const agenda = todayAgenda(actions.allTasks(), day);
+	const agenda = todayAgenda(visibleTasks(actions), day);
 	const pane = root.createEl("main", { cls: "tl-today-pane", attr: { "aria-label": "Today's tasks" } });
 	const body = pane.createDiv("tl-today-body");
 	const intro = body.createEl("header", { cls: "tl-today-intro" });

@@ -1,3 +1,4 @@
+import { renderTaskTagFilter } from "./task-tag-filter";
 import { todayISO } from "../../core/dates";
 import type { TaskActions } from "../../application/task-actions";
 import type { TaskViewState } from "../views/view-state";
@@ -27,6 +28,22 @@ export function renderViewHeader(
 			if (value === "dashboard") state.dashboardPage = undefined;
 			onChange();
 			root.querySelector<HTMLElement>(`[data-tl-view="${value}"]`)?.focus();
+		};
+	}
+	const tagControls = header.createDiv("tl-header-tags");
+	renderTaskTagFilter(tagControls, actions.allTasks(), actions, () => {
+		onChange();
+		root.querySelector<HTMLElement>(".tl-tag-picker summary")?.focus();
+	});
+	if (actions.settings.noteTagFilter) {
+		tagControls.createEl("button", {
+			text: "Clear",
+			attr: { "aria-label": "Clear tag filter", title: "Show tasks from all tags" },
+		}).onclick = () => {
+			actions.settings.noteTagFilter = null;
+			void actions.saveSettings();
+			onChange();
+			root.querySelector<HTMLElement>(".tl-tag-picker summary")?.focus();
 		};
 	}
 	header.createEl("button", { text: "+ Task", cls: "mod-cta" }).onclick = () => {

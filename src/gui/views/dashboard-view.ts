@@ -1,3 +1,4 @@
+import { visibleTasks } from "../../application/task-actions";
 import { setIcon } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import { dashboardData } from "../../core/dashboard";
@@ -38,7 +39,7 @@ export function renderDashboardView(
 	now = new Date(),
 ): HTMLElement {
 	const day = localDay(now);
-	const data = dashboardData(actions.allTasks(), day, actions.settings.projectNotes);
+	const data = dashboardData(visibleTasks(actions), day, actions.settings.projectNotes);
 	const pane = root.createEl("main", {
 		cls: "tl-dashboard-pane",
 		attr: { "aria-label": "TaskLoops dashboard" },

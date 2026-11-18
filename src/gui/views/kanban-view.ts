@@ -1,3 +1,4 @@
+import { visibleTasks } from "../../application/task-actions";
 import type { TaskActions } from "../../application/task-actions";
 import { KANBAN_DAYS, kanbanBoard, type KanbanFilters } from "../../core/kanban-board";
 import { shiftISO, todayISO } from "../../core/dates";
@@ -79,7 +80,7 @@ export function renderKanbanView(
 		actions.settings.kanbanStatus,
 	);
 	const priorities = actions.settings.priorities;
-	const tasks = actions.allTasks();
+	const tasks = visibleTasks(actions);
 	const archived = [
 		...new Set(
 			tasks.flatMap(({ priority }) =>

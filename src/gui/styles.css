@@ -768,7 +768,7 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 	.tl-view :is(.tl-sidebar, .tl-kanban-cards) .tl-task-title { min-height: 2rem; font-size: .875rem; }
 }
 
-/* Task tag explorer beside the Notes folder filter. */
+/* Shared task tag explorer across all views. */
 .tl-view .tl-tag-picker { position: relative; max-width: 100%; }
 .tl-view .tl-tag-picker > summary { cursor: pointer; min-height: 36px; padding: 6px 10px; border: 1px solid var(--background-modifier-border); border-radius: 8px; overflow-wrap: anywhere; }
 .tl-view .tl-tag-panel { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; width: min(340px, 80vw); padding: 12px; border: 1px solid var(--background-modifier-border); border-radius: 10px; background: var(--background-primary); box-shadow: var(--shadow-s); display: flex; flex-direction: column; gap: 8px; }
@@ -783,3 +783,8 @@ button.tl-inline-schedule svg { width: 15px; height: 15px; }
 @media (max-width: 680px) {
 	.tl-view .tl-tag-picker > summary, .tl-view .tl-tag-panel button { min-height: 44px; }
 }
+
+.tl-view .tl-header-tags { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; }
+.tl-view .tl-header-tags .tl-tag-picker > summary { max-width: 240px; }
+.tl-view .tl-header-tags .tl-tag-panel input { height: 36px; border-radius: 8px; }
+.tl-view .tl-header-tags { order: 4; flex-basis: 100%; justify-content: flex-end; }

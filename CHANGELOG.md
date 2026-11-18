@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.32 — 2026-11-18
+
+- Move the tag picker and favorites into the shared header across Dashboard, Today, Planner, Kanban, and Notes. The selected tag filters task lists, counts, and Planner calendar events in every task detection mode. Clear the tag from the header to restore all tasks.
+
 ## 0.5.31 — 2026-11-18
 
 - Filter Notes by task tags alongside folders, search, and status. The searchable tag dropdown discovers inline tags and their parents, including tags on checkbox tasks, and shows only matching tasks within shared notes.
