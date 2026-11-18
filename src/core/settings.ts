@@ -81,6 +81,10 @@ export function normalizeSettings(
 		settings.taskSource = "checkboxes";
 	const tags = normalizeTaskTags(Array.isArray(saved?.taskTags) ? saved.taskTags : [saved?.tag]);
 	settings.taskTags = tags.length ? tags : [...DEFAULT_SETTINGS.taskTags];
+	settings.favoriteTaskTags = normalizeTaskTags(
+		Array.isArray(saved?.favoriteTaskTags) ? saved.favoriteTaskTags : [],
+	);
+	settings.noteTagFilter = normalizeTaskTags([saved?.noteTagFilter])[0] ?? null;
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";
 	if (!Number.isFinite(settings.panelWidth)) settings.panelWidth = 260;
 	if (!Number.isFinite(settings.panelHeight)) settings.panelHeight = 220;

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.31 — 2026-11-18
+
+- Filter Notes by task tags alongside folders, search, and status. The searchable tag dropdown discovers inline tags and their parents, including tags on checkbox tasks, and shows only matching tasks within shared notes.
+- Star task tags for quick access under Favorites. Favorites and the selected tag are saved between sessions; removing a favorite leaves notes and task detection unchanged.
+
 ## 0.5.30 — 2026-11-16
 
 - Planner adapts to the width of its Obsidian pane. On narrow panes, switch between **Calendar** and **Task list** to give either more room.

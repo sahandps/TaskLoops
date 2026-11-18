@@ -1,3 +1,4 @@
+import { renderTaskTagFilter } from "../components/task-tag-filter";
 import { projectAccent } from "../components/task-appearance";
 import { renderTaskCompletionTabs } from "../components/task-completion-tabs";
 import { noteProgress } from "../../core/task-progress";
@@ -44,6 +45,7 @@ export function renderNotesView(
 		state.folder = folder.value === "all" ? null : folders[Number(folder.value)];
 		onChange();
 	};
+	renderTaskTagFilter(controls, tasks, actions, onChange);
 	const filters = pane.createDiv("tl-note-filters");
 	for (const [value, text] of [
 		["all", "All task notes"],
@@ -60,7 +62,14 @@ export function renderNotesView(
 			onChange();
 		};
 	}
-	const matchingGroups = noteGroups(tasks, state.query, state.folder, state.noteFilter, todayISO());
+	const matchingGroups = noteGroups(
+		tasks,
+		state.query,
+		state.folder,
+		state.noteFilter,
+		todayISO(),
+		actions.settings.noteTagFilter,
+	);
 	const visible = new Set(
 		renderTaskCompletionTabs(
 			pane,

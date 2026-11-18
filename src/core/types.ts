@@ -91,6 +91,8 @@ export interface TaskLoopsSettings {
 	notePreviewLimit: number;
 	taskSource: TaskSource;
 	taskTags: string[];
+	favoriteTaskTags: string[];
+	noteTagFilter: string | null;
 	scanFolder: string;
 	panelWidth: number;
 	panelHeight: number;
@@ -127,6 +129,8 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	notePreviewLimit: 5,
 	taskSource: "checkboxes",
 	taskTags: ["#task"],
+	favoriteTaskTags: [],
+	noteTagFilter: null,
 	scanFolder: "",
 	panelWidth: 260,
 	panelHeight: 220,

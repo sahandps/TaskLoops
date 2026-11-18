@@ -1,3 +1,4 @@
+import { inlineTaskTags, tagMatches } from "./task-parsing";
 import { overdueDays } from "./task-review";
 import type { ScannedTask } from "./types";
 
@@ -21,9 +22,11 @@ export function noteGroups(
 	folder: string | null,
 	filter: NoteFilter,
 	today: string,
+	tag: string | null = null,
 ): NoteGroup[] {
 	const groups = new Map<string, ScannedTask[]>();
 	for (const task of tasks) {
+		if (tag && !inlineTaskTags(task.raw ?? "").some((value) => tagMatches(value, tag))) continue;
 		const group = groups.get(task.path) ?? [];
 		group.push(task);
 		groups.set(task.path, group);
@@ -59,4 +62,18 @@ export function noteGroups(
 				(a.path.split("/").pop() ?? a.path).localeCompare(b.path.split("/").pop() ?? b.path) ||
 				a.path.localeCompare(b.path),
 		);
+}
+
+/** Counts include descendants, with each task counted once per parent tag. */
+export function taskTagCounts(tasks: ScannedTask[]): Map<string, number> {
+	const counts = new Map<string, number>();
+	for (const task of tasks) {
+		const tags = new Set<string>();
+		for (const tag of inlineTaskTags(task.raw ?? "")) {
+			const parts = tag.split("/");
+			for (let i = 1; i <= parts.length; i++) tags.add(parts.slice(0, i).join("/"));
+		}
+		for (const tag of tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+	}
+	return counts;
 }

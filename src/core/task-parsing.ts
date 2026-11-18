@@ -27,6 +27,22 @@ export function markTaggedTaskDone(line: string): string {
 const INLINE_TAG =
 	/(`+)(?!`)(?:.*?[^\x60])?\1(?!`)|<!--.*?-->|%%.*?%%|\[\[[^\]]+\]\]|\]\((?:\\.|[^)])*\)|(^|[^\p{L}\p{M}\p{N}_/#\\-])(#[\p{L}\p{M}\p{N}_/-]+)/gu;
 
+/** Inline tags on a task, independent of the configured task detection tags. */
+export function inlineTaskTags(raw: string): string[] {
+	return [
+		...new Set(
+			[...raw.matchAll(INLINE_TAG)].flatMap((match) => {
+				const tag = match[3];
+				return tag &&
+					/^#[\p{L}\p{M}\p{N}_-]+(?:\/[\p{L}\p{M}\p{N}_-]+)*$/u.test(tag) &&
+					/[\p{L}_/-]/u.test(tag)
+					? [tag.toLowerCase()]
+					: [];
+			}),
+		),
+	];
+}
+
 export function matchingTaskTags(raw: string, configured: readonly string[]): string[] {
 	return [
 		...new Set(

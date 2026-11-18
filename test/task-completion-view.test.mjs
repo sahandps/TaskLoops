@@ -18,6 +18,7 @@ export default function run(mod) {
   createSpan(options={}){return this.createEl('span',options);}
   setAttribute(k,v){this.attrs[k]=v;}
   setText(text){this.text=text;}
+  replaceChildren(){this.children=[];}
   querySelector(){return null;}
   closest(){return null;}
  }

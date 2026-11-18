@@ -71,3 +71,5 @@ export { taskEditorPresentation, taskEditorMeasure, TASK_EDITOR_DOCK_MIN_WIDTH }
 
 export * from "../src/core/repeat.ts";
 export { kanbanBoard } from "../src/core/kanban-board.ts";
+
+export {renderTaskTagFilter} from "../src/gui/components/task-tag-filter.ts";
