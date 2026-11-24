@@ -28,8 +28,9 @@ export function createPreviewActions(app, store, onChange) {
 	const actions = {
 		settings: (() => {
 			try {
+				const saved = JSON.parse(window.localStorage.getItem("taskloops-preview-settings"));
 				return normalizeSettings(
-					JSON.parse(window.localStorage.getItem("taskloops-preview-settings")),
+					saved ?? { projectNotes: ["Projects/TaskLoops.md", "Projects/Website.md"] },
 				);
 			} catch {
 				return { ...DEFAULT_SETTINGS };

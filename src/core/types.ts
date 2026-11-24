@@ -95,8 +95,8 @@ export interface TaskLoopsSettings {
 	/** Shared view tag filter; storage key retained for compatibility with 0.5.31. */
 	noteTagFilter: string | null;
 	scanFolder: string;
-	panelWidth: number;
-	panelHeight: number;
+	panelWidth?: number;
+	panelShare?: number;
 	standaloneNote: string;
 	standaloneDestination: "note" | "daily";
 	dateFormat: DateFormat;
@@ -133,8 +133,6 @@ export const DEFAULT_SETTINGS: TaskLoopsSettings = {
 	favoriteTaskTags: [],
 	noteTagFilter: null,
 	scanFolder: "",
-	panelWidth: 260,
-	panelHeight: 220,
 	standaloneNote: "Standalone Tasks.md",
 	standaloneDestination: "note",
 	dateFormat: "YYYY-MM-DD",

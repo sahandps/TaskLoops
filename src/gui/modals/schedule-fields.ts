@@ -40,6 +40,7 @@ function chipGroup(
 export function scheduleFields(
 	parent: HTMLElement,
 	initial: Schedule,
+	onSummaryChange?: (schedule: Schedule) => void,
 ): { read: () => Schedule | null; clear: () => void } {
 	const fields = parent.createDiv("tl-schedule-fields");
 	const dates = fields.createDiv("tl-date-fields");
@@ -63,11 +64,14 @@ export function scheduleFields(
 	due.oninput = () => {
 		deadline.min = due.value;
 	};
-	dates.createEl("small", {
-		text: "Deadline includes the last day. Multi-day tasks appear above the calendar.",
+	fields.createEl("small", {
+		text: "Multi-day tasks appear in the all-day row through their deadline.",
 		cls: "tl-deadline-hint",
 	});
-	const time = field(effort, "Time", "time", initial.time ?? "");
+	const time = field(effort, "Start time", "time", initial.time ?? "");
+	const updateSummary = () =>
+		onSummaryChange?.({ due: due.value, deadline: deadline.value, time: time.value });
+	for (const control of [due, deadline, time]) control.addEventListener("input", updateSummary);
 	const hours = field(
 		effort,
 		"Hours",
@@ -124,6 +128,7 @@ export function scheduleFields(
 			due.value = deadline.value = time.value = hours.value = minutes.value = "";
 			deadline.min = "";
 			repeat.clear();
+			updateSummary();
 		},
 	};
 }

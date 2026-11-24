@@ -9,6 +9,8 @@
 	--text-normal: #26362d;
 	--text-muted: #718071;
 	--text-faint: #97a292;
+	--text-error: #ad292c;
+	--background-modifier-error: #c65f61;
 	--interactive-accent: #547665;
 	--text-on-accent: #fff;
 	--font-ui-small: 13px;
@@ -20,7 +22,9 @@
 }
 body {
 	margin: 0;
-	min-height: 100dvh;
+	height: 100dvh;
+	display: flex;
+	flex-direction: column;
 	background: var(--background-primary);
 	color: var(--text-normal);
 }
@@ -62,7 +66,7 @@ input:focus-visible {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	min-height: 52px;
+	flex: none;
 	padding: 10px 24px;
 	border-bottom: 1px solid var(--background-modifier-border);
 	font-size: 12px;
@@ -72,8 +76,8 @@ input:focus-visible {
 	color: var(--text-normal);
 }
 #app.tl-view {
-	height: calc(100dvh - 56px);
-	padding: 22px;
+	min-height: 0;
+	padding: clamp(.5rem, 2vw, 1.375rem);
 }
 .tl-header {
 	padding-bottom: 12px;
@@ -84,10 +88,10 @@ input:focus-visible {
 dialog {
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 14px;
-	padding: 24px;
+	padding: clamp(.75rem, 4dvw, 1.5rem);
 	color: var(--text-normal);
-	width: min(620px, 94vw);
-	max-height: 88vh;
+	width: min(39rem, 94dvw);
+	max-height: 88dvh;
 	background: var(--background-primary);
 	overflow: auto;
 	box-shadow: 0 20px 80px #1c352b33;
@@ -113,7 +117,7 @@ dialog .tl-task-input {
 }
 .tl-schedule-fields label {
 	flex: 1;
-	min-width: 110px;
+	min-width: min(100%, 7rem);
 }
 .tl-schedule-fields input {
 	width: 100%;
@@ -154,6 +158,8 @@ dialog pre {
 	--text-normal: #e5e5e5;
 	--text-muted: #b3b3b3;
 	--text-faint: #929292;
+	--text-error: #f48d91;
+	--background-modifier-error: #ab5559;
 	--interactive-accent: #006de0;
 	--text-on-accent: #ffffff;
 	--text-accent: #6bb1ff;
@@ -177,21 +183,19 @@ dialog pre {
 	align-items: center;
 }
 .preview-theme-control select {
-	max-width: 90px;
+	max-width: 6rem;
 }
 .preview-banner {
 	flex-wrap: wrap;
 }
 .preview-banner > span {
 	flex: 1;
-	min-width: 160px;
-}
-#app.tl-view {
-	height: calc(100dvh - 100px);
+	min-width: min(100%, 10rem);
 }
 
 .tl-preview-settings {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	gap: 16px;
 }
 .tl-preview-setting {
@@ -204,7 +208,8 @@ dialog pre {
 }
 .tl-preview-setting > div:first-child {
 	flex: 1;
-	min-width: 180px;
+	overflow-wrap: anywhere;
+	min-width: min(100%, 11.25rem);
 }
 .tl-preview-setting small {
 	display: block;
@@ -221,7 +226,10 @@ dialog pre {
 
 .preview-layout {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 300px;
+	flex: 1;
+	min-height: 0;
+	grid-template-columns: minmax(0, 1fr) minmax(0, min(24%, 22rem));
+	grid-template-rows: minmax(0, 1fr);
 }
 .preview-layout.preview-editor-open {
 	grid-template-columns: minmax(0, 1fr);
@@ -230,7 +238,7 @@ dialog pre {
 	display: none;
 }
 #app.tl-view.tl-editor-docked {
-	padding-right: calc(var(--tl-editor-width, 440px) + 22px);
+	padding-right: calc(var(--tl-editor-width) + clamp(.5rem, 2vw, 1.375rem));
 }
 #app.tl-view.tl-editor-page {
 	padding: 0;
@@ -242,14 +250,32 @@ body.preview-editor-page #app.tl-view {
 	height: 100dvh;
 }
 #daily-calendar {
+	overflow: auto;
 	border-left: 1px solid var(--background-modifier-border);
 }
-@media (max-width: 800px) {
+@media (max-width: 50rem) {
+	.preview-banner {
+		gap: .375rem;
+		padding: .5rem;
+	}
+	.preview-banner > span {
+		flex-basis: 100%;
+	}
+	.preview-banner :is(button, select) {
+		padding: .25rem .375rem;
+	}
+	#app .tl-header {
+		padding-bottom: 0;
+	}
 	.preview-layout {
 		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto;
 	}
 	#daily-calendar {
-		grid-row: 1;
-		max-width: 380px;
+		grid-row: 2;
+		border-left: 0;
+	}
+	#app.tl-view {
+		height: 100dvh;
 	}
 }

@@ -1,3 +1,4 @@
+import { taskDisplayTitle } from "../../core/text";
 import { visibleTasks } from "../../application/task-actions";
 import { priorityBadge, projectAccent } from "../components/task-appearance";
 import type { TaskActions } from "../../application/task-actions";
@@ -88,8 +89,8 @@ export function renderTodayView(
 		check.setAttribute("data-today-focus", "complete:" + task.id);
 		row.createEl("button", {
 			cls: "tl-today-task-title",
-			text: task.text,
-			attr: { "aria-label": "Edit " + task.text, "data-today-focus": "edit:" + task.id },
+			text: taskDisplayTitle(task.text),
+			attr: { "aria-label": "Edit " + taskDisplayTitle(task.text), "data-today-focus": "edit:" + task.id },
 		}).onclick = () => edit(task);
 		priorityBadge(row, task, actions.settings);
 		const metadata = content.createDiv("tl-today-task-meta");

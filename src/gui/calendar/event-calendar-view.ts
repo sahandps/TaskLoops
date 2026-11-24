@@ -2,6 +2,8 @@ import { taskColorResolver } from "../../core/task-colors";
 import { priorityBadge, projectTextColor } from "../components/task-appearance";
 import { viewportScrollTime, restoreTimeGridViewport } from "../interactions/calendar-viewport";
 import { attachCalendarZoom } from "../interactions/calendar-zoom";
+import { formatTime } from "../../core/schedule";
+import { taskDisplayTitle } from "../../core/text";
 import { isoWeek } from "../../core/dates";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { createCalendarCreationHandlers } from "./creation-handlers";
@@ -67,6 +69,7 @@ export function renderEventCalendar(
 		weekNumberContent: (info) => "W" + isoWeek(localDay(info.date)).week,
 		dayHeaderFormat: options.scale === "day" ? { weekday: "long" } : { weekday: "short", day: "numeric" },
 		headerToolbar: { start: "", center: "", end: "" },
+		allDayContent: "All day",
 		firstDay: options.settings.weekStart as 0 | 1 | 6,
 		height: "100%",
 		nowIndicator: true,
@@ -88,7 +91,7 @@ export function renderEventCalendar(
 			const interval = taskInterval(task)!;
 			return {
 				id: task.id,
-				title: task.text,
+				title: taskDisplayTitle(task.text),
 				backgroundColor: colors.color(task),
 				textColor: projectTextColor(colors.color(task)),
 				...interval,
@@ -118,15 +121,24 @@ export function renderEventCalendar(
 			const content = host.createDiv(
 				"tl-calendar-event-content " + (info.event.allDay ? "is-all-day" : "is-timed"),
 			);
-			content.title = task.text + (info.timeText && !info.event.allDay ? " · " + info.timeText : "");
+			const title = taskDisplayTitle(task.text);
+			const timed = !info.event.allDay;
+			const start = timed ? formatTime(localTime(info.event.start), options.settings.timeFormat) : "";
+			content.title = timed
+				? `${start}–${formatTime(localTime(info.event.end), options.settings.timeFormat)} · ${title}`
+				: title;
 			// EventCalendar attaches the returned content to the event body.
 			content.remove();
-			renderCompletionCheckbox(content, task, options.complete);
-			content.createEl("h4", { cls: "ec-event-title", text: task.text });
+			const label = content.createDiv("tl-event-label");
+			renderCompletionCheckbox(label, task, options.complete);
+			if (timed)
+				label.createEl("time", {
+					cls: "tl-event-start",
+					text: start,
+					attr: { datetime: info.event.start.toISOString() },
+				});
+			label.createEl("h4", { cls: "ec-event-title", text: title });
 			priorityBadge(content, task, options.settings);
-			const minutes = (info.event.end.getTime() - info.event.start.getTime()) / 60000;
-			if (!info.event.allDay && info.timeText && minutes > 30)
-				content.createEl("time", { cls: "ec-event-time", text: info.timeText });
 			return { domNodes: [content] };
 		},
 		eventClick: (info) => {

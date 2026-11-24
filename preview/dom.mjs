@@ -6,7 +6,8 @@ export function installDOMHelpers() {
 		if (options.cls) el.className = options.cls;
 		if (options.text) el.textContent = options.text;
 		for (const [key, value] of Object.entries(options.attr ?? {})) el.setAttribute(key, value);
-		for (const key of ["type", "value", "placeholder"]) if (options[key]) el[key] = options[key];
+		for (const key of ["type", "value", "placeholder"])
+			if (options[key] !== undefined) el[key] = options[key];
 		this.append(el);
 		return el;
 	};

@@ -12,10 +12,10 @@ import type { PlannerTheme, ScannedTask } from "../../core/types";
  * views use the same editor as a full page. Creation, deferral and pickers
  * stay centered modals above it.
  */
-export const TASK_EDITOR_DOCK_MIN_WIDTH = 860;
+export const TASK_EDITOR_DOCK_MIN_REM = 53.75;
 
-export function taskEditorPresentation(width: number, mobile: boolean): "dock" | "page" {
-	if (mobile || width < TASK_EDITOR_DOCK_MIN_WIDTH) return "page";
+export function taskEditorPresentation(widthInRem: number, mobile: boolean): "dock" | "page" {
+	if (mobile || widthInRem < TASK_EDITOR_DOCK_MIN_REM) return "page";
 	return "dock";
 }
 
@@ -128,7 +128,9 @@ class TaskEditorSession {
 			inView ? this.mount.clientWidth : 0,
 			this.document.documentElement.clientWidth || this.document.defaultView?.innerWidth || 0,
 		);
-		const presentation = taskEditorPresentation(width, Platform.isMobile);
+		const root = this.document.documentElement;
+		const rootFontSize = parseFloat(this.document.defaultView?.getComputedStyle(root).fontSize ?? "");
+		const presentation = taskEditorPresentation(width / (rootFontSize || 16), Platform.isMobile);
 		const wasDocked = this.mount.classList.contains("tl-editor-docked");
 		this.presentation = presentation;
 		this.mount.classList.toggle("tl-editor-docked", inView && presentation === "dock");

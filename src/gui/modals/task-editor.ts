@@ -8,9 +8,11 @@ import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { renderSubtaskEditor } from "../components/subtask-editor";
 import { App, normalizePath } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
-import type { ScannedTask } from "../../core/types";
+import type { ScannedTask, Schedule } from "../../core/types";
 import { taskWording } from "../../core/task-edits";
 import { scheduleFields } from "./schedule-fields";
+import { scheduleSummary } from "../components/task-schedule-summary";
+import { isDeferred } from "../../core/task-deferral";
 import { projectDestination } from "./project-destination";
 
 let titleSequence = 0;
@@ -40,12 +42,22 @@ export function renderTaskEditor(
 	dismiss.onclick = () => close();
 	let path = task.path;
 	const details = taskSection(body, "Task");
-	const text = details.createEl("input", {
-		type: "text",
-		cls: "tl-task-input",
-		attr: { "aria-label": "Task", ...(startAtSchedule ? {} : { autofocus: "" }) },
+	const text = details.createEl("textarea", {
+		cls: "tl-task-input tl-task-wording",
+		attr: { "aria-label": "Task", rows: "3", ...(startAtSchedule ? {} : { autofocus: "" }) },
 	});
 	text.value = taskWording(task.raw);
+	// A task occupies one Markdown line. The editor wraps it and accepts multiline paste.
+	text.addEventListener("keydown", (event) => {
+		if (event.key === "Enter" && !event.isComposing) event.preventDefault();
+	});
+	text.addEventListener("input", () => {
+		const oneLine = text.value.replace(/\n+/g, " ");
+		if (oneLine === text.value) return;
+		const caret = text.value.slice(0, text.selectionStart).replace(/\n+/g, " ").length;
+		text.value = oneLine;
+		text.setSelectionRange(caret, caret);
+	});
 	attachNoteLinkSuggest(text, app, () => path);
 	const meta = details.createDiv("tl-task-detail-actions");
 	const status = meta.createDiv("tl-task-status");
@@ -72,23 +84,34 @@ export function renderTaskEditor(
 		cls: "tl-field-hint",
 		text: "Completion and deletion save immediately. Other edits save below.",
 	});
-	const note = taskSection(body, "Note");
-	const destination = projectDestination(note, app, plugin, path, (next) => {
-		path = next;
-	});
-	const readPriority = priorityField(details, plugin.settings, task.priority);
-	const readColor = calendarColorField(
-		details,
-		task.color,
-		() => plugin.settings.projectColors?.[path],
-		() => taskColorResolver(plugin.allTasks()).inherited(task),
-	);
 	const scheduleSection = taskSection(body, "Schedule");
-	const fields = scheduleFields(scheduleSection, task);
+	const currentSchedule = scheduleSection.createSpan({
+		cls: "tl-schedule-summary tl-editor-schedule",
+		attr: { "aria-live": "polite" },
+	});
+	const showSchedule = (schedule: Schedule) => {
+		const summary = scheduleSummary(schedule, plugin.settings, isDeferred(task));
+		currentSchedule.textContent = summary.label;
+		currentSchedule.dataset.state = summary.state;
+	};
+	showSchedule(task);
+	const fields = scheduleFields(scheduleSection, task, showSchedule);
 	scheduleSection.createEl("button", {
 		text: "Clear schedule",
 		cls: "tl-clear-schedule tl-quiet-button",
 	}).onclick = () => fields.clear();
+	const note = taskSection(body, "Note");
+	const destination = projectDestination(note, app, plugin, path, (next) => {
+		path = next;
+	});
+	const options = taskSection(body, "Task options");
+	const readPriority = priorityField(options, plugin.settings, task.priority);
+	const readColor = calendarColorField(
+		options,
+		task.color,
+		() => plugin.settings.projectColors?.[path],
+		() => taskColorResolver(plugin.allTasks()).inherited(task),
+	);
 	let previousPath = path;
 	let followingSubtasks = false;
 	const subtasks = task.checkbox
@@ -117,7 +140,9 @@ export function renderTaskEditor(
 				},
 			)
 		: { drafts: [], selected: [], flushDraft: () => {} };
-	const defer = actions.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
+	const secondary = actions.createDiv("tl-editor-secondary-actions");
+	const primary = actions.createDiv("tl-editor-primary-actions");
+	const defer = secondary.createEl("button", { text: "Can’t schedule now", cls: "tl-defer-from-dialog" });
 	defer.disabled = task.checked;
 	defer.onclick = () => {
 		if (!text.value.trim()) {
@@ -142,15 +167,15 @@ export function renderTaskEditor(
 			onSaved: () => close(),
 		}).open();
 	};
-	const remove = actions.createEl("button", {
+	const remove = secondary.createEl("button", {
 		text: "Delete task",
 		cls: "tl-delete-task mod-warning",
 		attr: {
 			title: "Removes this task’s line from its source note. Subtasks and other note content remain.",
 		},
 	});
-	actions.createEl("button", { text: "Cancel" }).onclick = () => close();
-	const save = actions.createEl("button", { text: "Save changes", cls: "mod-cta" });
+	primary.createEl("button", { text: "Cancel" }).onclick = () => close();
+	const save = primary.createEl("button", { text: "Save changes", cls: "mod-cta" });
 	const setBusy = (busy: boolean) => {
 		save.disabled = busy;
 		remove.disabled = busy;

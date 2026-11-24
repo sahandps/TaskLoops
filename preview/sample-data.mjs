@@ -3,7 +3,7 @@ import { writeSchedule } from "../src/core/schedule.ts";
 
 const SAMPLE_TASKS = [
 	["Define project scope", "Projects/Website.md", -1, undefined, 120, 0, true],
-	["Design review", "Projects/Website.md", 0, "10:00", 60],
+	["[Design review](https://example.com/projects/website/design-review)", "Projects/Website.md", 0, "10:00", 60],
 	["Review release checklist", "Projects/TaskLoops.md", 0, "09:30", 45],
 	["Draft changelog", "Projects/TaskLoops.md", 0, "13:00", 30],
 	["Capture release screenshots", "Projects/TaskLoops.md", 0, undefined, undefined, undefined, true],
@@ -11,7 +11,7 @@ const SAMPLE_TASKS = [
 	["Team planning", "Projects/TaskLoops.md", 1, "09:30", 45],
 	["Test timeline interactions", "Projects/TaskLoops.md", 3, undefined, 60, 4],
 	["Release checklist", "Projects/Website.md", 5, undefined, 1440],
-	["Read accessibility guidelines", "Personal.md"],
+	["[Read accessibility guidelines](https://example.com/resources/accessibility/guidelines)", "Personal.md"],
 	["Draft next sprint goals", "Projects/TaskLoops.md"],
 	["Measure the desk", "Home/Home office reset.md", -2, undefined, undefined, undefined, true],
 	["Order cable clips", "Home/Home office reset.md", 0],

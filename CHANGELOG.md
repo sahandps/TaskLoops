@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.33 — 2026-11-24
+
+- Planner, calendars, and the task editor adapt to the space in their Obsidian pane. The planner divider remembers its proportion, and Gantt uses the available height.
+- Task lists display Markdown link labels and show start times, all-day dates, and explicit Unscheduled and Deferred states. The editor keeps the original Markdown.
+- Calendar hours and half-hours are easier to distinguish. Timed events show their start time where space allows, and the task editor puts the schedule directly after the task text. The styling follows Obsidian theme variables.
+
 ## 0.5.32 — 2026-11-18
 
 - Move the tag picker and favorites into the shared header across Dashboard, Today, Planner, Kanban, and Notes. The selected tag filters task lists, counts, and Planner calendar events in every task detection mode. Clear the tag from the header to restore all tasks.

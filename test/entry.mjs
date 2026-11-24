@@ -11,7 +11,7 @@ export { applyNoteChanges } from "../src/infrastructure/obsidian/note-transactio
 export * from "../src/core/note-grid.ts";
 export { TaskLoopsSettingTab } from "../src/gui/obsidian/settings-tab.ts";
 export { weekOf, monthGrid, weekLabel } from "../src/core/dates.ts";
-export { panelSize } from "../src/gui/interactions/panel-resize.ts";
+export { sidebarShare } from "../src/gui/interactions/panel-resize.ts";
 export { noteTaskRows, locateNoteTask } from "../src/core/inline-task-data.ts";
 export { Platform as TestPlatform } from "obsidian";
 export { taskInterval, eventSchedule, ganttSchedule } from "../src/core/planner-schedule.ts";
@@ -67,7 +67,7 @@ export { DailyNotes } from "../src/infrastructure/obsidian/daily-notes.ts";
 
 export { renderDailyCalendar } from "../src/gui/components/daily-calendar.ts";
 
-export { taskEditorPresentation, taskEditorMeasure, TASK_EDITOR_DOCK_MIN_WIDTH } from "../src/gui/modals/task-editor-host.ts";
+export { taskEditorPresentation, taskEditorMeasure, TASK_EDITOR_DOCK_MIN_REM } from "../src/gui/modals/task-editor-host.ts";
 
 export * from "../src/core/repeat.ts";
 export { kanbanBoard } from "../src/core/kanban-board.ts";
@@ -75,3 +75,6 @@ export { kanbanBoard } from "../src/core/kanban-board.ts";
 export {renderTaskTagFilter} from "../src/gui/components/task-tag-filter.ts";
 
 export {visibleTasks} from "../src/application/task-actions.ts";
+
+export { taskDisplayTitle } from "../src/core/text.ts";
+export { scheduleSummary } from "../src/gui/components/task-schedule-summary.ts";

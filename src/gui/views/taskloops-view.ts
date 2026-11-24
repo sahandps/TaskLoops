@@ -352,13 +352,13 @@ export class TaskLoopsView extends ItemView {
 		const main = layout.createEl("main", { cls: "tl-calendar", attr: { "aria-label": "Task calendar" } });
 		renderCalendar(main, this, matching, timeViewport);
 		this.disposeDivider = addPanelDivider(layout, divider, {
-			width: this.plugin.settings.panelWidth ?? 260,
-			height: this.plugin.settings.panelHeight ?? 220,
+			share: this.plugin.settings.panelShare,
+			legacyWidth: this.plugin.settings.panelWidth,
 			begin: (cancel) => this.beginResize(cancel),
 			end: () => this.endResize(),
-			save: (size, stacked) => {
-				if (stacked) this.plugin.settings.panelHeight = size;
-				else this.plugin.settings.panelWidth = size;
+			save: (share) => {
+				this.plugin.settings.panelShare = share;
+				delete this.plugin.settings.panelWidth;
 				void this.plugin.saveSettings();
 			},
 		});

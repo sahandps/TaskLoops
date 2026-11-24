@@ -1,3 +1,4 @@
+import { taskDisplayTitle } from "../../core/text";
 import { App, FuzzySuggestModal } from "obsidian";
 import type { TaskActions } from "../../application/task-actions";
 import type { ScannedTask } from "../../core/types";
@@ -27,7 +28,7 @@ export class ExistingTaskPicker extends FuzzySuggestModal<ScannedTask> {
 	}
 	renderSuggestion(match: { item: ScannedTask }, el: HTMLElement): void {
 		const task = match.item;
-		el.createDiv({ cls: "tl-picker-title", text: task.text });
+		el.createDiv({ cls: "tl-picker-title", text: taskDisplayTitle(task.text) });
 		const schedule = [
 			task.due ? formatDate(task.due, this.plugin.settings.dateFormat) : "No date",
 			task.deadline

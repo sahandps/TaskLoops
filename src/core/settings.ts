@@ -86,8 +86,8 @@ export function normalizeSettings(
 	);
 	settings.noteTagFilter = normalizeTaskTags([saved?.noteTagFilter])[0] ?? null;
 	if (typeof settings.scanFolder !== "string") settings.scanFolder = "";
-	if (!Number.isFinite(settings.panelWidth)) settings.panelWidth = 260;
-	if (!Number.isFinite(settings.panelHeight)) settings.panelHeight = 220;
+	if (!Number.isFinite(settings.panelWidth)) delete settings.panelWidth;
+	if (!Number.isFinite(settings.panelShare)) delete settings.panelShare;
 	if (!["12h", "24h"].includes(settings.timeFormat)) settings.timeFormat = "24h";
 	if (![0, 1, 6].includes(settings.weekStart)) settings.weekStart = 1;
 	if (!Number.isInteger(settings.startHour) || settings.startHour < 0 || settings.startHour > 23)

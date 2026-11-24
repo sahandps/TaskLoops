@@ -532,7 +532,7 @@ updates inheriting descendants without rewriting their notes.
 
 ## Release updates
 
-**Current release: 0.5.32 — Filter by task tags and favorites across all views.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
+**Current release: 0.5.33 — Responsive panes and clearer task schedules.** See the [changelog](CHANGELOG.md) for details. Install or update TaskLoops from
 Obsidian's Community plugins, or download the plugin files from
 [Releases](https://github.com/sahandps/TaskLoops/releases).
 

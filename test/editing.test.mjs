@@ -3,6 +3,15 @@ import { createSuite } from "./harness.mjs";
 export default async function run(mod) {
 	const { TestFile, TaskLoopsPlugin, taskWording, taskBlock, editedBlock, replaceTaskBlock, appendTaskBlock, resizedDuration } = mod;
 	const { eq, results } = createSuite("task editor, subtasks, project moves and resizing");
+	const wording = "[Read the guide](https://example.com/docs/checklist(v2)) and [[Ops/Launch|the plan]]";
+	eq(mod.taskDisplayTitle(wording), "Read the guide and the plan", "task lists display link labels");
+	eq(taskWording("- [ ] " + wording), wording, "the editor retains the original Markdown links");
+	eq(mod.taskDisplayTitle("`[x](y)`"), "`[x](y)`", "inline code keeps its literal brackets");
+	const formats = { dateFormat: "DD.MM.YYYY", timeFormat: "12h" };
+	eq(mod.scheduleSummary({ due: "2026-11-25", time: "14:30" }, formats).label, "2:30 PM · 25.11.2026", "schedule label follows time and date preferences");
+	eq(mod.scheduleSummary({ due: "2026-11-25" }, formats).label, "All day · 25.11.2026", "date-only tasks are scheduled");
+	eq(mod.scheduleSummary({}, formats).label, "Unscheduled", "missing dates are explicit");
+	eq(mod.scheduleSummary({}, formats, true).label, "Deferred", "deferred tasks are distinguishable");
 	const raw = "  1. [ ] **Plan launch** #work Due date: 2026-10-16 Time: 10:00 Duration: 1 Hour ^launch\r";
 	const task = { path: "Source.md", raw, line: 2, checkbox: true };
 	const content = "## Tasks:\r\n\r\n" + raw + "\n      - [ ] Prepare assets\r\n        Details stay here.\r\n\r\n  - [ ] Unrelated sibling\r\n## Notes\r\nLeave this here.\r\n";

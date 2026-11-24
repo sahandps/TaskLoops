@@ -1,3 +1,4 @@
+import { taskDisplayTitle } from "../../core/text";
 import type { ScannedTask } from "../../core/types";
 
 /** Keep drag/edit handlers away from the checkbox; restore it if the write fails. */
@@ -10,7 +11,7 @@ export function renderCompletionCheckbox(
 	const check = parent.createEl("input", {
 		type: "checkbox",
 		cls: "tl-completion-checkbox",
-		attr: { "aria-label": "Complete " + task.text, title: "Mark complete" },
+		attr: { "aria-label": "Complete " + taskDisplayTitle(task.text), title: "Mark complete" },
 	});
 	check.checked = task.checked;
 	check.disabled = task.checked;

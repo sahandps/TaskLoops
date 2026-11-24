@@ -4,10 +4,13 @@ import type { TaskActions } from "../../application/task-actions";
 import { dashboardData } from "../../core/dashboard";
 import { todayISO } from "../../core/dates";
 import { localDay, localTime, moveTaskToDay } from "../../core/planner-schedule";
-import { formatDate, formatTime } from "../../core/schedule";
+import { formatTime } from "../../core/schedule";
 import type { ScannedTask } from "../../core/types";
 import { renderCompletionCheckbox } from "../components/completion-checkbox";
 import { priorityBadge, projectAccent } from "../components/task-appearance";
+import { scheduleSummary } from "../components/task-schedule-summary";
+import { taskDisplayTitle } from "../../core/text";
+import { isDeferred } from "../../core/task-deferral";
 import type { DashboardPage } from "./view-state";
 
 type Project = ReturnType<typeof dashboardData>["projects"][number];
@@ -61,25 +64,26 @@ export function renderDashboardView(
 		if (subtitle) row.createSpan({ cls: "tl-dash-meta", text: subtitle });
 		return row;
 	};
-	const taskRow = (parent: HTMLElement, task: ScannedTask, plan = false) => {
-		const row = parent.createDiv("tl-dash-task" + (task.checked ? " is-done" : ""));
+	const taskRow = (parent: HTMLElement, task: ScannedTask, plan = false, showNote = true) => {
+		const label = taskDisplayTitle(task.text);
+		const row = parent.createDiv(
+			"tl-dash-task" + (task.checked ? " is-done" : "") + (task.parentId ? " is-subtask" : ""),
+		);
 		const check = renderCompletionCheckbox(row, task, (item) => actions.complete(item));
 		check.setAttribute("data-dash-focus", "complete:" + task.id);
 		const copy = row.createDiv("tl-dash-task-copy");
-		const title = button(copy, task.text, () => nav.edit(task), "tl-dash-title");
+		const title = button(copy, label, () => nav.edit(task), "tl-dash-title");
 		title.setAttribute("data-dash-focus", "edit:" + task.id);
-		title.setAttribute("aria-label", "Edit " + task.text);
-		const note = actions.noteName(task.path);
-		copy.createDiv({
-			cls: "tl-dash-meta",
-			text: [
-				note,
-				task.due ? formatDate(task.due, actions.settings.dateFormat) : "",
-				task.parentId ? "Subtask" : "",
-			]
-				.filter(Boolean)
-				.join(" · "),
-			attr: { title: task.path },
+		title.setAttribute("aria-label", "Edit " + label);
+		const context = [showNote ? actions.noteName(task.path) : "", task.parentId ? "Subtask" : ""]
+			.filter(Boolean)
+			.join(" · ");
+		if (context) copy.createDiv({ cls: "tl-dash-meta", text: context, attr: { title: task.path } });
+		const schedule = scheduleSummary(task, actions.settings, isDeferred(task));
+		row.createSpan({
+			cls: "tl-schedule-summary tl-dash-schedule",
+			text: schedule.label,
+			attr: { "data-state": schedule.state },
 		});
 		if (!task.checked) priorityBadge(row, task, actions.settings);
 		if (plan) {
@@ -94,7 +98,7 @@ export function renderDashboardView(
 				},
 				"tl-dash-small-button",
 			);
-			control.setAttribute("aria-label", "Plan today: " + task.text);
+			control.setAttribute("aria-label", "Plan today: " + label);
 			control.setAttribute("data-dash-focus", "plan:" + task.id);
 		}
 	};
@@ -182,7 +186,7 @@ export function renderDashboardView(
 		button(summary, "Open note ↗", () => void actions.openNote(project.path));
 		progress(panel, project.completed, project.tasks.length, name + " progress");
 		if (!project.tasks.length) empty(panel, "No tasks found in this project note.");
-		for (const task of project.tasks) taskRow(panel, task);
+		for (const task of project.tasks) taskRow(panel, task, false, false);
 		return pane;
 	}
 
@@ -234,7 +238,12 @@ export function renderDashboardView(
 		});
 		const item = row.createDiv("tl-dash-event-copy");
 		projectAccent(item, entry.task.path, actions.settings);
-		const title = button(item, entry.task.text, () => nav.edit(entry.task), "tl-dash-title");
+		const title = button(
+			item,
+			taskDisplayTitle(entry.task.text),
+			() => nav.edit(entry.task),
+			"tl-dash-title",
+		);
 		title.setAttribute("data-dash-focus", "time:" + entry.task.id);
 		item.createDiv({
 			cls: "tl-dash-meta",

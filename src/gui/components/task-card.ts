@@ -6,7 +6,9 @@ import { todayISO } from "../../core/dates";
 import { renderCompletionCheckbox } from "./completion-checkbox";
 import type { ScannedTask } from "../../core/types";
 import type { TaskActions } from "../../application/task-actions";
-import { formatDate, formatDuration, formatTime } from "../../core/schedule";
+import { taskDisplayTitle } from "../../core/text";
+import { scheduleSummary } from "./task-schedule-summary";
+import { formatDate, formatDuration } from "../../core/schedule";
 import { describeRepeat, parseRepeat } from "../../core/repeat";
 
 export function renderTaskCard(
@@ -19,6 +21,8 @@ export function renderTaskCard(
 	defer: (task: ScannedTask) => void,
 ): HTMLElement {
 	const late = overdueDays(task, todayISO());
+	const title = taskDisplayTitle(task.text);
+	const deferred = isDeferred(task);
 	const card = parent.createDiv(
 		"tl-task" +
 			(task.checked ? " is-done" : "") +
@@ -33,29 +37,28 @@ export function renderTaskCard(
 	const open = () => edit(task);
 	row.createEl("button", {
 		cls: "tl-task-title",
-		text: task.text,
-		attr: { "aria-label": "Edit " + task.text },
+		text: title,
+		attr: { "aria-label": "Edit " + title },
 	}).onclick = open;
 	card.onclick = (event) => {
 		if (event.target instanceof Element && !event.target.closest("button, input, select, a")) open();
 	};
 	priorityBadge(row, task, actions.settings);
-	const schedule = row.createEl("button", {
-		cls: "tl-schedule-button",
-		text: "⋯",
-		attr: { "aria-label": "Schedule " + task.text },
-	});
-	schedule.onclick = open;
+	const summary = scheduleSummary(task, actions.settings, deferred);
+	const scheduleRow = content.createDiv("tl-card-schedule");
+	scheduleRow.createEl("button", {
+		cls: "tl-task-meta tl-schedule-summary",
+		text: summary.label,
+		attr: { "data-state": summary.state, "aria-label": "Change schedule: " + summary.label },
+	}).onclick = open;
 	if (late)
-		content.createSpan({
+		scheduleRow.createSpan({
 			cls: "tl-overdue-label",
 			text: `${late} ${late === 1 ? "day" : "days"} overdue`,
 		});
 	const repeatRule = task.repeat ? parseRepeat(task.repeat) : undefined;
 	const details = [
-		task.due ? formatDate(task.due, actions.settings.dateFormat) : "No date",
-		task.deadline ? "Deadline: " + formatDate(task.deadline, actions.settings.dateFormat) : undefined,
-		task.time ? formatTime(task.time, actions.settings.timeFormat) : undefined,
+		task.deadline === task.due && task.deadline ? "Deadline on scheduled date" : undefined,
 		task.duration ? formatDuration(task.duration) : undefined,
 		repeatRule
 			? "↻ " + describeRepeat(repeatRule, (iso) => formatDate(iso, actions.settings.dateFormat))
@@ -63,12 +66,8 @@ export function renderTaskCard(
 	]
 		.filter(Boolean)
 		.join(" · ");
-	card.title = task.text + " · " + details + " · " + task.path;
-	content.createEl("button", {
-		cls: "tl-task-meta",
-		text: details,
-		attr: { "aria-label": "Change schedule: " + details },
-	}).onclick = open;
+	card.title = [title, summary.label, details, task.path].filter(Boolean).join(" · ");
+	if (details) content.createDiv({ cls: "tl-task-schedule-details", text: details });
 	if (compact)
 		content.createEl("button", {
 			cls: "tl-task-source",
@@ -78,7 +77,7 @@ export function renderTaskCard(
 				"aria-label": "Open " + task.path + " in a new tab",
 			},
 		}).onclick = () => void actions.reveal(task);
-	if (isDeferred(task)) {
+	if (deferred) {
 		const reason = content.createDiv("tl-deferral-reason");
 		reason.createDiv({ cls: "tl-deferral-reason-label", text: "Can’t schedule now" });
 		reason.createDiv({ text: task.deferral!.reason });
@@ -91,15 +90,15 @@ export function renderTaskCard(
 		] as const)
 			choices.createEl("button", {
 				text: label,
-				attr: { "aria-label": `Schedule ${task.text} ${label.toLowerCase()}` },
+				attr: { "aria-label": `Schedule ${title} ${label.toLowerCase()}` },
 			}).onclick = () => void actions.schedule(task, { due: shiftISO(todayISO(), offset) });
 		choices.createEl("button", { text: "Choose date…" }).onclick = open;
 	}
-	if (!task.checked)
-		content.createEl("button", {
+	if (!task.checked && !task.due)
+		(deferred ? content : scheduleRow).createEl("button", {
 			cls: "tl-defer-task",
-			text: isDeferred(task) ? "Edit reason" : "Can’t schedule now",
-			attr: { "aria-label": `Record why ${task.text} can’t be scheduled` },
+			text: deferred ? "Edit reason" : "Can’t schedule now",
+			attr: { "aria-label": `Record why ${title} can’t be scheduled` },
 		}).onclick = () => defer(task);
 	if (!task.checked) makeDraggable(card, task);
 	return card;
